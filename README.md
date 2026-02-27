@@ -1,16 +1,14 @@
-# pregnova
+# PregNova 👶💚
 
-A new Flutter project.
+PregNova is a Clinical Decision Support System (CDSS) developed for pregnant users, especially for monitoring high-risk pregnancies.
 
-## Getting Started
+The system allows pregnant individuals to record health measurements and nutrition intake, while enabling healthcare professionals to monitor and evaluate the collected data.
 
-This project is a starting point for a Flutter application.
+## Technologies
+- Flutter
+- Dart
+- Firebase (Authentication & Firestore)
 
-A few resources to get you started if this is your first Flutter project:
+---
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Developed by Elif Atak and Merve Seccan
