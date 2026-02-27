@@ -1,0 +1,199 @@
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+class SifreDegistirPage extends StatefulWidget {
+  const SifreDegistirPage({Key? key}) : super(key: key);
+
+  @override
+  State<SifreDegistirPage> createState() => _SifreDegistirPageState();
+}
+
+class _SifreDegistirPageState extends State<SifreDegistirPage> {
+  final _formKey = GlobalKey<FormState>();
+
+  final currentPasswordController = TextEditingController();
+  final newPasswordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+
+  bool _loading = false;
+  bool _obscure1 = true;
+  bool _obscure2 = true;
+  bool _obscure3 = true;
+
+  @override
+  void dispose() {
+    currentPasswordController.dispose();
+    newPasswordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> changePassword() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _loading = true);
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null || user.email == null) {
+        throw Exception("Kullanıcı bulunamadı.");
+      }
+
+      // 🔐 Re-authentication (Zorunlu)
+      AuthCredential credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPasswordController.text.trim(),
+      );
+
+      await user.reauthenticateWithCredential(credential);
+
+      // 🔄 Şifre Güncelle
+      await user.updatePassword(newPasswordController.text.trim());
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Şifre başarıyla değiştirildi ✅")),
+      );
+
+      await Future.delayed(const Duration(seconds: 1));
+      Navigator.pop(context);
+
+    } on FirebaseAuthException catch (e) {
+      String message = "Bir hata oluştu.";
+
+      if (e.code == 'wrong-password') {
+        message = "Mevcut şifre yanlış.";
+      } else if (e.code == 'weak-password') {
+        message = "Yeni şifre çok zayıf.";
+      } else if (e.code == 'requires-recent-login') {
+        message = "Lütfen tekrar giriş yapın.";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Hata: $e")),
+      );
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
+
+  InputDecoration buildInputDecoration(
+      String label, bool obscure, VoidCallback toggle) {
+    return InputDecoration(
+      labelText: label,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+      suffixIcon: IconButton(
+        icon: Icon(obscure ? Icons.visibility : Icons.visibility_off),
+        onPressed: toggle,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.pink.shade50,
+      appBar: AppBar(
+        title: const Text("Şifre Değiştir"),
+        backgroundColor: Colors.pink,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+
+              // 🔐 Mevcut Şifre
+              TextFormField(
+                controller: currentPasswordController,
+                obscureText: _obscure1,
+                validator: (value) =>
+                value == null || value.isEmpty
+                    ? "Mevcut şifre giriniz"
+                    : null,
+                decoration: buildInputDecoration(
+                  "Mevcut Şifre",
+                  _obscure1,
+                      () => setState(() => _obscure1 = !_obscure1),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // 🔑 Yeni Şifre
+              TextFormField(
+                controller: newPasswordController,
+                obscureText: _obscure2,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Yeni şifre giriniz";
+                  }
+                  if (value.length < 6) {
+                    return "Şifre en az 6 karakter olmalı";
+                  }
+                  return null;
+                },
+                decoration: buildInputDecoration(
+                  "Yeni Şifre",
+                  _obscure2,
+                      () => setState(() => _obscure2 = !_obscure2),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // 🔁 Şifre Tekrar
+              TextFormField(
+                controller: confirmPasswordController,
+                obscureText: _obscure3,
+                validator: (value) {
+                  if (value != newPasswordController.text) {
+                    return "Şifreler eşleşmiyor";
+                  }
+                  return null;
+                },
+                decoration: buildInputDecoration(
+                  "Yeni Şifre (Tekrar)",
+                  _obscure3,
+                      () => setState(() => _obscure3 = !_obscure3),
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _loading ? null : changePassword,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.pink,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: _loading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                    "Şifreyi Güncelle",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

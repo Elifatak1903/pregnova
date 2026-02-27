@@ -1,0 +1,791 @@
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'gynecologist_patient_detail_page.dart';
+import 'login_page.dart';
+
+class GynecologistHomePage extends StatefulWidget {
+  const GynecologistHomePage({super.key});
+
+  @override
+  State<GynecologistHomePage> createState() =>
+      _GynecologistHomePageState();
+}
+
+class _Legend extends StatelessWidget {
+  final Color color;
+  final String text;
+
+  const _Legend({required this.color, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          color: color,
+        ),
+        const SizedBox(width: 6),
+        Text(text),
+      ],
+    );
+  }
+}
+
+class _GynecologistHomePageState
+    extends State<GynecologistHomePage> {
+
+  Future<int> getApprovedCount() async {
+    final query = await FirebaseFirestore.instance
+        .collection("expert_requests")
+        .where("expertId", isEqualTo: uid)
+        .where("status", isEqualTo: "approved")
+        .get();
+
+    return query.docs.length;
+  }
+
+  Future<int> getPendingCount() async {
+    final query = await FirebaseFirestore.instance
+        .collection("expert_requests")
+        .where("expertId", isEqualTo: uid)
+        .where("status", isEqualTo: "pending")
+        .get();
+
+    return query.docs.length;
+  }
+
+  Future<int> getHighRiskCount() async {
+    final query = await FirebaseFirestore.instance
+        .collection("users")
+        .where("assignedDoctor", isEqualTo: uid)
+        .where("riskLevel", isEqualTo: "high")
+        .get();
+
+    return query.docs.length;
+  }
+
+  Future<int> getActiveThisWeek() async {
+    final sevenDaysAgo =
+    DateTime.now().subtract(const Duration(days: 7));
+
+    final query = await FirebaseFirestore.instance
+        .collection("risk_olcumleri")
+        .where("expertId", isEqualTo: uid)
+        .where("tarih", isGreaterThan: sevenDaysAgo)
+        .get();
+
+    return query.docs.length;
+  }
+  Future<Map<String, int>> getRiskDistribution() async {
+
+    final normal = await FirebaseFirestore.instance
+        .collection("users")
+        .where("assignedDoctor", isEqualTo: uid)
+        .where("riskLevel", isEqualTo: "normal")
+        .get();
+
+    final medium = await FirebaseFirestore.instance
+        .collection("users")
+        .where("assignedDoctor", isEqualTo: uid)
+        .where("riskLevel", isEqualTo: "medium")
+        .get();
+
+    final high = await FirebaseFirestore.instance
+        .collection("users")
+        .where("assignedDoctor", isEqualTo: uid)
+        .where("riskLevel", isEqualTo: "high")
+        .get();
+
+    return {
+      "normal": normal.docs.length,
+      "medium": medium.docs.length,
+      "high": high.docs.length,
+    };
+  }
+  Widget _buildRecentActivity() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection("risk_olcumleri")
+          .orderBy("tarih", descending: true)
+          .limit(5)
+          .snapshots(),
+      builder: (context, snapshot) {
+
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final docs = snapshot.data!.docs;
+
+        if (docs.isEmpty) {
+          return const Text("Henüz aktivite yok");
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: docs.map((doc) {
+
+            final data = doc.data() as Map<String, dynamic>;
+            final uid = data["uid"];
+
+            return FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection("users")
+                  .doc(uid)
+                  .get(),
+              builder: (context, userSnap) {
+
+                if (!userSnap.hasData) {
+                  return const SizedBox();
+                }
+
+                final userData =
+                userSnap.data!.data() as Map<String, dynamic>?;
+
+                final name = userData?["name"] ?? "";
+                final surname = userData?["surname"] ?? "";
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: const [
+                      BoxShadow(color: Colors.black12, blurRadius: 6)
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.timeline, color: Colors.pink),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          "$name $surname yeni ölçüm gönderdi",
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+  Widget _buildHighRiskBanner() {
+    return FutureBuilder<int>(
+      future: getHighRiskCount(),
+      builder: (context, snapshot) {
+
+        if (!snapshot.hasData) {
+          return const SizedBox();
+        }
+
+        final count = snapshot.data!;
+
+        if (count == 0) {
+          return const SizedBox();
+        }
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 20),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.red.shade100,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.red),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.warning, color: Colors.red),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  "$count Yüksek Riskli Hasta Var",
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  int _selectedIndex = 0;
+  late final String uid;
+
+  @override
+  void initState() {
+    super.initState();
+    uid = FirebaseAuth.instance.currentUser!.uid;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.pink.shade50,
+
+      appBar: AppBar(
+        title: const Text("PregNova"),
+        backgroundColor: Colors.pink,
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: Icon(Icons.notifications),
+          )
+        ],
+      ),
+
+      body: _buildBody(),
+
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.pink,
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(
+              icon: Icon(Icons.home), label: "Ana Sayfa"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.people), label: "Danışanlar"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.message), label: "Mesajlar"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.person), label: "Hesap Bilgileri"),
+        ],
+      ),
+    );
+  }
+
+
+  // ================= HOME =================
+
+  Widget _buildBody() {
+    switch (_selectedIndex) {
+      case 0:
+        return _buildHomePage();
+      case 1:
+        return _buildPatientsPage();   // ✔ Doğru eşleşme
+      case 2:
+        return _buildMessagesPage();
+      case 3:
+        return _buildAccountPage();
+      default:
+        return _buildHomePage();
+    }
+  }
+  Widget _buildHomePage() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          _buildHighRiskBanner(),
+
+          const Text(
+            "Jinekolog Paneli",
+            style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold),
+          ),
+
+          const SizedBox(height: 25),
+
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            crossAxisSpacing: 15,
+            mainAxisSpacing: 15,
+            childAspectRatio: 1.1,
+            children: [
+
+              FutureBuilder<int>(
+                future: getApprovedCount(),
+                builder: (context, snapshot) {
+                  return _premiumStatCard(
+                    "Danışan",
+                    snapshot.data?.toString() ?? "...",
+                    Colors.pink,
+                    Icons.people,
+                  );
+                },
+              ),
+
+              FutureBuilder<int>(
+                future: getPendingCount(),
+                builder: (context, snapshot) {
+                  return _premiumStatCard(
+                    "Bekleyen",
+                    snapshot.data?.toString() ?? "...",
+                    Colors.orange,
+                    Icons.pending,
+                  );
+                },
+              ),
+
+              FutureBuilder<int>(
+                future: getHighRiskCount(),
+                builder: (context, snapshot) {
+                  return _premiumStatCard(
+                    "Yüksek Risk",
+                    snapshot.data?.toString() ?? "...",
+                    Colors.red,
+                    Icons.warning,
+                  );
+                },
+              ),
+
+              FutureBuilder<int>(
+                future: getActiveThisWeek(),
+                builder: (context, snapshot) {
+                  return _premiumStatCard(
+                    "Son 7 Gün Aktif",
+                    snapshot.data?.toString() ?? "...",
+                    Colors.green,
+                    Icons.timeline,
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 30),
+          _buildRiskChart(),
+
+          const SizedBox(height: 30),
+
+          const Text(
+            "Son Aktiviteler",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 15),
+          _buildRecentActivity(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPatientsPage() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection("expert_requests")
+          .where("expertId", isEqualTo: uid)
+          .where("status", isEqualTo: "approved")
+          .snapshots(),
+      builder: (context, snapshot) {
+
+        if (!snapshot.hasData) {
+          return const Center(
+              child: CircularProgressIndicator());
+        }
+
+        final docs = snapshot.data!.docs;
+
+        if (docs.isEmpty) {
+          return const Center(
+            child: Text(
+              "Henüz danışan bulunmuyor",
+              style: TextStyle(fontSize: 16),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+
+            final clientId = docs[index]["clientId"];
+
+            return FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection("users")
+                  .doc(clientId)
+                  .get(),
+              builder: (context, userSnapshot) {
+
+                if (!userSnapshot.hasData) {
+                  return const SizedBox();
+                }
+
+                final data =
+                userSnapshot.data!.data()
+                as Map<String, dynamic>?;
+
+                final name = data?["name"] ?? "";
+                final surname = data?["surname"] ?? "";
+                final hafta = data?["hafta"] ?? "-";
+                final risk = data?["riskLevel"] ?? "normal";
+
+                Color riskColor;
+                String riskText;
+
+                if (risk == "high") {
+                  riskColor = Colors.red;
+                  riskText = "Yüksek Risk";
+                } else if (risk == "medium") {
+                  riskColor = Colors.orange;
+                  riskText = "Orta Risk";
+                } else {
+                  riskColor = Colors.green;
+                  riskText = "Normal";
+                }
+
+                return Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.only(bottom: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+
+                    leading: CircleAvatar(
+                      radius: 26,
+                      backgroundColor: riskColor,
+                      child: const Icon(
+                        Icons.person,
+                        color: Colors.white,
+                      ),
+                    ),
+
+                    title: Text(
+                      "$name $surname",
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16),
+                    ),
+
+                    subtitle: Column(
+                      crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 6),
+                        Text("Gebelik Haftası: $hafta"),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Risk Durumu: $riskText",
+                          style: TextStyle(
+                              color: riskColor,
+                              fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios,
+                      size: 18,
+                    ),
+
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => HastaDetayPage(
+                            clientId: clientId,
+                            name: name,
+                            surname: surname,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildMessagesPage() {
+    return const Center(
+      child: Text("Mesaj Sayfası"),
+    );
+  }
+
+  Widget _buildAccountPage() {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          const SizedBox(height: 20),
+
+          const Text(
+            "Hesap Bilgileri",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(height: 30),
+
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            elevation: 4,
+            child: ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text(
+                "Çıkış Yap",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              onTap: () async {
+                await FirebaseAuth.instance.signOut();
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => LoginPage(), // kendi login sayfan
+                  ),
+                      (route) => false,
+                );
+              },
+            ),
+          ),
+
+        ],
+      ),
+    );
+  }
+  Widget _premiumStatCard(
+      String title, String value, Color color, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 6)
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 26),
+          const SizedBox(height: 10),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: color)),
+          const SizedBox(height: 6),
+          Text(title),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRiskChart() {
+    return FutureBuilder<Map<String, int>>(
+      future: getRiskDistribution(),
+      builder: (context, snapshot) {
+
+        if (!snapshot.hasData) {
+          return const Center(
+              child: CircularProgressIndicator());
+        }
+
+        final data = snapshot.data!;
+        final normal = data["normal"]!.toDouble();
+        final medium = data["medium"]!.toDouble();
+        final high = data["high"]!.toDouble();
+
+        final total = normal + medium + high;
+
+        if (total == 0) {
+          return const Text("Henüz risk verisi yok");
+        }
+
+        return Column(
+          children: [
+            const Text(
+              "Risk Dağılımı",
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 200,
+              child: PieChart(
+                PieChartData(
+                  sectionsSpace: 2,
+                  centerSpaceRadius: 40,
+                  sections: [
+                    PieChartSectionData(
+                      color: Colors.green,
+                      value: normal,
+                      title: "",
+                    ),
+                    PieChartSectionData(
+                      color: Colors.orange,
+                      value: medium,
+                      title: "",
+                    ),
+                    PieChartSectionData(
+                      color: Colors.red,
+                      value: high,
+                      title: "",
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 15),
+            Row(
+              mainAxisAlignment:
+              MainAxisAlignment.spaceEvenly,
+              children: const [
+                _Legend(color: Colors.green, text: "Normal"),
+                _Legend(color: Colors.orange, text: "Orta"),
+                _Legend(color: Colors.red, text: "Yüksek"),
+              ],
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  // ================= PATIENT REQUEST LIST =================
+
+  Widget _buildPatientRequests() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection("expert_requests")
+          .where("expertId", isEqualTo: uid)
+          .where("status", isEqualTo: "pending")
+          .snapshots(),
+      builder: (context, snapshot) {
+
+        if (!snapshot.hasData) {
+          return const Center(
+              child: CircularProgressIndicator());
+        }
+
+        final docs = snapshot.data!.docs;
+
+        final visibleDocs = docs.length > 2 ? docs.take(2).toList() : docs;
+        final extraCount = docs.length - visibleDocs.length;
+
+        if (docs.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: _cardDecoration(),
+            child: const Text("Bekleyen istek yok."),
+          );
+        }
+
+        return Column(
+          children: visibleDocs.map((doc) {
+
+            final clientId = doc["clientId"];
+
+            return FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection("users")
+                  .doc(clientId)
+                  .get(),
+              builder: (context, userSnapshot) {
+
+                if (!userSnapshot.hasData) {
+                  return const SizedBox();
+                }
+
+                final data = userSnapshot.data!.data()
+                as Map<String, dynamic>?;
+
+                final name = data?["name"] ?? "";
+                final surname = data?["surname"] ?? "";
+                final hafta = data?["hafta"] ?? "-";
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(14),
+                  decoration: _cardDecoration(),
+                  child: Column(
+                    crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                    children: [
+
+                      Text(
+                        "$name $surname, Week $hafta",
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "Danışma İstekleri",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          if (extraCount > 0)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                "+$extraCount",
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                        ],
+                      )
+                    ],
+                  ),
+                );
+              },
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  // ================= CARD DECORATION =================
+
+  BoxDecoration _cardDecoration() {
+    return BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      boxShadow: const [
+        BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6)
+      ],
+    );
+  }
+}

@@ -1,0 +1,284 @@
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import 'kisisel_bilgi_goruntule.dart';
+
+class KisiselBilgilerPage extends StatefulWidget {
+  const KisiselBilgilerPage({Key? key}) : super(key: key);
+
+  @override
+  State<KisiselBilgilerPage> createState() => _KisiselBilgilerPageState();
+}
+
+class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
+
+  final _formKey = GlobalKey<FormState>();
+
+  final yasController = TextEditingController();
+  final kiloController = TextEditingController();
+  final haftaController = TextEditingController();
+
+  bool isLoading = true;
+  bool isSaving = false;
+
+  // 🔥 Static Risk Factors
+  bool chronicHypertension = false;
+  bool diabetes = false;
+  bool thyroidDisease = false;
+  bool previousPreterm = false;
+  bool multiplePregnancy = false;
+  bool smoker = false;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserData();
+  }
+
+  @override
+  void dispose() {
+    yasController.dispose();
+    kiloController.dispose();
+    haftaController.dispose();
+    super.dispose();
+  }
+
+  Future<void> fetchUserData() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    if (uid != null) {
+      final snapshot =
+      await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+      final data = snapshot.data();
+
+      if (data != null) {
+        // 🔥 TextField değerleri
+        yasController.text = data['yas']?.toString() ?? '';
+        kiloController.text = data['kilo']?.toString() ?? '';
+        haftaController.text = data['hafta']?.toString() ?? '';
+
+        // 🔥 Checkbox değerleri
+        chronicHypertension = data['chronicHypertension'] ?? false;
+        diabetes = data['diabetes'] ?? false;
+        thyroidDisease = data['thyroidDisease'] ?? false;
+        previousPreterm = data['previousPreterm'] ?? false;
+        multiplePregnancy = data['multiplePregnancy'] ?? false;
+        smoker = data['smoker'] ?? false;
+      }
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  Future<void> kaydet() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => isSaving = true);
+
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'yas': int.tryParse(yasController.text.trim()) ?? 0,
+        'kilo': double.tryParse(kiloController.text.trim()) ?? 0,
+        'hafta': int.tryParse(haftaController.text.trim()) ?? 0,
+
+        // 🔥 Static risk factors
+        'chronicHypertension': chronicHypertension,
+        'diabetes': diabetes,
+        'thyroidDisease': thyroidDisease,
+        'previousPreterm': previousPreterm,
+        'multiplePregnancy': multiplePregnancy,
+        'smoker': smoker,
+
+        'profilTamamlandi': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Bilgiler güncellendi ✅")),
+      );
+
+      await Future.delayed(const Duration(seconds: 1));
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const KisiselBilgilerGoruntulePage()),
+      );
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Hata oluştu: $e")),
+      );
+    }
+
+    setState(() => isSaving = false);
+  }
+
+  Widget buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType type = TextInputType.text,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: type,
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return "Bu alan boş bırakılamaz";
+          }
+          return null;
+        },
+        decoration: InputDecoration(
+          contentPadding:
+          const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
+          filled: true,
+          fillColor: Colors.white,
+          labelText: label,
+          labelStyle: const TextStyle(color: Colors.pink),
+          prefixIcon: Icon(icon, color: Colors.pink),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide:
+            BorderSide(color: Colors.pink.shade100, width: 1.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide:
+            const BorderSide(color: Colors.pink, width: 2),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildCheckbox(String title, bool value, Function(bool?) onChanged) {
+    return CheckboxListTile(
+      title: Text(title),
+      value: value,
+      activeColor: Colors.pink,
+      onChanged: onChanged,
+      contentPadding: EdgeInsets.zero,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.pink.shade50,
+      appBar: AppBar(
+        title: const Text("Kişisel Bilgiler"),
+        backgroundColor: Colors.pink,
+      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+
+                buildInputField(
+                  controller: yasController,
+                  label: "Yaş",
+                  icon: Icons.person,
+                  type: TextInputType.number,
+                ),
+
+                buildInputField(
+                  controller: kiloController,
+                  label: "Güncel Kilo (kg)",
+                  icon: Icons.monitor_weight,
+                  type: TextInputType.number,
+                ),
+
+                buildInputField(
+                  controller: haftaController,
+                  label: "Hamilelik Haftası",
+                  icon: Icons.calendar_today,
+                  type: TextInputType.number,
+                ),
+
+                const SizedBox(height: 10),
+                const Divider(),
+                const SizedBox(height: 10),
+
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Risk Faktörleri",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                buildCheckbox("Kronik Hipertansiyon", chronicHypertension,
+                        (val) => setState(() => chronicHypertension = val!)),
+
+                buildCheckbox("Diyabet", diabetes,
+                        (val) => setState(() => diabetes = val!)),
+
+                buildCheckbox("Tiroid Hastalığı", thyroidDisease,
+                        (val) => setState(() => thyroidDisease = val!)),
+
+                buildCheckbox("Önceki Preterm", previousPreterm,
+                        (val) => setState(() => previousPreterm = val!)),
+
+                buildCheckbox("Çoğul Gebelik", multiplePregnancy,
+                        (val) => setState(() => multiplePregnancy = val!)),
+
+                buildCheckbox("Sigara", smoker,
+                        (val) => setState(() => smoker = val!)),
+
+                const SizedBox(height: 25),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: ElevatedButton(
+                    onPressed: isSaving ? null : kaydet,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.pink,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: isSaving
+                        ? const CircularProgressIndicator(
+                      color: Colors.white,
+                    )
+                        : const Text(
+                      "Kaydet",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

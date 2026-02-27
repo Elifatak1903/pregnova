@@ -1,0 +1,167 @@
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class HastaKlinikDetayPage extends StatelessWidget {
+  final String clientId;
+  final String name;
+  final String surname;
+
+  const HastaKlinikDetayPage({
+    super.key,
+    required this.clientId,
+    required this.name,
+    required this.surname,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.pink.shade50,
+      appBar: AppBar(
+        backgroundColor: Colors.pink,
+        title: const Text("Detaylı Klinik Analiz"),
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection("risk_olcumleri")
+            .where("uid", isEqualTo: clientId)
+            .orderBy("tarih", descending: true)
+            .limit(30)
+            .snapshots(),
+        builder: (context, snapshot) {
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Text("Hata: ${snapshot.error}"),
+            );
+          }
+
+          if (!snapshot.hasData) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          final docs = snapshot.data!.docs;
+
+          if (docs.isEmpty) {
+            return const Center(
+              child: Text("Kayıt bulunamadı"),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: docs.length,
+            itemBuilder: (context, index) {
+
+              final data =
+              docs[index].data() as Map<String, dynamic>;
+
+              final Timestamp ts = data["tarih"];
+              final date = ts.toDate();
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: const [
+                    BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 6)
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
+                  children: [
+
+                    // 📅 Tarih
+                    Text(
+                      "${date.day}/${date.month}/${date.year}",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // 📊 Ölçümler
+                    _infoRow("Tansiyon",
+                        data["tansiyon"]),
+                    _infoRow("Açlık Şekeri",
+                        data["aclikSeker"]),
+                    _infoRow("Tokluk Şekeri",
+                        data["toklukSeker"]),
+                    _infoRow("Stres Seviyesi",
+                        data["stresSeviyesi"]),
+
+                    const Divider(height: 25),
+
+                    // 🧠 Semptomlar
+                    _boolRow("Baş Ağrısı",
+                        data["basAgrisi"]),
+                    _boolRow("Görme Bozukluğu",
+                        data["gormeBozuklugu"]),
+                    _boolRow("Şişlik",
+                        data["sislik"]),
+                    _boolRow("Karın Kasılması",
+                        data["karinKasilma"]),
+                    _boolRow("Bel Ağrısı",
+                        data["belAgrisi"]),
+                    _boolRow("Akıntı",
+                        data["akinti"]),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _infoRow(String title, dynamic value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Text(
+        "$title: ${value ?? '-'}",
+        style: const TextStyle(fontSize: 14),
+      ),
+    );
+  }
+
+  Widget _boolRow(String title, dynamic value) {
+    String text = "-";
+    Color color = Colors.grey;
+
+    if (value == true) {
+      text = "Var";
+      color = Colors.red;
+    } else if (value == false) {
+      text = "Yok";
+      color = Colors.green;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment:
+        MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title),
+          Text(
+            text,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
