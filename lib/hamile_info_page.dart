@@ -16,6 +16,7 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
   final yasController = TextEditingController();
   final kiloController = TextEditingController();
   final haftaController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   bool chronicHypertension = false;
   bool diabetes = false;
@@ -33,6 +34,7 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
   }
 
   Future<void> kaydet() async {
+    if (!_formKey.currentState!.validate()) return;
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
@@ -56,6 +58,14 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
         'profilTamamlandi': true,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
+      await FirebaseFirestore.instance
+          .collection('risk_olcumleri')
+          .add({
+        'uid': widget.uid,
+        'kilo': double.tryParse(kiloController.text.trim()) ?? 0,
+        'hafta': int.tryParse(haftaController.text.trim()),
+        'tarih': FieldValue.serverTimestamp(),
+      });
 
       Navigator.pushReplacement(
         context,
@@ -76,9 +86,30 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: TextField(
+      child: TextFormField(
         controller: controller,
         keyboardType: type,
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return "Bu alan boş bırakılamaz";
+          }
+
+          if (label == "Yaş"){
+            final age = int.tryParse(value);
+            if (age == null || age<15 || age > 50){
+              return "15-50 arası yaş giriniz";
+            }
+          }
+
+          if(label == "Hamilelik Haftası") {
+            final week = int.tryParse(value);
+            if(week == null || week < 1 || week > 42){
+              return "1-42 arası hafta giriniz";
+            }
+          }
+
+          return null;
+        },
         decoration: InputDecoration(
           filled: true,
           fillColor: Colors.white,
@@ -86,6 +117,10 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
           prefixIcon: Icon(icon, color: Colors.pink),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Colors.pink, width: 2),
           ),
         ),
       ),
@@ -119,83 +154,86 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
           elevation: 6,
           child: Padding(
             padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
 
-                buildInputField(
-                  controller: yasController,
-                  label: "Yaş",
-                  icon: Icons.person,
-                  type: TextInputType.number,
-                ),
+                  buildInputField(
+                    controller: yasController,
+                    label: "Yaş",
+                    icon: Icons.person,
+                    type: TextInputType.number,
+                  ),
 
-                buildInputField(
-                  controller: kiloController,
-                  label: "Güncel Kilo (kg)",
-                  icon: Icons.monitor_weight,
-                  type: TextInputType.number,
-                ),
+                  buildInputField(
+                    controller: kiloController,
+                    label: "Güncel Kilo (kg)",
+                    icon: Icons.monitor_weight,
+                    type: TextInputType.number,
+                  ),
 
-                buildInputField(
-                  controller: haftaController,
-                  label: "Hamilelik Haftası",
-                  icon: Icons.calendar_today,
-                  type: TextInputType.number,
-                ),
+                  buildInputField(
+                    controller: haftaController,
+                    label: "Hamilelik Haftası",
+                    icon: Icons.calendar_today,
+                    type: TextInputType.number,
+                  ),
 
-                const SizedBox(height: 20),
-                const Divider(),
-                const SizedBox(height: 10),
+                  const SizedBox(height: 20),
+                  const Divider(),
+                  const SizedBox(height: 10),
 
-                const Text(
-                  "Kronik / Risk Faktörleri",
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16),
-                ),
+                  const Text(
+                    "Kronik / Risk Faktörleri",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16),
+                  ),
 
-                const SizedBox(height: 10),
+                  const SizedBox(height: 10),
 
-                buildCheckbox("Kronik Hipertansiyon", chronicHypertension,
-                        (val) => setState(() => chronicHypertension = val!)),
+                  buildCheckbox("Kronik Hipertansiyon", chronicHypertension,
+                          (val) => setState(() => chronicHypertension = val!)),
 
-                buildCheckbox("Diyabet", diabetes,
-                        (val) => setState(() => diabetes = val!)),
+                  buildCheckbox("Diyabet", diabetes,
+                          (val) => setState(() => diabetes = val!)),
 
-                buildCheckbox("Tiroid Hastalığı", thyroidDisease,
-                        (val) => setState(() => thyroidDisease = val!)),
+                  buildCheckbox("Tiroid Hastalığı", thyroidDisease,
+                          (val) => setState(() => thyroidDisease = val!)),
 
-                buildCheckbox("Önceki Preterm Doğum", previousPreterm,
-                        (val) => setState(() => previousPreterm = val!)),
+                  buildCheckbox("Önceki Preterm Doğum", previousPreterm,
+                          (val) => setState(() => previousPreterm = val!)),
 
-                buildCheckbox("Çoğul Gebelik (İkiz vb.)", multiplePregnancy,
-                        (val) => setState(() => multiplePregnancy = val!)),
+                  buildCheckbox("Çoğul Gebelik (İkiz vb.)", multiplePregnancy,
+                          (val) => setState(() => multiplePregnancy = val!)),
 
-                buildCheckbox("Sigara Kullanımı", smoker,
-                        (val) => setState(() => smoker = val!)),
+                  buildCheckbox("Sigara Kullanımı", smoker,
+                          (val) => setState(() => smoker = val!)),
 
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                SizedBox(
-                  width: double.infinity,
-                  height: 55,
-                  child: ElevatedButton(
-                    onPressed: kaydet,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.pink,   // ✅ pembe buton
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 55,
+                    child: ElevatedButton(
+                      onPressed: kaydet,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.pink,   // ✅ pembe buton
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        "Kaydet ve Devam Et",
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold),
                       ),
                     ),
-                    child: const Text(
-                      "Kaydet ve Devam Et",
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold),
-                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
