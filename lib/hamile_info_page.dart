@@ -16,6 +16,7 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
   final yasController = TextEditingController();
   final kiloController = TextEditingController();
   final haftaController = TextEditingController();
+  final boyController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   bool chronicHypertension = false;
@@ -30,10 +31,20 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
     yasController.dispose();
     kiloController.dispose();
     haftaController.dispose();
+    boyController.dispose();
     super.dispose();
   }
 
   Future<void> kaydet() async {
+    final kilo = double.tryParse(kiloController.text.trim()) ?? 0;
+    final boyCm = double.tryParse(boyController.text.trim()) ?? 0;
+    final boyMetre = boyCm /100;
+
+    double bmi = 0;
+    if (boyMetre >0) {
+      bmi = kilo / (boyMetre * boyMetre);
+    }
+    
     if (!_formKey.currentState!.validate()) return;
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -45,6 +56,8 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
           .set({
         'yas': int.tryParse(yasController.text.trim()) ?? 0,
         'kilo': double.tryParse(kiloController.text.trim()) ?? 0,
+        'boy': boyCm,
+        'bmi': bmi,
         'hafta': int.tryParse(haftaController.text.trim()) ?? 0,
 
         // STATIC RISK FACTORS
@@ -105,6 +118,13 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
             final week = int.tryParse(value);
             if(week == null || week < 1 || week > 42){
               return "1-42 arası hafta giriniz";
+            }
+          }
+          
+          if (label == "Boy (cm)"){
+            final height = double.tryParse(value);
+            if (height == null || height < 100 || height > 250){
+              return "Geçerli bir sayı giriniz";
             }
           }
 
@@ -170,6 +190,12 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
                     controller: kiloController,
                     label: "Güncel Kilo (kg)",
                     icon: Icons.monitor_weight,
+                    type: TextInputType.number,
+                  ),
+
+                  buildInputField(controller: boyController,
+                    label: "Boy (cm)",
+                    icon: Icons.height,
                     type: TextInputType.number,
                   ),
 

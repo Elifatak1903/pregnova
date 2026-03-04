@@ -13,9 +13,11 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
   final _formKey = GlobalKey<FormState>();
 
   // Controllers
-  final tansiyonController = TextEditingController();
+  final sistolikController = TextEditingController();
+  final diastolikController = TextEditingController();
   final aclikSekerController = TextEditingController();
   final toklukSekerController = TextEditingController();
+  final kiloController = TextEditingController();
 
   // Boolean risk soruları
   bool basAgrisi = false;
@@ -43,9 +45,11 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
     await FirebaseFirestore.instance.collection('risk_olcumleri').add({
       'uid': uid,
       'tarih': Timestamp.now(),
+      'kilo': double.tryParse(kiloController.text),
 
       // Preeklampsi
-      'tansiyon': tansiyonController.text,
+      'sistolik': int.tryParse(sistolikController.text),
+      'diastolik': int.tryParse(diastolikController.text),
       'basAgrisi': basAgrisi,
       'gormeBozuklugu': gormeBozuklugu,
       'sislik': sislik,
@@ -69,6 +73,7 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
 
     Navigator.pop(context);
     setState(() => _loading = false);
+    print("Risk hesaplama tetiklenecek");
   }
 
   @override
@@ -102,9 +107,13 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
 
                   const SizedBox(height: 20),
 
+                  _sectionTitle("Genel Ölçüm"),
+                  _textInput("Güncel Kilo (kg)", kiloController),
+
                   // ---------------- PRE-EKLAMPSİ ----------------
                   _sectionTitle("Preeklampsi Takibi"),
-                  _textInput("Tansiyon (örn: 140/90)", tansiyonController),
+                  _textInput("Sistolik (Büyük Tansiyon)", sistolikController),
+                  _textInput("Diastolik (Küçük Tansiyon)", diastolikController),
                   _switchTile("Şiddetli baş ağrısı", basAgrisi,
                       (v) => setState(() => basAgrisi = v)),
                   _switchTile("Görme bozukluğu", gormeBozuklugu,
@@ -194,6 +203,49 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: TextFormField(
         controller: controller,
+        keyboardType: TextInputType.number,
+        validator: (value) {
+          if (value == null || value.trim().isEmpty){
+            return "Bu alan boş bırakılamaz";
+          }
+          final number = double.tryParse(value);
+
+          if (number == null){
+            return "Geçerli bir sayı giriniz";
+          }
+
+          if (label.contains("Kilo")){
+            if (number < 30 || number > 200) {
+              return "Geçerli bir sayı giriniz";
+            }
+          }
+
+          if (label.contains("Açlık")) {
+            if (number <50 || number > 300) {
+              return "Geçerli bir kan şekeri değeri giriniz";
+            }
+          }
+
+          if (label.contains("Tokluk")){
+            if (number < 50 || number > 400) {
+              return "Geçerli bir kan şekeri değeri giriniz";
+            }
+          }
+
+          if (label.contains("Sistolik")) {
+            if (number < 70 || number > 250) {
+              return "Geçerli bir tansiyon değeri giriniz.";
+            }
+          }
+
+          if (label.contains("Diastolik")) {
+            if (number < 40 || number > 150){
+              return "Geçerli bir tansiyon değeri giriniz";
+            }
+          }
+
+          return null;
+        },
         decoration: InputDecoration(
           labelText: label,
           filled: true,

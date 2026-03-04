@@ -22,7 +22,7 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
   bool isLoading = true;
   bool isSaving = false;
 
-  // 🔥 Static Risk Factors
+  // Static Risk Factors
   bool chronicHypertension = false;
   bool diabetes = false;
   bool thyroidDisease = false;
@@ -54,12 +54,10 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
       final data = snapshot.data();
 
       if (data != null) {
-        // 🔥 TextField değerleri
         yasController.text = data['yas']?.toString() ?? '';
         kiloController.text = data['kilo']?.toString() ?? '';
         haftaController.text = data['hafta']?.toString() ?? '';
 
-        // 🔥 Checkbox değerleri
         chronicHypertension = data['chronicHypertension'] ?? false;
         diabetes = data['diabetes'] ?? false;
         thyroidDisease = data['thyroidDisease'] ?? false;
@@ -87,7 +85,6 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
         'kilo': double.tryParse(kiloController.text.trim()) ?? 0,
         'hafta': int.tryParse(haftaController.text.trim()) ?? 0,
 
-        // 🔥 Static risk factors
         'chronicHypertension': chronicHypertension,
         'diabetes': diabetes,
         'thyroidDisease': thyroidDisease,

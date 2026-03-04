@@ -63,8 +63,6 @@ class KisiselBilgilerGoruntulePage extends StatelessWidget {
                       child: Column(
                         children: [
 
-                          // Sadece risk gösterim kısmını değiştiriyoruz
-
                           bilgiKart(
                             "Kronik Hipertansiyon",
                             (data['chronicHypertension'] ?? false) ? "Var" : "Yok",
