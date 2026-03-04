@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'risk_engine.dart';
 
 class RiskTakipFormuPage extends StatefulWidget {
   const RiskTakipFormuPage({super.key});
@@ -35,149 +36,248 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
 
   bool _loading = false;
 
+  @override
+  void dispose() {
+    sistolikController.dispose();
+    diastolikController.dispose();
+    aclikSekerController.dispose();
+    toklukSekerController.dispose();
+    kiloController.dispose();
+    super.dispose();
+  }
+
   Future<void> kaydet() async {
-    if (!_formKey.currentState!.validate()) return;
+    try {
+      if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _loading = true);
+      setState(() => _loading = true);
 
-    final uid = FirebaseAuth.instance.currentUser!.uid;
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+      final userDoc = await FirebaseFirestore.instance
+          .collection("users")
+          .doc(uid)
+          .get();
 
-    await FirebaseFirestore.instance.collection('risk_olcumleri').add({
-      'uid': uid,
-      'tarih': Timestamp.now(),
-      'kilo': double.tryParse(kiloController.text),
+      final userData = userDoc.data() ?? {};
+      final sistolik = int.tryParse(sistolikController.text) ?? 0;
+      final diastolik = int.tryParse(diastolikController.text) ?? 0;
+      final aclik = double.tryParse(aclikSekerController.text);
+      final tokluk = double.tryParse(toklukSekerController.text);
 
-      // Preeklampsi
-      'sistolik': int.tryParse(sistolikController.text),
-      'diastolik': int.tryParse(diastolikController.text),
-      'basAgrisi': basAgrisi,
-      'gormeBozuklugu': gormeBozuklugu,
-      'sislik': sislik,
+      final preeklampsiRisk = await RiskEngine.calculatePreeklampsi(
+        uid: uid,
+        sistolik: sistolik,
+        diastolik: diastolik,
+        gormeBozuklugu: gormeBozuklugu,
+        basAgrisi: basAgrisi,
+        sislik: sislik,
+        chronicHypertension: userData["chronicHypertension"] ?? false,
+      );
+      final diyabetRisk = RiskEngine.calculateDiyabet(
+        aclik: aclik,
+        tokluk: tokluk,
+        asiriSusama: asiriSusama,
+        sikIdrar: sikIdrar,
+        diabetes: userData["diabetes"] ?? false,
+      );
+      final pretermRisk = RiskEngine.calculatePreterm(
+        karinKasilma: karinKasilma,
+        akinti: akinti,
+        belAgrisi: belAgrisi,
+        stresSeviyesi: stresSeviyesi,
+        previousPreterm: userData["previousPreterm"] ?? false,
+        multiplePregnancy: userData["multiplePregnancy"] ?? false,
+      );
 
-      // Gestasyonel Diyabet
-      'aclikSeker': double.tryParse(aclikSekerController.text),
-      'toklukSeker': double.tryParse(toklukSekerController.text),
-      'asiriSusama': asiriSusama,
-      'sikIdrar': sikIdrar,
+      await showDialog(
+        context: context,
+        builder: (context){
+          Color color(String risk){
+            if (risk == "HIGH") return Colors.red;
+            if (risk == "MEDIUM") return Colors.orange;
+            return Colors.green;
+          }
+          return AlertDialog(
+            title: const Text("Risk Sonucu"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _riskRow("Preeklampsi", preeklampsiRisk, color),
+                _riskRow("Diyabet", diyabetRisk, color),
+                _riskRow("Preterm", pretermRisk, color),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: (){
+                  Navigator.pop(context);
+                },
+                child: const Text("Tamam"),
+              )
+            ],
+          );
+        },
+      );
 
-      // Preterm Birth
-      'karinKasilma': karinKasilma,
-      'akinti': akinti,
-      'belAgrisi': belAgrisi,
-      'stresSeviyesi': stresSeviyesi,
-    });
+      await FirebaseFirestore.instance.collection('risk_olcumleri').add({
+        'uid': uid,
+        'tarih': Timestamp.now(),
+        'kilo': double.tryParse(kiloController.text),
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Risk verileri kaydedildi 💗")),
+        // Preeklampsi
+        'sistolik': int.tryParse(sistolikController.text),
+        'diastolik': int.tryParse(diastolikController.text),
+        'basAgrisi': basAgrisi,
+        'gormeBozuklugu': gormeBozuklugu,
+        'sislik': sislik,
+
+        // Gestasyonel Diyabet
+        'aclikSeker': aclik,
+        'toklukSeker': tokluk,
+        'asiriSusama': asiriSusama,
+        'sikIdrar': sikIdrar,
+
+        // Preterm Birth
+        'karinKasilma': karinKasilma,
+        'akinti': akinti,
+        'belAgrisi': belAgrisi,
+        'stresSeviyesi': stresSeviyesi,
+
+        'preeklampsiRisk': preeklampsiRisk,
+        'diyabetRisk': diyabetRisk,
+        'pretermRisk': pretermRisk,
+      });
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+      Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Risk verileri kaydedildi 💗")),
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Hata: $e")),
+      );
+    }
+  }
+
+  Widget _riskRow(String title, String risk, Function color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title),
+          Text(
+            risk,
+            style: TextStyle(
+              color: color(risk),
+              fontWeight: FontWeight.bold,
+            ),
+          )
+        ],
+      ),
     );
-
-    Navigator.pop(context);
-    setState(() => _loading = false);
-    print("Risk hesaplama tetiklenecek");
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFFCE4EC), Color(0xFFF8BBD0)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+      backgroundColor: Colors.pink.shade50,
+      appBar: AppBar(
+        title: const Text("Risk Takip Formu"),
+        backgroundColor: Colors.pink,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
 
-                  const Text(
-                    "Risk Takip Formu",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.pink,
-                    ),
-                  ),
+              _textInput("Güncel Kilo (kg)", kiloController),
 
-                  const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-                  _sectionTitle("Genel Ölçüm"),
-                  _textInput("Güncel Kilo (kg)", kiloController),
+              _sectionTitle("Preeklampsi Takibi"),
 
-                  // ---------------- PRE-EKLAMPSİ ----------------
-                  _sectionTitle("Preeklampsi Takibi"),
-                  _textInput("Sistolik (Büyük Tansiyon)", sistolikController),
-                  _textInput("Diastolik (Küçük Tansiyon)", diastolikController),
-                  _switchTile("Şiddetli baş ağrısı", basAgrisi,
+              _textInput("Sistolik", sistolikController),
+              _textInput("Diastolik", diastolikController),
+
+              _switchTile("Şiddetli baş ağrısı", basAgrisi,
                       (v) => setState(() => basAgrisi = v)),
-                  _switchTile("Görme bozukluğu", gormeBozuklugu,
+
+              _switchTile("Görme bozukluğu", gormeBozuklugu,
                       (v) => setState(() => gormeBozuklugu = v)),
-                  _switchTile("El/Yüz şişmesi", sislik,
+
+              _switchTile("El/Yüz şişmesi", sislik,
                       (v) => setState(() => sislik = v)),
 
-                  const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-                  // ---------------- DİYABET ----------------
-                  _sectionTitle("Gestasyonel Diyabet"),
-                  _textInput("Açlık kan şekeri", aclikSekerController),
-                  _textInput("Tokluk kan şekeri", toklukSekerController),
-                  _switchTile("Aşırı susama", asiriSusama,
+              _sectionTitle("Gestasyonel Diyabet"),
+
+              _textInput("Açlık kan şekeri", aclikSekerController),
+              _textInput("Tokluk kan şekeri", toklukSekerController),
+
+              _switchTile("Aşırı susama", asiriSusama,
                       (v) => setState(() => asiriSusama = v)),
-                  _switchTile("Sık idrara çıkma", sikIdrar,
+
+              _switchTile("Sık idrar", sikIdrar,
                       (v) => setState(() => sikIdrar = v)),
 
-                  const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-                  // ---------------- PRETERM ----------------
-                  _sectionTitle("Preterm Birth Riski"),
-                  _switchTile("Karın kasılması", karinKasilma,
+              _sectionTitle("Preterm Riski"),
+
+              _switchTile("Karın kasılması", karinKasilma,
                       (v) => setState(() => karinKasilma = v)),
-                  _switchTile("Vajinal akıntı artışı", akinti,
+
+              _switchTile("Akıntı artışı", akinti,
                       (v) => setState(() => akinti = v)),
-                  _switchTile("Bel ağrısı", belAgrisi,
+
+              _switchTile("Bel ağrısı", belAgrisi,
                       (v) => setState(() => belAgrisi = v)),
 
-                  const SizedBox(height: 10),
-                  const Text("Stres Seviyesi"),
-                  Slider(
-                    value: stresSeviyesi,
-                    min: 1,
-                    max: 5,
-                    divisions: 4,
-                    label: stresSeviyesi.round().toString(),
-                    onChanged: (value) {
-                      setState(() => stresSeviyesi = value);
-                    },
-                  ),
+              const SizedBox(height: 10),
 
-                  const SizedBox(height: 30),
+              const Text("Stres Seviyesi"),
 
-                  SizedBox(
-                    width: double.infinity,
-                    height: 55,
-                    child: ElevatedButton(
-                      onPressed: _loading ? null : kaydet,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.pink,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: _loading
-                          ? const CircularProgressIndicator(
-                              color: Colors.white)
-                          : const Text("Kaydet"),
+              Slider(
+                value: stresSeviyesi,
+                min: 1,
+                max: 5,
+                divisions: 4,
+                label: stresSeviyesi.round().toString(),
+                onChanged: (value) {
+                  setState(() => stresSeviyesi = value);
+                },
+              ),
+
+              const SizedBox(height: 30),
+
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton(
+                  onPressed: _loading ? null : kaydet,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.pink,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                ],
-              ),
-            ),
+                  child: _loading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text("Kaydet"),
+                ),
+              )
+            ],
           ),
         ),
       ),
@@ -205,45 +305,12 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
         controller: controller,
         keyboardType: TextInputType.number,
         validator: (value) {
-          if (value == null || value.trim().isEmpty){
+          if (value == null || value.trim().isEmpty) {
             return "Bu alan boş bırakılamaz";
           }
-          final number = double.tryParse(value);
-
-          if (number == null){
-            return "Geçerli bir sayı giriniz";
+          if (double.tryParse(value) == null) {
+            return "Geçerli sayı giriniz";
           }
-
-          if (label.contains("Kilo")){
-            if (number < 30 || number > 200) {
-              return "Geçerli bir sayı giriniz";
-            }
-          }
-
-          if (label.contains("Açlık")) {
-            if (number <50 || number > 300) {
-              return "Geçerli bir kan şekeri değeri giriniz";
-            }
-          }
-
-          if (label.contains("Tokluk")){
-            if (number < 50 || number > 400) {
-              return "Geçerli bir kan şekeri değeri giriniz";
-            }
-          }
-
-          if (label.contains("Sistolik")) {
-            if (number < 70 || number > 250) {
-              return "Geçerli bir tansiyon değeri giriniz.";
-            }
-          }
-
-          if (label.contains("Diastolik")) {
-            if (number < 40 || number > 150){
-              return "Geçerli bir tansiyon değeri giriniz";
-            }
-          }
-
           return null;
         },
         decoration: InputDecoration(
@@ -258,8 +325,7 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
     );
   }
 
-  Widget _switchTile(
-      String title, bool value, Function(bool) onChanged) {
+  Widget _switchTile(String title, bool value, Function(bool) onChanged) {
     return SwitchListTile(
       value: value,
       title: Text(title),

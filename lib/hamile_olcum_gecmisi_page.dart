@@ -104,14 +104,19 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold),
                                 ),
-                                _satir("Tansiyon",
-                                    "${data['tansiyon'] ?? "-"}"),
+                                _satir(
+                                  "Tansiyon",
+                                  "${data['sistolik'] ?? "-"} / ${data['diastolik'] ?? "-"}",),
                                 _satir("Baş ağrısı",
                                     _boolText(data['basAgrisi'])),
                                 _satir("Görme bozukluğu",
                                     _boolText(data['gormeBozuklugu'])),
                                 _satir("Şişlik",
                                     _boolText(data['sislik'])),
+                                _satir(
+                                  "Risk Sonucu",
+                                  data['preeklampsiRisk'] ?? "-",
+                                ),
 
                                 const SizedBox(height: 10),
 
@@ -129,6 +134,10 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
                                     _boolText(data['asiriSusama'])),
                                 _satir("Sık idrar",
                                     _boolText(data['sikIdrar'])),
+                                _satir(
+                                  "Risk Sonucu",
+                                  data['diyabetRisk'] ?? "-",
+                                ),
 
                                 const SizedBox(height: 10),
 
@@ -146,6 +155,10 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
                                     _boolText(data['belAgrisi'])),
                                 _satir("Stres",
                                     "${data['stresSeviyesi'] ?? "-"}"),
+                                _satir(
+                                  "Risk Sonucu",
+                                  data['pretermRisk'] ?? "-",
+                                ),
 
                                 const SizedBox(height: 10),
 
@@ -181,6 +194,13 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
   }
 
   Widget _satir(String title, String value) {
+
+    Color color = Colors.black;
+
+    if (value == "HIGH") color = Colors.red;
+    if (value == "MEDIUM") color = Colors.orange;
+    if (value == "LOW") color = Colors.green;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -189,7 +209,10 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
           Text(title),
           Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ],
       ),
