@@ -114,4 +114,41 @@ class RiskEngine {
     if(score >2 && score<=5) return "MEDIUM";
     return "HIGH";
   }
+  static Future<void> sendRiskNotification({
+    required String uid,
+    required String riskType,
+    required String riskLevel,
+  }) async {
+
+    if (riskLevel != "HIGH") return;
+
+    final userDoc = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(uid)
+        .get();
+
+    final doctorId = userDoc.data()?["assignedDoctor"];
+
+    // Hamileye bildirim
+    await FirebaseFirestore.instance.collection("notification").add({
+      "uid": uid,
+      "type": "risk_alert",
+      "title": "Risk Uyarısı",
+      "message": "$riskType riski yüksek çıktı. Doktorunu bilgilendir.",
+      "isRead": false,
+      "createdAt": FieldValue.serverTimestamp(),
+    });
+
+    // Jinekoloğa bildirim
+    if (doctorId != null) {
+      await FirebaseFirestore.instance.collection("notification").add({
+        "uid": doctorId,
+        "type": "risk_alert",
+        "title": "Riskli Hasta",
+        "message": "Bir hastada $riskType riski HIGH çıktı.",
+        "isRead": false,
+        "createdAt": FieldValue.serverTimestamp(),
+      });
+    }
+  }
 }

@@ -30,7 +30,7 @@ class NotificationPanel extends StatelessWidget {
         stream: FirebaseFirestore.instance
             .collection('notification')
             .where('uid', isEqualTo: uid)
-            //.orderBy('createdAt', descending: true)
+            .orderBy('createdAt', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -74,8 +74,10 @@ class NotificationPanel extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         backgroundColor: Colors.pink,
-                        child: const Icon(
-                          Icons.notifications,
+                        child: Icon(
+                          doc['type'] == "risk_alert"
+                            ? Icons.warning
+                            : Icons.notifications,
                           color: Colors.white,
                         ),
                       ),

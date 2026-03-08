@@ -88,6 +88,56 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
         previousPreterm: userData["previousPreterm"] ?? false,
         multiplePregnancy: userData["multiplePregnancy"] ?? false,
       );
+      await RiskEngine.sendRiskNotification(
+        uid: uid,
+        riskType: "Preeklampsi",
+        riskLevel: preeklampsiRisk,
+      );
+
+      await RiskEngine.sendRiskNotification(
+        uid: uid,
+        riskType: "Gestasyonel Diyabet",
+        riskLevel: diyabetRisk,
+      );
+
+      await RiskEngine.sendRiskNotification(
+        uid: uid,
+        riskType: "Preterm Doğum",
+        riskLevel: pretermRisk,
+      );
+
+      if (preeklampsiRisk == "HIGH") {
+        await FirebaseFirestore.instance.collection("notification").add({
+          "uid": uid,
+          "title": "⚠️ Yüksek Risk Uyarısı",
+          "message": "Preeklampsi için yüksek risk tespit edildi. Lütfen doktorunuzla iletişime geçin.",
+          "type": "risk_alert",
+          "isRead": false,
+          "createdAt": FieldValue.serverTimestamp(),
+        });
+      }
+
+      if (diyabetRisk == "HIGH") {
+        await FirebaseFirestore.instance.collection("notification").add({
+          "uid": uid,
+          "title": "⚠️ Yüksek Risk Uyarısı",
+          "message": "Gestasyonel diyabet için yüksek risk tespit edildi.",
+          "type": "risk_alert",
+          "isRead": false,
+          "createdAt": FieldValue.serverTimestamp(),
+        });
+      }
+
+      if (pretermRisk == "HIGH") {
+        await FirebaseFirestore.instance.collection("notification").add({
+          "uid": uid,
+          "title": "⚠️ Yüksek Risk Uyarısı",
+          "message": "Preterm doğum riski yüksek görünüyor.",
+          "type": "risk_alert",
+          "isRead": false,
+          "createdAt": FieldValue.serverTimestamp(),
+        });
+      }
 
       await showDialog(
         context: context,
@@ -150,11 +200,10 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
       if (mounted) {
         setState(() => _loading = false);
       }
-      Navigator.pop(context);
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Risk verileri kaydedildi 💗")),
       );
+      Navigator.pop(context);
     } catch (e) {
       if (mounted) {
         setState(() => _loading = false);
@@ -166,7 +215,7 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
     }
   }
 
-  Widget _riskRow(String title, String risk, Function color) {
+  Widget _riskRow(String title, String risk, Color Function(String) color) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(

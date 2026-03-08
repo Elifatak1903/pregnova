@@ -238,11 +238,42 @@ class _GynecologistHomePageState
       appBar: AppBar(
         title: const Text("PregNova"),
         backgroundColor: Colors.pink,
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.notifications),
-          )
+        actions: [
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection("notification")
+                .where("uid", isEqualTo: uid)
+                .where("isRead", isEqualTo: false)
+                .snapshots(),
+            builder: (context, snapshot) {
+
+              bool hasNotif =
+                  snapshot.hasData && snapshot.data!.docs.isNotEmpty;
+
+              return Stack(
+                children: [
+
+                  IconButton(
+                    icon: const Icon(Icons.notifications),
+                    onPressed: () {
+                      // buraya istersen notification page açabiliriz
+                    },
+                  ),
+
+                  if (hasNotif)
+                    const Positioned(
+                      right: 10,
+                      top: 10,
+                      child: CircleAvatar(
+                        radius: 5,
+                        backgroundColor: Colors.red,
+                      ),
+                    )
+
+                ],
+              );
+            },
+          ),
         ],
       ),
 

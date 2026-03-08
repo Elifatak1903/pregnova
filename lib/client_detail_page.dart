@@ -150,6 +150,7 @@ class ClientDetailPage extends StatelessWidget {
                         Text("Gebelik Haftası: $hafta"),
                         const SizedBox(height: 10),
                         Text("Güncel Kilo: $kilo kg"),
+
                       ],
                     ),
                   ),

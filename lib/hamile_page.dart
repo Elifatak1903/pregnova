@@ -223,6 +223,8 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
 
           const SizedBox(height: 30),
 
+          riskDashboard(),
+
           gridButton(
             title: "Risk Ölçüm",
             icon: Icons.health_and_safety,
@@ -340,4 +342,84 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
       ),
     );
   }
+}
+
+Widget riskDashboard() {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+
+  if (uid == null) return const SizedBox();
+
+  return StreamBuilder<QuerySnapshot>(
+    stream: FirebaseFirestore.instance
+        .collection("risk_olcumleri")
+        .where("uid", isEqualTo: uid)
+        .orderBy("tarih", descending: true)
+        .limit(1)
+        .snapshots(),
+    builder: (context, snapshot) {
+
+      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+        return const SizedBox();
+      }
+
+      final data = snapshot.data!.docs.first.data() as Map<String, dynamic>;
+
+      Color riskColor(String risk) {
+        if (risk == "HIGH") return Colors.red;
+        if (risk == "MEDIUM") return Colors.orange;
+        return Colors.green;
+      }
+
+      return Container(
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(color: Colors.black12, blurRadius: 6)
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            const Text(
+              "Son Risk Durumu",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            riskRow("Preeklampsi", data["preeklampsiRisk"], riskColor),
+            riskRow("Diyabet", data["diyabetRisk"], riskColor),
+            riskRow("Preterm", data["pretermRisk"], riskColor),
+
+          ],
+        ),
+      );
+    },
+  );
+}
+
+Widget riskRow(String title, String risk, Function color) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 3),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(title),
+        Text(
+          risk,
+          style: TextStyle(
+            color: color(risk),
+            fontWeight: FontWeight.bold,
+          ),
+        )
+      ],
+    ),
+  );
 }

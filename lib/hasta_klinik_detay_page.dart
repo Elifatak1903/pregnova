@@ -89,6 +89,7 @@ class HastaKlinikDetayPage extends StatelessWidget {
 
                     const SizedBox(height: 10),
 
+
                     // 📊 Ölçümler
                     _infoRow("Tansiyon",
                         data["tansiyon"]),
