@@ -88,6 +88,9 @@ class HamileBesinGecmisiPage extends StatelessWidget {
 
                         final List missing = data['missingNutrients'] ?? [];
 
+                        final List excess =
+                            data['excessNutrients'] ?? [];
+
                         return Card(
                           elevation: 6,
                           margin: const EdgeInsets.symmetric(vertical: 10),
@@ -203,6 +206,26 @@ class HamileBesinGecmisiPage extends StatelessWidget {
                                       children: [
                                         const Icon(Icons.warning,
                                           color: Colors.orange, size: 18),
+                                        const SizedBox(width: 6),
+                                        Text(n),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ],
+
+                                if (excess.isNotEmpty) ...[
+                                  const Text(
+                                    "Fazla Besin Öğeleri",
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+
+                                  const SizedBox(height: 6),
+
+                                  ...excess.map((n) {
+                                    return Row(
+                                      children: [
+                                        const Icon(Icons.arrow_upward,
+                                            color: Colors.red, size: 18),
                                         const SizedBox(width: 6),
                                         Text(n),
                                       ],

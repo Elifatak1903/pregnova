@@ -11,6 +11,19 @@ class NutritionEngine {
     "B12 vitamini": 2.6,
   };
 
+  static Map<String, double> maxRequirements = {
+
+    "Demir": 45,
+    "Folik asit": 1000,
+    "Kalsiyum": 2500,
+    "D vitamini": 100,
+    "B12 vitamini": 10,
+    "Magnezyum": 400,
+    "Çinko": 40,
+    "Omega-3": 3
+
+  };
+
   static Map<String, Map<String, double>> supplementNutrition = {
 
     "demir": {"Demir": 27},
@@ -224,11 +237,24 @@ class NutritionEngine {
 
     });
 
+    List<String> excessNutrients = [];
+
+    maxRequirements.forEach((nutrient, maxValue) {
+
+      if ((totalNutrients[nutrient] ?? 0) > maxValue) {
+
+        excessNutrients.add(nutrient);
+
+      }
+
+    });
+
     return {
       "foodDetails": foodDetails,
       "consumedNutrients": consumedNutrients.toList(),
       "missingNutrients": missingNutrients,
-      "totalNutrients": totalNutrients
+      "totalNutrients": totalNutrients,
+      "excessNutrients": excessNutrients
     };
   }
 }

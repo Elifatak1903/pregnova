@@ -186,7 +186,15 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
                   const SizedBox(width: 6),
                   Text(n),
                 ],
-              ))
+              )).toList(),
+              const SizedBox(height: 20),
+
+              const Text("Fazla Besin Öğeleri"),
+
+              const SizedBox(height: 10),
+
+              ...analiz["excessNutrients"]
+                  .map<Widget>((n) => Text("⬆ $n"))
                   .toList(),
             ],
           ),
