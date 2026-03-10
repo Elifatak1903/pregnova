@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'food_units.dart';
+import 'nutrition_engine.dart';
 
 class HamileBesinPage extends StatefulWidget {
   const HamileBesinPage({super.key});
@@ -68,7 +70,9 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
   }
 
   Future<void> kaydetAnaliz() async {
+
     try {
+
       final user = FirebaseAuth.instance.currentUser;
 
       if (user == null) {
@@ -81,27 +85,135 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
         return;
       }
 
+      setState(() {
+        _loading = true;
+      });
+
+      // ---------------- FOOD → GRAM DÖNÜŞÜMÜ ----------------
+
+      List<Map<String, dynamic>> foodsForAnalysis = [];
+
+      for (var item in besinListesi) {
+
+        double unitGram =
+            FoodUnits.units[item["format"]] ?? 0;
+
+        double miktar =
+            double.tryParse(item["miktar"]) ?? 0;
+
+        double totalGram = unitGram * miktar;
+
+        foodsForAnalysis.add({
+          "name": item["ad"],
+          "amount": totalGram
+        });
+      }
+
+      // ---------------- TAKVİYE ----------------
+
+      List<Map<String, dynamic>> supplementsForAnalysis = [];
+
+      for (var item in takviyeListesi) {
+
+        supplementsForAnalysis.add({
+          "name": item["ad"],
+          "amount": item["miktar"]
+        });
+      }
+
+      // ---------------- NUTRITION ANALİZ ----------------
+
+      final analiz = NutritionEngine.analyzeFoods(
+          foodsForAnalysis,
+          supplementsForAnalysis,
+      );
+
+      // ---------------- FIRESTORE KAYIT ----------------
+
       await FirebaseFirestore.instance
           .collection('besin_analizleri')
           .add({
+
         'uid': user.uid,
         'tarih': Timestamp.now(),
+
         'besinler': besinListesi,
         'takviyeler': takviyeListesi,
+
+        'foodDetails': analiz["foodDetails"],
+        'consumedNutrients': analiz["consumedNutrients"],
+        'missingNutrients': analiz["missingNutrients"]
+
       });
 
-      print("KAYIT BAŞARILI");
+      // ---------------- SONUÇ POPUP ----------------
+
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+
+          title: const Text("Besin Analizi"),
+
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+
+              const Text("Alınan Besin Öğeleri"),
+
+              const SizedBox(height: 8),
+
+              ...analiz["consumedNutrients"]
+                  .map<Widget>((n) => Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                  const SizedBox(width: 6),
+                  Text(n),
+                ],
+              ))
+                  .toList(),
+
+              const SizedBox(height: 20),
+
+              const Text("Eksik Besin Öğeleri"),
+
+              const SizedBox(height: 10),
+
+              ...analiz["missingNutrients"]
+                  .map<Widget>((n) => Row(
+                children: [
+                  const Icon(Icons.warning, color: Colors.orange, size: 18),
+                  const SizedBox(width: 6),
+                  Text(n),
+                ],
+              ))
+                  .toList(),
+            ],
+          ),
+        ),
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Kaydedildi 💗")),
       );
 
+      setState(() {
+        besinListesi.clear();
+        takviyeListesi.clear();
+        _loading = false;
+      });
+
     } catch (e) {
+
       print("HATA VAR: $e");
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Hata: $e")),
       );
+
+      setState(() {
+        _loading = false;
+      });
     }
   }
 
@@ -272,8 +384,27 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
             const Text("Henüz ekleme yok"),
           ...liste.map((item) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Text(
-                "- ${item['ad']} (${item['miktar']} ${item['format']})"),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+
+                Expanded(
+                  child: Text(
+                    "- ${item['ad']} (${item['miktar']} ${item['format']})",
+                  ),
+                ),
+
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () {
+                    setState(() {
+                      liste.remove(item);
+                    });
+                  },
+                ),
+
+              ],
+            ),
           )),
         ],
       ),

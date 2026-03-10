@@ -84,6 +84,10 @@ class HamileBesinGecmisiPage extends StatelessWidget {
                         final List takviyeler =
                             data['takviyeler'] ?? [];
 
+                        final List consumed = data['consumedNutrients'] ?? [];
+
+                        final List missing = data['missingNutrients'] ?? [];
+
                         return Card(
                           elevation: 6,
                           margin: const EdgeInsets.symmetric(vertical: 10),
@@ -165,6 +169,43 @@ class HamileBesinGecmisiPage extends StatelessWidget {
                                           ),
                                         ],
                                       ),
+                                    );
+                                  }).toList(),
+                                ],
+
+                                const SizedBox(height: 10),
+
+                                if (consumed.isNotEmpty) ...[
+                                  const Text("Alınan Besin Öğeleri", style: TextStyle(fontWeight: FontWeight.bold),),
+                                  const SizedBox(height: 6),
+
+                                  ...consumed.map((n) {
+                                    return Row(
+                                      children: [
+                                        const Icon(Icons.check_circle,
+                                            color: Colors.green, size: 18),
+                                        const SizedBox(width: 6),
+                                        Text(n),
+                                      ],
+                                    );
+                                  }).toList(),
+                                  const SizedBox(height: 10),
+                                ],
+
+                                if (missing.isNotEmpty) ...[
+                                  const Text("Eksik Besib Öğeleri",
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 6),
+
+                                  ...missing.map((n) {
+                                    return Row(
+                                      children: [
+                                        const Icon(Icons.warning,
+                                          color: Colors.orange, size: 18),
+                                        const SizedBox(width: 6),
+                                        Text(n),
+                                      ],
                                     );
                                   }).toList(),
                                 ],
