@@ -1,6 +1,5 @@
 class NutritionEngine {
 
-  // Hamilelik günlük ihtiyaçları
   static Map<String, double> dailyNeeds = {
     "Protein": 75,
     "Demir": 27,
@@ -37,7 +36,6 @@ class NutritionEngine {
 
   };
 
-  // 100g başına nutrient değerleri
   static Map<String, Map<String, double>> foodNutrition = {
 
     "yumurta": {"Protein": 13, "B12 vitamini": 1.1},
@@ -192,7 +190,6 @@ class NutritionEngine {
 
         });
       }
-      // TAKVİYE HESAPLAMA
 
       for (var sup in supplements) {
 

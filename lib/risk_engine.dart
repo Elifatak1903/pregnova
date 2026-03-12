@@ -14,7 +14,6 @@ class RiskResult {
 }
 
 class RiskEngine {
-  //for preeklampsi
   static Future<String> calculatePreeklampsi({
     required String uid,
     required int sistolik,
@@ -70,7 +69,6 @@ class RiskEngine {
     }
     return risk;
   }
-  //for gestational diabetes
   static String calculateDiyabet({
     required double? aclik,
     required double? tokluk,
@@ -92,7 +90,6 @@ class RiskEngine {
     if (score >2 && score <=5) return "MEDIUM";
     return "HIGH";
   }
-  //for preterm
   static String calculatePreterm({
     required bool karinKasilma,
     required bool akinti,
@@ -134,7 +131,7 @@ class RiskEngine {
       "uid": uid,
       "type": "risk_alert",
       "title": "Risk Uyarısı",
-      "message": "$riskType riski yüksek çıktı. Doktorunu bilgilendir.",
+      "message": "$riskType riski yüksek tespit edildi . Lütfen doktorunuzla iletişime geçiniz.",
       "isRead": false,
       "createdAt": FieldValue.serverTimestamp(),
     });

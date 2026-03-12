@@ -14,7 +14,6 @@ class WelcomePage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // 👶 LOGO
               Container(
                 padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
@@ -39,7 +38,6 @@ class WelcomePage extends StatelessWidget {
 
               const SizedBox(height: 32),
 
-              // 🌸 BAŞLIK
               Text(
                 "PregNova’ya Hoş Geldin",
                 style: TextStyle(
@@ -52,7 +50,6 @@ class WelcomePage extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // ✨ AÇIKLAMA
               Text(
                 "Hamilelik sürecini güvenle takip edebilmen için\n"
                     "sağlık, beslenme ve egzersiz tek yerde 💕",
@@ -66,7 +63,6 @@ class WelcomePage extends StatelessWidget {
 
               const SizedBox(height: 42),
 
-              // 💕 BAŞLA
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.pink,

@@ -36,7 +36,7 @@ class AdminHomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            // 🔰 HEADER CARD
+            // HEADER CARD
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -75,7 +75,7 @@ class AdminHomePage extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // 📊 STAT CARDS
+            // STAT CARDS
             Row(
               children: [
                 _statCard(
@@ -162,8 +162,6 @@ class AdminHomePage extends StatelessWidget {
       ),
     );
   }
-
-  // ---------------- WIDGETS ----------------
 
   Widget _statCard({
     required String title,

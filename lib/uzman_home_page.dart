@@ -85,7 +85,7 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
             type: BottomNavigationBarType.fixed,
 
             selectedItemColor: mainColor,
-            unselectedItemColor: mainColor.withOpacity(0.6), // 🔥 silik ama görünür
+            unselectedItemColor: mainColor.withOpacity(0.6),
 
             selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
             unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),

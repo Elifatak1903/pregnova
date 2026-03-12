@@ -98,7 +98,7 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
 
                                 const Divider(),
 
-                                // PRE-EKLAMPSİ
+                                // PREEKLAMPSİ
                                 const Text(
                                   "Preeklampsi",
                                   style: TextStyle(

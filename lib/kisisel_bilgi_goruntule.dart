@@ -23,7 +23,6 @@ class KisiselBilgilerGoruntulePage extends StatelessWidget {
           child: Column(
             children: [
 
-              // 🔝 Başlık
               Container(
                 padding: const EdgeInsets.all(20),
                 alignment: Alignment.centerLeft,

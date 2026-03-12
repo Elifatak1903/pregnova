@@ -8,7 +8,7 @@ class ClientDetailPage extends StatelessWidget {
 
   const ClientDetailPage({super.key, required this.clientId});
 
-  // ================= KİLO GRAFİĞİ =================
+  // KİLO GRAFİĞİ
 
   Future<List<FlSpot>> getWeightSpots() async {
     final query = await FirebaseFirestore.instance
@@ -82,7 +82,7 @@ class ClientDetailPage extends StatelessWidget {
     return spots;
   }
 
-  // ================= UI =================
+  // UI
 
   @override
   Widget build(BuildContext context) {
@@ -123,7 +123,7 @@ class ClientDetailPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
 
-                // ================= PROFİL =================
+                //PROFİL
 
                 Card(
                   shape: RoundedRectangleBorder(
@@ -385,7 +385,7 @@ class _BesinCardState extends State<_BesinCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
 
-          // 📅 Tarih
+          //  Tarih
           Text(
             widget.tarih != null
                 ? "${widget.tarih!.day}/${widget.tarih!.month}/${widget.tarih!.year}"
@@ -398,7 +398,7 @@ class _BesinCardState extends State<_BesinCard> {
 
           const SizedBox(height: 12),
 
-          // 🍎 Besinler
+          //  Besinler
           if (widget.takviyeler.isEmpty)
             const Text(
               "Bu tarihte besin girişi yapılmış ancak analiz yapılmamış",

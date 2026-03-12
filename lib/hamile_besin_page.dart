@@ -89,7 +89,7 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
         _loading = true;
       });
 
-      // ---------------- FOOD → GRAM DÖNÜŞÜMÜ ----------------
+      // FOOD-GRAM DÖNÜŞÜMÜ
 
       List<Map<String, dynamic>> foodsForAnalysis = [];
 
@@ -109,7 +109,7 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
         });
       }
 
-      // ---------------- TAKVİYE ----------------
+      // TAKVİYE
 
       List<Map<String, dynamic>> supplementsForAnalysis = [];
 
@@ -121,14 +121,14 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
         });
       }
 
-      // ---------------- NUTRITION ANALİZ ----------------
+      // NUTRITION ANALİZ
 
       final analiz = NutritionEngine.analyzeFoods(
           foodsForAnalysis,
           supplementsForAnalysis,
       );
 
-      // ---------------- FIRESTORE KAYIT ----------------
+      // FIRESTORE KAYIT
 
       await FirebaseFirestore.instance
           .collection('besin_analizleri')
@@ -146,8 +146,7 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
 
       });
 
-      // ---------------- SONUÇ POPUP ----------------
-
+      //  ANALİZ SONUCU
       showDialog(
         context: context,
         builder: (_) => AlertDialog(

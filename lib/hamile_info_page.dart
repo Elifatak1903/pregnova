@@ -160,10 +160,10 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink.shade50,   // ✅ pembe arka plan
+      backgroundColor: Colors.pink.shade50,
       appBar: AppBar(
         title: const Text("Profil Bilgileri"),
-        backgroundColor: Colors.pink,         // ✅ pembe appbar
+        backgroundColor: Colors.pink,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -245,7 +245,7 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
                     child: ElevatedButton(
                       onPressed: kaydet,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.pink,   // ✅ pembe buton
+                        backgroundColor: Colors.pink,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),

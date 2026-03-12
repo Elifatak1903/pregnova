@@ -20,7 +20,7 @@ class _HaftaniGirPageState extends State<HaftaniGirPage> {
       "pregWeek": week,
     });
 
-    Navigator.pop(context); // geri dön
+    Navigator.pop(context);
   }
 
   @override

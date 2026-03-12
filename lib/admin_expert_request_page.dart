@@ -13,7 +13,7 @@ class AdminExpertRequestsPage extends StatelessWidget {
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection('expert_applications') // 🔥 DOĞRU COLLECTION
+            .collection('expert_applications')
             .where('status', isEqualTo: 'pending')
             //.orderBy('createdAt', descending: true)
             .snapshots(),
@@ -75,23 +75,20 @@ class AdminExpertRequestsPage extends StatelessWidget {
       ) async {
     try {
       final uid = doc['uid'];
-      final role = doc['role']; // dietitian / gynecologist
+      final role = doc['role'];
 
       final batch = FirebaseFirestore.instance.batch();
 
-      // 1️⃣ users -> role güncelle
       batch.update(
         FirebaseFirestore.instance.collection('users').doc(uid),
         {'role': role},
       );
 
-      // 2️⃣ başvuru -> approved
       batch.update(
         doc.reference,
         {'status': 'approved'},
       );
 
-      // 3️⃣ bildirim
       batch.set(
         FirebaseFirestore.instance.collection('notification').doc(),
         {
@@ -105,7 +102,6 @@ class AdminExpertRequestsPage extends StatelessWidget {
 
       await batch.commit();
 
-      // ✅ BAŞARILI FEEDBACK
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Uzman onaylandı ✅")),
       );

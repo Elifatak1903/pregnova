@@ -27,7 +27,7 @@ class HastaDetayPage extends StatelessWidget {
         child: Column(
           children: [
 
-            /// ================= HASTA BİLGİ KARTI =================
+            // HASTA BİLGİ KARTI
             FutureBuilder<DocumentSnapshot>(
               future: FirebaseFirestore.instance
                   .collection("users")
@@ -116,7 +116,6 @@ class HastaDetayPage extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            /// ================= GRAFİK STREAM =================
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection("risk_olcumleri")
@@ -155,7 +154,7 @@ class HastaDetayPage extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            /// ================= DETAYLI ANALİZ BUTONU =================
+            // DETAYLI ANALİZ BUTONU
             Padding(
               padding:
               const EdgeInsets.symmetric(horizontal: 20),
@@ -197,7 +196,7 @@ class HastaDetayPage extends StatelessWidget {
     );
   }
 
-  /// ================= TANSİYON GRAFİĞİ =================
+  // TANSİYON GRAFİĞİ
   Widget _buildTansiyonChart(
       List<QueryDocumentSnapshot> docs) {
 
@@ -260,7 +259,7 @@ class HastaDetayPage extends StatelessWidget {
     );
   }
 
-  /// ================= ŞEKER GRAFİĞİ =================
+  // ŞEKER GRAFİĞİ
   Widget _buildSekerChart(
       List<QueryDocumentSnapshot> docs) {
 

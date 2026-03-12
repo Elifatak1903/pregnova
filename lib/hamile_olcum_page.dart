@@ -13,14 +13,12 @@ class RiskTakipFormuPage extends StatefulWidget {
 class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers
   final sistolikController = TextEditingController();
   final diastolikController = TextEditingController();
   final aclikSekerController = TextEditingController();
   final toklukSekerController = TextEditingController();
   final kiloController = TextEditingController();
 
-  // Boolean risk soruları
   bool basAgrisi = false;
   bool gormeBozuklugu = false;
   bool sislik = false;
@@ -106,39 +104,6 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
         riskLevel: pretermRisk,
       );
 
-      if (preeklampsiRisk == "HIGH") {
-        await FirebaseFirestore.instance.collection("notification").add({
-          "uid": uid,
-          "title": "⚠️ Yüksek Risk Uyarısı",
-          "message": "Preeklampsi için yüksek risk tespit edildi. Lütfen doktorunuzla iletişime geçin.",
-          "type": "risk_alert",
-          "isRead": false,
-          "createdAt": FieldValue.serverTimestamp(),
-        });
-      }
-
-      if (diyabetRisk == "HIGH") {
-        await FirebaseFirestore.instance.collection("notification").add({
-          "uid": uid,
-          "title": "⚠️ Yüksek Risk Uyarısı",
-          "message": "Gestasyonel diyabet için yüksek risk tespit edildi.",
-          "type": "risk_alert",
-          "isRead": false,
-          "createdAt": FieldValue.serverTimestamp(),
-        });
-      }
-
-      if (pretermRisk == "HIGH") {
-        await FirebaseFirestore.instance.collection("notification").add({
-          "uid": uid,
-          "title": "⚠️ Yüksek Risk Uyarısı",
-          "message": "Preterm doğum riski yüksek görünüyor.",
-          "type": "risk_alert",
-          "isRead": false,
-          "createdAt": FieldValue.serverTimestamp(),
-        });
-      }
-
       await showDialog(
         context: context,
         builder: (context){
@@ -174,20 +139,17 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
         'tarih': Timestamp.now(),
         'kilo': double.tryParse(kiloController.text),
 
-        // Preeklampsi
         'sistolik': int.tryParse(sistolikController.text),
         'diastolik': int.tryParse(diastolikController.text),
         'basAgrisi': basAgrisi,
         'gormeBozuklugu': gormeBozuklugu,
         'sislik': sislik,
 
-        // Gestasyonel Diyabet
         'aclikSeker': aclik,
         'toklukSeker': tokluk,
         'asiriSusama': asiriSusama,
         'sikIdrar': sikIdrar,
 
-        // Preterm Birth
         'karinKasilma': karinKasilma,
         'akinti': akinti,
         'belAgrisi': belAgrisi,

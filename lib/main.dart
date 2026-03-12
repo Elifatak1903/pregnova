@@ -12,7 +12,6 @@ void main() async {
   await initializeDateFormatting('tr_TR', null);
 
   if (kIsWeb) {
-    // ❗WEB’DE FARKLI INIT
     await Firebase.initializeApp(
       options: FirebaseOptions(
         apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
@@ -24,7 +23,6 @@ void main() async {
       ),
     );
   } else {
-    // ❗MOBİLDE DEFAULT
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );

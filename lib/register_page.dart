@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'hamile_info_page.dart';
 import 'hamile_page.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -48,7 +47,6 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     try {
-      // 🔐 Firebase Auth kayıt
       final userCredential =
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
@@ -57,7 +55,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
       final uid = userCredential.user!.uid;
 
-      // 🔥 Firestore users dokümanı
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'name': name,
         'email': email,
@@ -66,8 +63,6 @@ class _RegisterPageState extends State<RegisterPage> {
       });
 
       if (!mounted) return;
-
-      // ➡️ Hamile bilgi formu
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const HamileAnaSayfa()),

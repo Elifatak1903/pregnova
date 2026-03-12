@@ -89,8 +89,6 @@ class HastaKlinikDetayPage extends StatelessWidget {
 
                     const SizedBox(height: 10),
 
-
-                    // 📊 Ölçümler
                     _infoRow("Tansiyon",
                         data["tansiyon"]),
                     _infoRow("Açlık Şekeri",
@@ -102,7 +100,6 @@ class HastaKlinikDetayPage extends StatelessWidget {
 
                     const Divider(height: 25),
 
-                    // 🧠 Semptomlar
                     _boolRow("Baş Ağrısı",
                         data["basAgrisi"]),
                     _boolRow("Görme Bozukluğu",

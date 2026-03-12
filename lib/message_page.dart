@@ -52,7 +52,6 @@ class MessagePage extends StatelessWidget {
       }) {
     return InkWell(
       onTap: () {
-        // ileride chat sayfasına gidecek
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 14),

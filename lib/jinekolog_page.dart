@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'gynecologist_patient_detail_page.dart';
 import 'login_page.dart';
+import 'notification_page.dart.';
 
 class GynecologistHomePage extends StatefulWidget {
   const GynecologistHomePage({super.key});
@@ -59,10 +60,10 @@ class _GynecologistHomePageState
   }
 
   Future<int> getHighRiskCount() async {
+
     final query = await FirebaseFirestore.instance
-        .collection("users")
-        .where("assignedDoctor", isEqualTo: uid)
-        .where("riskLevel", isEqualTo: "high")
+        .collection("risk_olcumleri")
+        .where("preeklampsiRisk", isEqualTo: "HIGH")
         .get();
 
     return query.docs.length;
@@ -252,11 +253,15 @@ class _GynecologistHomePageState
 
               return Stack(
                 children: [
-
                   IconButton(
                     icon: const Icon(Icons.notifications),
                     onPressed: () {
-                      // buraya istersen notification page açabiliriz
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const NotificationPanel(),
+                        ),
+                      );
                     },
                   ),
 
@@ -303,15 +308,12 @@ class _GynecologistHomePageState
     );
   }
 
-
-  // ================= HOME =================
-
   Widget _buildBody() {
     switch (_selectedIndex) {
       case 0:
         return _buildHomePage();
       case 1:
-        return _buildPatientsPage();   // ✔ Doğru eşleşme
+        return _buildPatientsPage();
       case 2:
         return _buildMessagesPage();
       case 3:
@@ -398,6 +400,20 @@ class _GynecologistHomePageState
           ),
           const SizedBox(height: 30),
           _buildRiskChart(),
+
+          const SizedBox(height: 30),
+
+          const Text(
+            "Danışma İstekleri",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          _buildPatientRequests(),
 
           const SizedBox(height: 30),
 
@@ -705,8 +721,6 @@ class _GynecologistHomePageState
     );
   }
 
-  // ================= PATIENT REQUEST LIST =================
-
   Widget _buildPatientRequests() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
@@ -805,8 +819,6 @@ class _GynecologistHomePageState
       },
     );
   }
-
-  // ================= CARD DECORATION =================
 
   BoxDecoration _cardDecoration() {
     return BoxDecoration(

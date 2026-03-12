@@ -22,7 +22,6 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
   bool isLoading = true;
   bool isSaving = false;
 
-  // Static Risk Factors
   bool chronicHypertension = false;
   bool diabetes = false;
   bool thyroidDisease = false;

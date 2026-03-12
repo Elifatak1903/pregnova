@@ -24,7 +24,7 @@ class _DietitianHomePageState
     uid = FirebaseAuth.instance.currentUser!.uid;
   }
 
-  // ================= FIRESTORE =================
+  // FIRESTORE
 
   Future<int> getApprovedCount() async {
     final query = await FirebaseFirestore.instance
@@ -56,7 +56,7 @@ class _DietitianHomePageState
     return query.docs.length;
   }
 
-  // ================= BODY SWITCH =================
+  // BODY SWITCH
 
   Widget _buildBody() {
     switch (_selectedIndex) {
@@ -164,7 +164,7 @@ class _DietitianHomePageState
                             await doc.reference
                                 .update({'status': 'approved'});
 
-                            // 👇 danışanı diyetisyene bağla
+                            // danışanı diyetisyene bağlar
                             await FirebaseFirestore.instance
                                 .collection("users")
                                 .doc(clientId)
@@ -184,8 +184,6 @@ class _DietitianHomePageState
       },
     );
   }
-
-  // ================= DASHBOARD =================
 
   Widget _buildHomePage() {
     return SingleChildScrollView(
@@ -257,8 +255,6 @@ class _DietitianHomePageState
       ),
     );
   }
-
-  // ================= CLIENT LIST =================
 
   Widget _buildClientsPage() {
     return StreamBuilder<QuerySnapshot>(
@@ -338,7 +334,6 @@ class _DietitianHomePageState
                     ),
 
                     onTap: () {
-                      // 👇 ID burada kullanılır
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -358,7 +353,7 @@ class _DietitianHomePageState
     );
   }
 
-  // ================= MESSAGES =================
+  //  MESSAGES
 
   Widget _buildMessagesPage() {
     return const Center(
@@ -366,7 +361,7 @@ class _DietitianHomePageState
     );
   }
 
-  // ================= ACCOUNT =================
+  // ACCOUNT
 
   Widget _buildAccountPage() {
     return Padding(
@@ -415,8 +410,7 @@ class _DietitianHomePageState
     );
   }
 
-  // ================= STAT CARD =================
-
+  //  STAT CARD
   Widget _statCard(String title, String value, IconData icon) {
     return Container(
       padding: const EdgeInsets.all(18),
@@ -445,11 +439,6 @@ class _DietitianHomePageState
       ),
     );
   }
-
-
-
-
-  // ================= SCAFFOLD =================
 
   @override
   Widget build(BuildContext context) {

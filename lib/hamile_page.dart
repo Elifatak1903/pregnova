@@ -49,7 +49,6 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
     final data = doc.data();
     if (data == null) return;
 
-    // 🔥 DÜZELTİLDİ
     if (data['profilTamamlandi'] == true || data['infoLater'] == true) {
       return;
     }
@@ -174,7 +173,6 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
         ],
       ),
 
-      // ---------------- BODY ----------------
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -193,7 +191,6 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
           ),
           const SizedBox(height: 25),
 
-          // HAFTA KARTI
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
@@ -268,7 +265,6 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
         ]),
       ),
 
-      // ---------------- BOTTOM BAR ----------------
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.pink,

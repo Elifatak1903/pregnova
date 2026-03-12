@@ -164,7 +164,7 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
                                     .collection("expert_requests")
                                     .add({
                                   "clientId": currentUserId,
-                                  "expertId": doc.id, // uzman uid
+                                  "expertId": doc.id,
                                   "status": "pending",
                                   "createdAt": FieldValue.serverTimestamp(),
                                 });

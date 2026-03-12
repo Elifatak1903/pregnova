@@ -40,7 +40,6 @@ class _SifreDegistirPageState extends State<SifreDegistirPage> {
         throw Exception("Kullanıcı bulunamadı.");
       }
 
-      // 🔐 Re-authentication (Zorunlu)
       AuthCredential credential = EmailAuthProvider.credential(
         email: user.email!,
         password: currentPasswordController.text.trim(),
@@ -48,7 +47,6 @@ class _SifreDegistirPageState extends State<SifreDegistirPage> {
 
       await user.reauthenticateWithCredential(credential);
 
-      // 🔄 Şifre Güncelle
       await user.updatePassword(newPasswordController.text.trim());
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -110,7 +108,6 @@ class _SifreDegistirPageState extends State<SifreDegistirPage> {
           child: Column(
             children: [
 
-              // 🔐 Mevcut Şifre
               TextFormField(
                 controller: currentPasswordController,
                 obscureText: _obscure1,
@@ -127,7 +124,6 @@ class _SifreDegistirPageState extends State<SifreDegistirPage> {
 
               const SizedBox(height: 16),
 
-              // 🔑 Yeni Şifre
               TextFormField(
                 controller: newPasswordController,
                 obscureText: _obscure2,
@@ -149,7 +145,6 @@ class _SifreDegistirPageState extends State<SifreDegistirPage> {
 
               const SizedBox(height: 16),
 
-              // 🔁 Şifre Tekrar
               TextFormField(
                 controller: confirmPasswordController,
                 obscureText: _obscure3,
