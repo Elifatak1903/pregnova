@@ -1,11 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'admin_expert_request_page.dart';
 import 'login_page.dart';
+import 'user_management_page.dart';
 
-class AdminHomePage extends StatelessWidget {
+class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
+
+  @override
+  State<AdminHomePage> createState() => _AdminHomePageState();
+}
+
+class _AdminHomePageState extends State<AdminHomePage> {
+
+  int pendingRequests = 0;
+  int totalUsers = 0;
+  int activeExperts = 0;
+  int reports = 0;
+
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchStats();
+  }
+
+  Future<void> fetchStats() async {
+    final usersSnapshot =
+    await FirebaseFirestore.instance.collection("users").get();
+
+    final users = usersSnapshot.docs;
+
+    totalUsers = users.length;
+
+    pendingRequests = users.where((u) =>
+    (u.data()['role'] == "gynecologist" ||
+        u.data()['role'] == "dietitian") &&
+        (u.data()['isApproved'] == false)).length;
+
+    activeExperts = users.where((u) =>
+    (u.data()['role'] == "gynecologist" ||
+        u.data()['role'] == "dietitian") &&
+        (u.data()['isApproved'] == true)).length;
+
+    reports = 0;
+
+    setState(() {
+      loading = false;
+    });
+  }
 
   void signOut(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
@@ -30,13 +76,15 @@ class AdminHomePage extends StatelessWidget {
           )
         ],
       ),
-      body: SingleChildScrollView(
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            // HEADER CARD
+            // HEADER
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -80,16 +128,32 @@ class AdminHomePage extends StatelessWidget {
               children: [
                 _statCard(
                   title: "Pending\nRequests",
-                  value: "6",
+                  value: pendingRequests.toString(),
                   icon: Icons.pending_actions,
                   color: Colors.orange,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AdminExpertRequestsPage(),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(width: 12),
                 _statCard(
                   title: "Total\nUsers",
-                  value: "128",
+                  value: totalUsers.toString(),
                   icon: Icons.people,
                   color: Colors.blue,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const UserManagementPage(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -100,14 +164,14 @@ class AdminHomePage extends StatelessWidget {
               children: [
                 _statCard(
                   title: "Active\nExperts",
-                  value: "14",
+                  value: activeExperts.toString(),
                   icon: Icons.medical_services,
                   color: Colors.green,
                 ),
                 const SizedBox(width: 12),
                 _statCard(
                   title: "System\nReports",
-                  value: "9",
+                  value: reports.toString(),
                   icon: Icons.bar_chart,
                   color: Colors.purple,
                 ),
@@ -144,18 +208,17 @@ class AdminHomePage extends StatelessWidget {
 
             _adminActionCard(
               title: "User Management",
-              subtitle: "View and manage all users",
+              subtitle: "View all users",
               icon: Icons.people_outline,
               color: Colors.blue,
-              onTap: () {},
-            ),
-
-            _adminActionCard(
-              title: "System Reports",
-              subtitle: "Statistics and system health",
-              icon: Icons.analytics,
-              color: Colors.purple,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const UserManagementPage(),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -168,32 +231,36 @@ class AdminHomePage extends StatelessWidget {
     required String value,
     required IconData icon,
     required Color color,
+    VoidCallback? onTap,
   }) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(color: Colors.black12, blurRadius: 5)
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: 10),
-            Text(
-              value,
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: color),
-            ),
-            const SizedBox(height: 6),
-            Text(title, style: const TextStyle(fontSize: 13)),
-          ],
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: const [
+              BoxShadow(color: Colors.black12, blurRadius: 5)
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: color, size: 28),
+              const SizedBox(height: 10),
+              Text(
+                value,
+                style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: color),
+              ),
+              const SizedBox(height: 6),
+              Text(title, style: const TextStyle(fontSize: 13)),
+            ],
+          ),
         ),
       ),
     );

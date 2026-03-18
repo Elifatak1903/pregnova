@@ -233,6 +233,7 @@ class _GynecologistHomePageState
 
   @override
   Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
     return Scaffold(
       backgroundColor: Colors.pink.shade50,
 
@@ -256,10 +257,9 @@ class _GynecologistHomePageState
                   IconButton(
                     icon: const Icon(Icons.notifications),
                     onPressed: () {
-                      Navigator.push(
-                        context,
+                      Navigator.of(context).push(
                         MaterialPageRoute(
-                            builder: (_) => const NotificationPanel(),
+                          builder: (context) => const NotificationPanel(),
                         ),
                       );
                     },

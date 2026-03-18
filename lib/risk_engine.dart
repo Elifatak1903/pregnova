@@ -124,25 +124,43 @@ class RiskEngine {
         .doc(uid)
         .get();
 
-    final doctorId = userDoc.data()?["assignedDoctor"];
+    final userData = userDoc.data();
+    final doctorId = userData?["assignedDoctor"];
+    final patientName = userData?["name"] ?? "Bir hasta";
 
-    // Hamileye bildirim
+    // Aynı risk için daha önce bildirim var mı kontrol et
+    final existing = await FirebaseFirestore.instance
+        .collection("notification")
+        .where("uid", isEqualTo: uid)
+        .where("type", isEqualTo: "risk_alert")
+        .where("riskType", isEqualTo: riskType)
+        .limit(1)
+        .get();
+
+    if (existing.docs.isNotEmpty) {
+      return;
+    }
+
+    // Hamile kullanıcıya bildirim
     await FirebaseFirestore.instance.collection("notification").add({
       "uid": uid,
       "type": "risk_alert",
+      "riskType": riskType,
       "title": "Risk Uyarısı",
-      "message": "$riskType riski yüksek tespit edildi . Lütfen doktorunuzla iletişime geçiniz.",
+      "message":
+      "$riskType riski yüksek tespit edildi. Lütfen doktorunuzla iletişime geçiniz.",
       "isRead": false,
       "createdAt": FieldValue.serverTimestamp(),
     });
 
-    // Jinekoloğa bildirim
+    // Doktora bildirim
     if (doctorId != null) {
       await FirebaseFirestore.instance.collection("notification").add({
         "uid": doctorId,
         "type": "risk_alert",
+        "riskType": riskType,
         "title": "Riskli Hasta",
-        "message": "Bir hastada $riskType riski HIGH çıktı.",
+        "message": "$patientName adlı hastada $riskType riski HIGH çıktı.",
         "isRead": false,
         "createdAt": FieldValue.serverTimestamp(),
       });

@@ -56,7 +56,12 @@ class NotificationPanel extends StatelessWidget {
             itemCount: docs.length,
             itemBuilder: (context, index) {
               final doc = docs[index];
-              final isRead = doc['isRead'] as bool;
+              final data = doc.data() as Map<String, dynamic>;
+
+              final isRead = data['isRead'] ?? false;
+              final type = data['type'] ?? "general";
+              final title = data['title'] ?? "";
+              final message = data['message'] ?? "";
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -75,9 +80,9 @@ class NotificationPanel extends StatelessWidget {
                       CircleAvatar(
                         backgroundColor: Colors.pink,
                         child: Icon(
-                          doc['type'] == "risk_alert"
-                            ? Icons.warning
-                            : Icons.notifications,
+                          type == "risk_alert"
+                              ? Icons.warning
+                              : Icons.notifications,
                           color: Colors.white,
                         ),
                       ),
@@ -97,17 +102,16 @@ class NotificationPanel extends StatelessWidget {
                     ],
                   ),
                   title: Text(
-                    doc['title'],
+                    title,
                     style: TextStyle(
-                      fontWeight:
-                      isRead ? FontWeight.w500 : FontWeight.bold,
+                      fontWeight: isRead ? FontWeight.w500 : FontWeight.bold,
                       color: Colors.pink.shade800,
                     ),
                   ),
                   subtitle: Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
-                      doc['message'],
+                      message,
                       style: TextStyle(
                         color: Colors.grey.shade700,
                       ),
