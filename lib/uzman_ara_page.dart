@@ -32,6 +32,7 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
 
     return ref
         .where('role', whereIn: ['dietitian', 'gynecologist'])
+        .where('isApproved', isEqualTo: true)
         .snapshots();
   }
 
@@ -45,6 +46,16 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.pink,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: const Text("Uzman Ara"),
+      ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -88,94 +99,108 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
                   stream: expertsStream,
                   builder: (context, snapshot) {
 
-                    if (snapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return const Center(
-                          child: CircularProgressIndicator());
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
                     }
 
                     if (snapshot.hasError) {
-                      return const Center(
-                        child: Text("Bir hata oluştu 😢"),
-                      );
+                      return const Center(child: Text("Bir hata oluştu 😢"));
                     }
 
-                    if (!snapshot.hasData ||
-                        snapshot.data!.docs.isEmpty) {
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                       return const Center(
-                        child: Text(
-                          "Uygun uzman bulunamadı 😔",
-                          style: TextStyle(fontSize: 16),
-                        ),
+                        child: Text("Uygun uzman bulunamadı 😔"),
                       );
                     }
 
                     final experts = snapshot.data!.docs;
+                    final currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
                     return ListView.builder(
-                      padding:
-                      const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: experts.length,
                       itemBuilder: (context, index) {
 
                         final doc = experts[index];
-                        final role = doc['role'] ?? '';
+                        final data = doc.data() as Map<String, dynamic>;
+
+                        final role = data['role'] ?? '';
+                        final email = data['email'] ?? "Uzman";
+
+                        final isClient = data['clients'] != null &&
+                            (data['clients'] as List).contains(currentUserId);
 
                         return Card(
                           elevation: 6,
-                          margin: const EdgeInsets.symmetric(
-                              vertical: 10),
+                          margin: const EdgeInsets.symmetric(vertical: 10),
                           shape: RoundedRectangleBorder(
-                            borderRadius:
-                            BorderRadius.circular(18),
+                            borderRadius: BorderRadius.circular(18),
                           ),
                           child: ListTile(
-                            contentPadding:
-                            const EdgeInsets.all(16),
+                            contentPadding: const EdgeInsets.all(16),
                             leading: CircleAvatar(
                               radius: 26,
                               backgroundColor:
-                              role == 'dietitian'
-                                  ? Colors.green
-                                  : Colors.teal,
+                              role == 'dietitian' ? Colors.green : Colors.teal,
                               child: const Icon(
                                 Icons.medical_services,
                                 color: Colors.white,
                               ),
                             ),
                             title: Text(
-                              doc['email'] ?? "Uzman",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              email,
+                              style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             subtitle: Text(
                               role == 'dietitian'
                                   ? "Diyetisyen"
                                   : "Jinekolog",
                             ),
-                            trailing: ElevatedButton(
-                              onPressed: () async {
+                            trailing: SizedBox(
+                              width: 130,
+                              child: ElevatedButton(
+                                onPressed: isClient
+                                    ? null
+                                    : () async {
 
-                                final currentUserId =
-                                    FirebaseAuth.instance.currentUser!.uid;
+                                  final existing = await FirebaseFirestore.instance
+                                      .collection("expert_requests")
+                                      .where("clientId", isEqualTo: currentUserId)
+                                      .where("expertId", isEqualTo: doc.id)
+                                      .where("status", isEqualTo: "pending")
+                                      .get();
 
-                                await FirebaseFirestore.instance
-                                    .collection("expert_requests")
-                                    .add({
-                                  "clientId": currentUserId,
-                                  "expertId": doc.id,
-                                  "status": "pending",
-                                  "createdAt": FieldValue.serverTimestamp(),
-                                });
+                                  if (!mounted) return;
 
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("İstek gönderildi ✅"),
-                                  ),
-                                );
-                              },
-                              child: const Text("Danışan Olmak İstiyorum"),
+                                  if (existing.docs.isNotEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text("Zaten istek gönderdiniz ⏳")),
+                                    );
+                                    return;
+                                  }
+
+                                  await FirebaseFirestore.instance
+                                      .collection("expert_requests")
+                                      .add({
+                                    "clientId": currentUserId,
+                                    "expertId": doc.id,
+                                    "status": "pending",
+                                    "createdAt": FieldValue.serverTimestamp(),
+                                  });
+
+                                  if (!mounted) return;
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text("İstek gönderildi ✅")),
+                                  );
+                                },
+                                child: Text(
+                                  isClient ? "Danışansınız" : "İstek Gönder",
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
                             ),
                           ),
                         );
