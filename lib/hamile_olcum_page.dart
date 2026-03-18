@@ -59,6 +59,16 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
       final userData = userDoc.data() ?? {};
       final sistolik = int.tryParse(sistolikController.text) ?? 0;
       final diastolik = int.tryParse(diastolikController.text) ?? 0;
+
+      if (diastolik >= sistolik) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Küçük tansiyon büyükten küçük olmalıdır"),
+          ),
+        );
+        return;
+      }
+
       final aclik = double.tryParse(aclikSekerController.text);
       final tokluk = double.tryParse(toklukSekerController.text);
 
@@ -217,8 +227,8 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
 
               _sectionTitle("Preeklampsi Takibi"),
 
-              _textInput("Sistolik", sistolikController),
-              _textInput("Diastolik", diastolikController),
+              _textInput("Sistolik (Örnek: 120)", sistolikController),
+              _textInput("Diastolik (Örnek: 80)", diastolikController),
 
               _switchTile("Şiddetli baş ağrısı", basAgrisi,
                       (v) => setState(() => basAgrisi = v)),
@@ -319,9 +329,24 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
           if (value == null || value.trim().isEmpty) {
             return "Bu alan boş bırakılamaz";
           }
-          if (double.tryParse(value) == null) {
+
+          final v = int.tryParse(value);
+          if (v == null) {
             return "Geçerli sayı giriniz";
           }
+
+          if (label.contains("Sistolik")) {
+            if (v < 80 || v > 250) {
+              return "Geçerli bir değer giriniz (örn: 120)";
+            }
+          }
+
+          if (label.contains("Diastolik")) {
+            if (v < 50 || v > 150) {
+              return "Geçerli biir değer giriniz (örn: 80)";
+            }
+          }
+
           return null;
         },
         decoration: InputDecoration(

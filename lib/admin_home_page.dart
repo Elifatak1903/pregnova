@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'admin_expert_request_page.dart';
 import 'login_page.dart';
 import 'user_management_page.dart';
+import 'system_reports_page.dart';
 
 class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
@@ -174,6 +175,14 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   value: reports.toString(),
                   icon: Icons.bar_chart,
                   color: Colors.purple,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SystemReportsPage(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
