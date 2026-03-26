@@ -30,47 +30,65 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
   }
 
   Future<void> fetchData() async {
+    try {
 
-    /// USERS
-    final users = await FirebaseFirestore.instance.collection("users").get();
+      totalUsers = 0;
+      pregnant = 0;
+      doctors = 0;
+      dietitians = 0;
+      high = 0;
+      medium = 0;
+      low = 0;
 
-    totalUsers = users.docs.length;
+      final users = await FirebaseFirestore.instance
+          .collection("users")
+          .get();
 
-    for (var u in users.docs) {
-      final role = u['role'];
+      totalUsers = users.docs.length;
 
-      if (role == "pregnant") pregnant++;
-      if (role == "gynecologist") doctors++;
-      if (role == "dietitian") dietitians++;
-    }
+      for (var u in users.docs) {
+        final data = u.data();
 
-    /// RISK DATA
-    final risks = await FirebaseFirestore.instance
-        .collection("risk_olcumleri")
-        .get();
+        final role = data['role'] ?? '';
 
-    for (var r in risks.docs) {
-
-      final risksList = [
-        r['preeklampsiRisk'],
-        r['diyabetRisk'],
-        r['pretermRisk']
-      ];
-
-      for (var risk in risksList) {
-        if (risk == "HIGH") high++;
-        if (risk == "MEDIUM") medium++;
-        if (risk == "LOW") low++;
+        if (role == "pregnant") pregnant++;
+        if (role == "gynecologist") doctors++;
+        if (role == "dietitian") dietitians++;
       }
+
+      final risks = await FirebaseFirestore.instance
+          .collection("risk_olcumleri")
+          .get();
+
+      for (var r in risks.docs) {
+        final data = r.data();
+
+        final risksList = [
+          data['preeklampsiRisk'] ?? "LOW",
+          data['diyabetRisk'] ?? "LOW",
+          data['pretermRisk'] ?? "LOW"
+        ];
+
+        for (var risk in risksList) {
+          if (risk == "HIGH") high++;
+          if (risk == "MEDIUM") medium++;
+          if (risk == "LOW") low++;
+        }
+      }
+
+      int totalRisk = high + medium + low;
+
+      if (totalRisk > 0) {
+        highPercent = (high / totalRisk) * 100;
+      }
+
+    } catch (e) {
+      print("SYSTEM REPORT ERROR: $e");
     }
 
-    int totalRisk = high + medium + low;
-
-    if (totalRisk > 0) {
-      highPercent = (high / totalRisk) * 100;
+    if (mounted) {
+      setState(() => loading = false);
     }
-
-    setState(() => loading = false);
   }
 
   Widget bigCard(String title, String value, Color color) {
@@ -78,7 +96,7 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(

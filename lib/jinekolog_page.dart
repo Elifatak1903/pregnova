@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'gynecologist_patient_detail_page.dart';
 import 'login_page.dart';
-import 'notification_page.dart.';
+import 'notification_page.dart';
 
 class GynecologistHomePage extends StatefulWidget {
   const GynecologistHomePage({super.key});
@@ -731,14 +731,10 @@ class _GynecologistHomePageState
       builder: (context, snapshot) {
 
         if (!snapshot.hasData) {
-          return const Center(
-              child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
 
         final docs = snapshot.data!.docs;
-
-        final visibleDocs = docs.length > 2 ? docs.take(2).toList() : docs;
-        final extraCount = docs.length - visibleDocs.length;
 
         if (docs.isEmpty) {
           return Container(
@@ -749,7 +745,7 @@ class _GynecologistHomePageState
         }
 
         return Column(
-          children: visibleDocs.map((doc) {
+          children: docs.map((doc) {
 
             final clientId = doc["clientId"];
 
@@ -760,12 +756,9 @@ class _GynecologistHomePageState
                   .get(),
               builder: (context, userSnapshot) {
 
-                if (!userSnapshot.hasData) {
-                  return const SizedBox();
-                }
+                if (!userSnapshot.hasData) return const SizedBox();
 
-                final data = userSnapshot.data!.data()
-                as Map<String, dynamic>?;
+                final data = userSnapshot.data!.data() as Map<String, dynamic>?;
 
                 final name = data?["name"] ?? "";
                 final surname = data?["surname"] ?? "";
@@ -776,39 +769,61 @@ class _GynecologistHomePageState
                   padding: const EdgeInsets.all(14),
                   decoration: _cardDecoration(),
                   child: Column(
-                    crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
 
-                      Text(
-                        "$name $surname, Week $hafta",
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold),
-                      ),
+                      Text("$name $surname - Hafta $hafta"),
 
                       const SizedBox(height: 10),
 
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            "Danışma İstekleri",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+
+                          /// ✅ KABUL
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green),
+                            onPressed: () async {
+
+                              final doctorUid =
+                                  FirebaseAuth.instance.currentUser!.uid;
+
+                              /// request approve
+                              await FirebaseFirestore.instance
+                                  .collection("expert_requests")
+                                  .doc(doc.id)
+                                  .update({"status": "approved"});
+
+                              /// 🔥 EN ÖNEMLİ SATIR
+                              await FirebaseFirestore.instance
+                                  .collection("users")
+                                  .doc(clientId)
+                                  .update({
+                                "assignedDoctor": doctorUid,
+                              });
+
+                              print("ASSIGNED DOCTOR: $doctorUid to $clientId");
+                            },
+                            child: const Text("Kabul"),
                           ),
-                          if (extraCount > 0)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.red,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                "+$extraCount",
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ),
+
+                          const SizedBox(width: 10),
+
+                          /// ❌ RED
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red),
+                            onPressed: () async {
+
+                              await FirebaseFirestore.instance
+                                  .collection("expert_requests")
+                                  .doc(doc.id)
+                                  .update({"status": "rejected"});
+                            },
+                            child: const Text("Reddet"),
+                          ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 );
