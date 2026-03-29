@@ -7,6 +7,8 @@ import 'uzman_basvuru_page.dart';
 import 'kisisel_bilgi_page.dart';
 import 'kisisel_bilgi_goruntule.dart';
 import 'sifre_degistir_page.dart';
+import 'hamile_olcum_gecmisi_page.dart';
+import 'hamile_besin_gecmisi_page.dart';
 
 class HesabimPage extends StatefulWidget {
   const HesabimPage({Key? key}) : super(key: key);
@@ -103,8 +105,28 @@ class _HesabimPageState extends State<HesabimPage> {
               kisiselBilgiKontrol,
             ),
 
-            hesapButonu("📊 Ölçüm Geçmişi", () {}),
-            hesapButonu("🍽️ Besin Analizi Geçmişi", () {}),
+            hesapButonu(
+              "📊 Ölçüm Geçmişi",
+                  () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const HamileOlcumGecmisiPage(),
+                  ),
+                );
+              },
+            ),
+            hesapButonu(
+              "🍽️ Besin Analizi Geçmişi",
+                  () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const HamileBesinGecmisiPage(),
+                  ),
+                );
+              },
+            ),
             hesapButonu(
               "🔒 Şifre Değiştir",
                   () {

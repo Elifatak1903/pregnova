@@ -23,12 +23,21 @@ class HamileAnaSayfa extends StatefulWidget {
 class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
   int? userWeek;
   int _selectedIndex = 2;
+  late final List<Widget> pages;
 
   bool get isLoggedIn => FirebaseAuth.instance.currentUser != null;
 
   @override
   void initState() {
     super.initState();
+
+    pages = [
+      const MessagePage(),
+      const UzmanAraPage(),
+      _buildHomeContent(),
+      isLoggedIn ? HesabimPage() : const LoginPage(),
+    ];
+
     loadUserWeek();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -207,176 +216,84 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
         ],
       ),
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-
-              Text(
-                "Hoş geldin anne 💕",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.pink.shade700,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              Text(
-                "Sağlık ve beslenme takibini kolayca yapabilirsin.",
-                style: TextStyle(color: Colors.grey.shade700),
-              ),
-
-              const SizedBox(height: 25),
-
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Colors.pink, Colors.purple],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.baby_changing_station,
-                        color: Colors.white, size: 40),
-                    const SizedBox(width: 12),
-                    Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text("Şu an",
-                              style:
-                              TextStyle(color: Colors.white70)),
-                          StreamBuilder<DocumentSnapshot>(
-                            stream: FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(FirebaseAuth.instance.currentUser!.uid)
-                                .snapshots(),
-                            builder: (context, snapshot) {
-
-                              if (!snapshot.hasData) {
-                                return const Text(
-                                  "Yükleniyor...",
-                                  style: TextStyle(color: Colors.white),
-                                );
-                              }
-
-                              final data = snapshot.data!.data() as Map<String, dynamic>;
-                              final week = data['hafta'] ?? 1;
-
-                              return Text(
-                                "$week. Hafta",
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              );
-                            },
-                          ),
-                        ]),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 30),
-
-              riskDashboard(),
-
-              gridButton(
-                title: "Risk Ölçüm",
-                icon: Icons.health_and_safety,
-                color: Colors.red.shade400,
-                onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => RiskTakipFormuPage())),
-              ),
-
-              gridButton(
-                title: "Besin Analizi",
-                icon: Icons.restaurant_menu,
-                color: Colors.green.shade400,
-                onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => HamileBesinPage())),
-              ),
-
-              gridButton(
-                title: "Son Ölçüm Geçmişi",
-                icon: Icons.history,
-                color: Colors.orange.shade400,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                    const HamileOlcumGecmisiPage(),
-                  ),
-                ),
-              ),
-
-              gridButton(
-                title: "Besin & Takviye Geçmişi",
-                icon: Icons.medication,
-                color: Colors.blue.shade400,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                    const HamileBesinGecmisiPage(),
-                  ),
-                ),
-              ),
-            ]),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: pages,
       ),
 
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.pink,
         unselectedItemColor: Colors.grey,
-        onTap: (index) async {
-          if (index == 2) return;
-
-          if (index == 0) {
-            await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => const MessagePage()));
-          }
-
-          if (index == 1) {
-            await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => const UzmanAraPage()));
-          }
-
-          if (index == 3) {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                isLoggedIn ? HesabimPage() : const LoginPage(),
-              ),
-            );
-          }
-
-          setState(() => _selectedIndex = 2);
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
         },
-        items: const [
+        items: [
           BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble_outline),
-              label: "Mesajlar"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.search), label: "Ara"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.home), label: "Ana Sayfa"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.person), label: "Hesabım"),
+            icon: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection("messages")
+                  .snapshots(),
+              builder: (context, snapshot) {
+
+                int unreadCount = 0;
+
+                if (snapshot.hasData) {
+                  final uid = FirebaseAuth.instance.currentUser!.uid;
+
+                  unreadCount = snapshot.data!.docs.where((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    return data["isRead"] == false &&
+                        data["senderId"] != uid;
+                  }).length;
+                }
+
+                return Stack(
+                  children: [
+                    const Icon(Icons.chat_bubble_outline),
+
+                    if (unreadCount > 0)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            unreadCount > 99 ? "99+" : unreadCount.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+            label: "Mesajlar",
+          ),
+
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: "Ara",
+          ),
+
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: "Ana Sayfa",
+          ),
+
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: "Hesabım",
+          ),
         ],
       ),
     );
@@ -413,6 +330,138 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
                 color: color),
           ),
         ]),
+      ),
+    );
+  }
+  Widget _buildHomeContent() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          Text(
+            "Hoş geldin anne 💕",
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.pink.shade700,
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          Text(
+            "Sağlık ve beslenme takibini kolayca yapabilirsin.",
+            style: TextStyle(color: Colors.grey.shade700),
+          ),
+
+          const SizedBox(height: 25),
+
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Colors.pink, Colors.purple],
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.baby_changing_station,
+                    color: Colors.white, size: 40),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Şu an",
+                        style: TextStyle(color: Colors.white70)),
+
+                    StreamBuilder<DocumentSnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(FirebaseAuth.instance.currentUser!.uid)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+
+                        if (!snapshot.hasData) {
+                          return const Text(
+                            "Yükleniyor...",
+                            style: TextStyle(color: Colors.white),
+                          );
+                        }
+
+                        final data =
+                        snapshot.data!.data() as Map<String, dynamic>;
+
+                        final week = data['hafta'] ?? 1;
+
+                        return Text(
+                          "$week. Hafta",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 30),
+
+          riskDashboard(),
+
+          gridButton(
+            title: "Risk Ölçüm",
+            icon: Icons.health_and_safety,
+            color: Colors.red.shade400,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => RiskTakipFormuPage()),
+            ),
+          ),
+
+          gridButton(
+            title: "Besin Analizi",
+            icon: Icons.restaurant_menu,
+            color: Colors.green.shade400,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => HamileBesinPage()),
+            ),
+          ),
+
+          gridButton(
+            title: "Son Ölçüm Geçmişi",
+            icon: Icons.history,
+            color: Colors.orange.shade400,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) =>
+                  const HamileOlcumGecmisiPage()),
+            ),
+          ),
+
+          gridButton(
+            title: "Besin & Takviye Geçmişi",
+            icon: Icons.medication,
+            color: Colors.blue.shade400,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) =>
+                  const HamileBesinGecmisiPage()),
+            ),
+          ),
+        ],
       ),
     );
   }

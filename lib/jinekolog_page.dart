@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'gynecologist_patient_detail_page.dart';
 import 'login_page.dart';
 import 'notification_page.dart';
+import 'expert_chat_list_page.dart';
 
 class GynecologistHomePage extends StatefulWidget {
   const GynecologistHomePage({super.key});
@@ -565,9 +566,7 @@ class _GynecologistHomePageState
   }
 
   Widget _buildMessagesPage() {
-    return const Center(
-      child: Text("Mesaj Sayfası"),
-    );
+    return const ExpertChatListPage();
   }
 
   Widget _buildAccountPage() {

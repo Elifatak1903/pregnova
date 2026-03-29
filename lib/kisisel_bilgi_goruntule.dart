@@ -11,6 +11,16 @@ class KisiselBilgilerGoruntulePage extends StatelessWidget {
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text("Kişisel Bilgiler"),
+        backgroundColor: Colors.pink,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(

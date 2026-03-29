@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login_page.dart';
 import 'client_detail_page.dart';
+import 'expert_chat_list_page.dart';
 
 class DietitianHomePage extends StatefulWidget {
   const DietitianHomePage({super.key});
@@ -23,8 +24,6 @@ class _DietitianHomePageState
     super.initState();
     uid = FirebaseAuth.instance.currentUser!.uid;
   }
-
-  // FIRESTORE
 
   Future<int> getApprovedCount() async {
     final query = await FirebaseFirestore.instance
@@ -55,8 +54,6 @@ class _DietitianHomePageState
         .get();
     return query.docs.length;
   }
-
-  // BODY SWITCH
 
   Widget _buildBody() {
     switch (_selectedIndex) {
@@ -161,16 +158,58 @@ class _DietitianHomePageState
                           icon: const Icon(Icons.check, color: Colors.green),
                           onPressed: () async {
 
-                            await doc.reference
-                                .update({'status': 'approved'});
+                            try {
+                              await doc.reference.update({'status': 'approved'});
 
-                            // danışanı diyetisyene bağlar
-                            await FirebaseFirestore.instance
-                                .collection("users")
-                                .doc(clientId)
-                                .update({
-                              "assignedDietitian": uid
-                            });
+                              await FirebaseFirestore.instance
+                                  .collection("users")
+                                  .doc(clientId)
+                                  .set({
+                                "assignedDietitian": uid
+                              }, SetOptions(merge: true));
+
+                              final existingChats = await FirebaseFirestore.instance
+                                  .collection("chats")
+                                  .where("users", arrayContains: uid)
+                                  .get();
+
+                              bool chatExists = false;
+
+                              for (var c in existingChats.docs) {
+                                final users = List<String>.from(c["users"]);
+                                if (users.contains(clientId)) {
+                                  chatExists = true;
+                                  break;
+                                }
+                              }
+
+                              if (!chatExists) {
+                                await FirebaseFirestore.instance
+                                    .collection("chats")
+                                    .add({
+                                  "users": [clientId, uid],
+                                  "lastMessage": "",
+                                  "lastMessageTime": FieldValue.serverTimestamp(),
+                                });
+                              }
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Danışan başarıyla eklendi 🎉"),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+
+                            } catch (e) {
+                              print("HATA: $e");
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Bir hata oluştu ❌"),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
                           },
                         ),
                       ],
@@ -356,9 +395,7 @@ class _DietitianHomePageState
   //  MESSAGES
 
   Widget _buildMessagesPage() {
-    return const Center(
-      child: Text("Mesaj Sayfası"),
-    );
+    return const ExpertChatListPage();
   }
 
   // ACCOUNT

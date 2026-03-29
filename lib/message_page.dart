@@ -32,15 +32,13 @@ class MessagePage extends StatelessWidget {
     return newChat.id;
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.pink,
-        title: const Text("Mesajlar"),
-      ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection("users")
@@ -67,40 +65,140 @@ class MessagePage extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              if (doctorId != null)
+              if (doctorId != null && doctorId.toString().isNotEmpty)
                 _card(context, doctorId, "Doktor"),
 
-              if (dietitianId != null)
+              if (dietitianId != null && dietitianId.toString().isNotEmpty)
                 _card(context, dietitianId, "Diyetisyen"),
             ],
-          );;
+          );
         },
       ),
     );
   }
 
-  Widget _card(BuildContext context, String otherUserId, String title) {
+  Widget _card(BuildContext context, String otherUserId, String role) {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+
     return FutureBuilder(
       future: getOrCreateChat(otherUserId),
-      builder: (context, snapshot) {
+      builder: (context, chatSnapshot) {
 
-        if (!snapshot.hasData) return const SizedBox();
+        if (!chatSnapshot.hasData) return const SizedBox();
 
-        final chatId = snapshot.data as String;
+        final chatId = chatSnapshot.data as String;
 
-        return ListTile(
-          title: Text(title),
-          leading: const Icon(Icons.person),
-          trailing: const Icon(Icons.arrow_forward_ios),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ChatPage(
-                  chatId: chatId,
-                  title: title,
-                ),
-              ),
+        return StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection("chats")
+              .doc(chatId)
+              .snapshots(),
+          builder: (context, chatSnap) {
+
+            if (!chatSnap.hasData) return const SizedBox();
+
+            final chatData =
+            chatSnap.data!.data() as Map<String, dynamic>?;
+
+            final lastMessage = chatData?["lastMessage"] ?? "";
+            final time = chatData?["lastMessageTime"];
+
+            String timeText = "";
+            if (time != null) {
+              final date = (time as Timestamp).toDate();
+              timeText =
+              "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+            }
+
+            // 🔥 USER ÇEK
+            return FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection("users")
+                  .doc(otherUserId)
+                  .get(),
+              builder: (context, userSnap) {
+
+                if (!userSnap.hasData) {
+                  return const ListTile(title: Text("Yükleniyor..."));
+                }
+
+                final userData =
+                userSnap.data!.data() as Map<String, dynamic>?;
+
+                final name = userData?["name"] ?? role;
+
+                // 🔥 PREFIX
+                String prefix = "";
+                if (role == "Doktor") prefix = "Dr.";
+                if (role == "Diyetisyen") prefix = "Dyt.";
+
+                return ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Colors.pink,
+                    child: Icon(Icons.person, color: Colors.white),
+                  ),
+                  title: Text("$prefix $name"),
+                  subtitle: Text(
+                    lastMessage,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(timeText),
+
+                      const SizedBox(height: 4),
+
+                      StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection("messages")
+                            .where("chatId", isEqualTo: chatId)
+                            .snapshots(),
+                        builder: (context, snap) {
+
+                          if (!snap.hasData) return const SizedBox();
+
+                          final uid = FirebaseAuth.instance.currentUser!.uid;
+
+                          final unreadCount = snap.data!.docs.where((doc) {
+                            final data = doc.data() as Map<String, dynamic>;
+                            return data["isRead"] == false && data["senderId"] != uid;
+                          }).length;
+
+                          if (unreadCount == 0) return const SizedBox();
+
+                          return Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              unreadCount.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ChatPage(
+                          chatId: chatId,
+                          title: "$prefix $name",
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
             );
           },
         );

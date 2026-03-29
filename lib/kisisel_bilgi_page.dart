@@ -101,10 +101,7 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
 
       await Future.delayed(const Duration(seconds: 1));
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const KisiselBilgilerGoruntulePage()),
-      );
+      Navigator.pop(context);
 
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
