@@ -295,15 +295,65 @@ class _GynecologistHomePageState
             _selectedIndex = index;
           });
         },
-        items: const [
-          BottomNavigationBarItem(
+        items: [
+          const BottomNavigationBarItem(
               icon: Icon(Icons.home), label: "Ana Sayfa"),
-          BottomNavigationBarItem(
+
+          const BottomNavigationBarItem(
               icon: Icon(Icons.people), label: "Danışanlar"),
+
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.pending), label: "İstekler"),
+
           BottomNavigationBarItem(
-              icon: Icon(Icons.message), label: "Mesajlar"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.person), label: "Hesap Bilgileri"),
+            icon: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection("messages")
+                  .snapshots(),
+              builder: (context, snapshot) {
+
+                int unreadCount = 0;
+
+                if (snapshot.hasData) {
+                  unreadCount = snapshot.data!.docs.where((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    return data["isRead"] == false &&
+                        data["receiverId"] == uid;
+                  }).length;
+                }
+
+                return Stack(
+                  children: [
+                    const Icon(Icons.message),
+
+                    if (unreadCount > 0)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            unreadCount > 99 ? "99+" : unreadCount.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+            label: "Mesajlar",
+          ),
+
+          const BottomNavigationBarItem(
+              icon: Icon(Icons.person), label: "Hesap"),
         ],
       ),
     );
@@ -313,12 +363,19 @@ class _GynecologistHomePageState
     switch (_selectedIndex) {
       case 0:
         return _buildHomePage();
+
       case 1:
         return _buildPatientsPage();
+
       case 2:
-        return _buildMessagesPage();
+        return _buildRequestsPage();
+
       case 3:
+        return _buildMessagesPage();
+
+      case 4:
         return _buildAccountPage();
+
       default:
         return _buildHomePage();
     }
@@ -620,6 +677,13 @@ class _GynecologistHomePageState
       ),
     );
   }
+  Widget _buildRequestsPage() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: _buildPatientRequests(),
+    );
+  }
+
   Widget _premiumStatCard(
       String title, String value, Color color, IconData icon) {
     return Container(
@@ -778,7 +842,6 @@ class _GynecologistHomePageState
                       Row(
                         children: [
 
-                          /// ✅ KABUL
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green),
@@ -787,13 +850,11 @@ class _GynecologistHomePageState
                               final doctorUid =
                                   FirebaseAuth.instance.currentUser!.uid;
 
-                              /// request approve
                               await FirebaseFirestore.instance
                                   .collection("expert_requests")
                                   .doc(doc.id)
                                   .update({"status": "approved"});
 
-                              /// 🔥 EN ÖNEMLİ SATIR
                               await FirebaseFirestore.instance
                                   .collection("users")
                                   .doc(clientId)
@@ -808,7 +869,6 @@ class _GynecologistHomePageState
 
                           const SizedBox(width: 10),
 
-                          /// ❌ RED
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red),

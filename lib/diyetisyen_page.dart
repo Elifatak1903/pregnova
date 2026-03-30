@@ -447,7 +447,6 @@ class _DietitianHomePageState
     );
   }
 
-  //  STAT CARD
   Widget _statCard(String title, String value, IconData icon) {
     return Container(
       padding: const EdgeInsets.all(18),
@@ -499,16 +498,65 @@ class _DietitianHomePageState
             _selectedIndex = index;
           });
         },
-        items: const [
-          BottomNavigationBarItem(
+        items: [
+          const BottomNavigationBarItem(
               icon: Icon(Icons.home), label: "Ana Sayfa"),
-          BottomNavigationBarItem(
+
+          const BottomNavigationBarItem(
               icon: Icon(Icons.people), label: "Danışanlar"),
-          BottomNavigationBarItem(
+
+          const BottomNavigationBarItem(
               icon: Icon(Icons.pending), label: "İstekler"),
+
+          // 💣 MESAJLAR (BADGE’Lİ)
           BottomNavigationBarItem(
-              icon: Icon(Icons.message), label: "Mesajlar"),
-          BottomNavigationBarItem(
+            icon: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection("messages")
+                  .snapshots(),
+              builder: (context, snapshot) {
+
+                int unreadCount = 0;
+
+                if (snapshot.hasData) {
+                  unreadCount = snapshot.data!.docs.where((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    return data["isRead"] == false &&
+                        data["receiverId"] == uid;
+                  }).length;
+                }
+
+                return Stack(
+                  children: [
+                    const Icon(Icons.message),
+
+                    if (unreadCount > 0)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            unreadCount > 99 ? "99+" : unreadCount.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+            label: "Mesajlar",
+          ),
+
+          const BottomNavigationBarItem(
               icon: Icon(Icons.person), label: "Hesap"),
         ],
       ),
