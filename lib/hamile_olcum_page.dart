@@ -96,6 +96,27 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
         previousPreterm: userData["previousPreterm"] ?? false,
         multiplePregnancy: userData["multiplePregnancy"] ?? false,
       );
+
+      String overallRisk = "low";
+
+      if (preeklampsiRisk == "HIGH" ||
+          diyabetRisk == "HIGH" ||
+          pretermRisk == "HIGH") {
+        overallRisk = "high";
+      }
+      else if (preeklampsiRisk == "MEDIUM" ||
+          diyabetRisk == "MEDIUM" ||
+          pretermRisk == "MEDIUM") {
+        overallRisk = "medium";
+      }
+
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(uid)
+          .set({
+        "riskLevel": overallRisk,
+      }, SetOptions(merge: true));
+
       await RiskEngine.sendRiskNotification(
         uid: uid,
         riskType: "Preeklampsi",

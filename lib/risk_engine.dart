@@ -14,7 +14,6 @@ class RiskResult {
 
 class RiskEngine {
 
-  // ================= PREKLAMPSİ =================
   static Future<String> calculatePreeklampsi({
     required String uid,
     required int sistolik,
@@ -48,7 +47,6 @@ class RiskEngine {
       risk = "HIGH";
     }
 
-    // Son 3 ölçüm kontrolü
     final query = await FirebaseFirestore.instance
         .collection("risk_olcumleri")
         .where("uid", isEqualTo: uid)
@@ -73,12 +71,18 @@ class RiskEngine {
         if (risk == "LOW") risk = "MEDIUM";
         if (risk == "MEDIUM") risk = "HIGH";
       }
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(uid)
+          .set({
+        "riskLevel": risk.toLowerCase(),
+      }, SetOptions(merge: true));
     }
+
 
     return risk;
   }
 
-  // ================= DİYABET =================
   static String calculateDiyabet({
     required double? aclik,
     required double? tokluk,
@@ -105,7 +109,6 @@ class RiskEngine {
     return "HIGH";
   }
 
-  // ================= PRETERM =================
   static String calculatePreterm({
     required bool karinKasilma,
     required bool akinti,
@@ -135,7 +138,6 @@ class RiskEngine {
     return "HIGH";
   }
 
-  // NOTIFICATION
   static Future<void> sendRiskNotification({
     required String uid,
     required String riskType,

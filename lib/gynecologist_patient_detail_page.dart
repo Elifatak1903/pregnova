@@ -177,6 +177,7 @@ class HastaDetayPage extends StatelessWidget {
                             clientId: clientId,
                             name: name,
                             surname: surname,
+                            initialIndex: 0,
                           ),
                     ),
                   );

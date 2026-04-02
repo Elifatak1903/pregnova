@@ -6,6 +6,7 @@ import 'gynecologist_patient_detail_page.dart';
 import 'login_page.dart';
 import 'notification_page.dart';
 import 'expert_chat_list_page.dart';
+import 'son_olcumler_page.dart';
 
 class GynecologistHomePage extends StatefulWidget {
   const GynecologistHomePage({super.key});
@@ -61,26 +62,49 @@ class _GynecologistHomePageState
   }
 
   Future<int> getHighRiskCount() async {
-
     final query = await FirebaseFirestore.instance
         .collection("risk_olcumleri")
         .where("preeklampsiRisk", isEqualTo: "HIGH")
         .get();
 
-    return query.docs.length;
+    final uniquePatients = <String>{};
+
+    for (var doc in query.docs) {
+      final data = doc.data();
+      final uid = data["uid"];
+
+      if (uid != null) {
+        uniquePatients.add(uid);
+      }
+    }
+
+    return uniquePatients.length;
   }
 
-  Future<int> getActiveThisWeek() async {
+  Future<Map<String, int>> getActiveThisWeek() async {
     final sevenDaysAgo =
     DateTime.now().subtract(const Duration(days: 7));
 
     final query = await FirebaseFirestore.instance
         .collection("risk_olcumleri")
-        .where("expertId", isEqualTo: uid)
         .where("tarih", isGreaterThan: sevenDaysAgo)
         .get();
 
-    return query.docs.length;
+    final uniquePatients = <String>{};
+
+    for (var doc in query.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final uid = data["uid"];
+
+      if (uid != null) {
+        uniquePatients.add(uid);
+      }
+    }
+
+    return {
+      "measurements": query.docs.length,
+      "patients": uniquePatients.length,
+    };
   }
   Future<Map<String, int>> getRiskDistribution() async {
 
@@ -107,6 +131,7 @@ class _GynecologistHomePageState
       "medium": medium.docs.length,
       "high": high.docs.length,
     };
+
   }
   Widget _buildRecentActivity() {
     return StreamBuilder<QuerySnapshot>(
@@ -132,6 +157,7 @@ class _GynecologistHomePageState
           children: docs.map((doc) {
 
             final data = doc.data() as Map<String, dynamic>;
+            final tarih = data["tarih"];
             final uid = data["uid"];
 
             return FutureBuilder<DocumentSnapshot>(
@@ -166,9 +192,22 @@ class _GynecologistHomePageState
                       const Icon(Icons.timeline, color: Colors.pink),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: Text(
-                          "$name $surname yeni ölçüm gönderdi",
-                          style: const TextStyle(fontSize: 14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "$name $surname yeni ölçüm gönderdi",
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              timeAgo(tarih),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -415,6 +454,11 @@ class _GynecologistHomePageState
                     snapshot.data?.toString() ?? "...",
                     Colors.pink,
                     Icons.people,
+                        () {
+                      setState(() {
+                        _selectedIndex = 1;
+                      });
+                    },
                   );
                 },
               ),
@@ -427,6 +471,11 @@ class _GynecologistHomePageState
                     snapshot.data?.toString() ?? "...",
                     Colors.orange,
                     Icons.pending,
+                        () {
+                      setState(() {
+                        _selectedIndex = 2;
+                      });
+                    },
                   );
                 },
               ),
@@ -439,18 +488,34 @@ class _GynecologistHomePageState
                     snapshot.data?.toString() ?? "...",
                     Colors.red,
                     Icons.warning,
+                    null,
                   );
                 },
               ),
 
-              FutureBuilder<int>(
+              FutureBuilder<Map<String, int>>(
                 future: getActiveThisWeek(),
                 builder: (context, snapshot) {
+
+                  final data = snapshot.data;
+
+                  final text = data == null
+                      ? "..."
+                      : "${data["measurements"]} ölçüm\n${data["patients"]} hasta";
+
                   return _premiumStatCard(
-                    "Son 7 Gün Aktif",
-                    snapshot.data?.toString() ?? "...",
+                    "Son 7 Gün",
+                    text,
                     Colors.green,
                     Icons.timeline,
+                    (){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SonOlcumlerPage(),
+                        ),
+                      );
+                    },
                   );
                 },
               ),
@@ -685,29 +750,42 @@ class _GynecologistHomePageState
   }
 
   Widget _premiumStatCard(
-      String title, String value, Color color, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 6)
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 26),
-          const SizedBox(height: 10),
-          Text(value,
+      String title,
+      String value,
+      Color color,
+      IconData icon,
+      VoidCallback? onTap,
+      ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: const [
+            BoxShadow(color: Colors.black12, blurRadius: 6)
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: color, size: 26),
+            const SizedBox(height: 10),
+            Text(
+              value,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: color)),
-          const SizedBox(height: 6),
-          Text(title),
-        ],
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(title),
+          ],
+        ),
       ),
     );
   }
@@ -718,8 +796,7 @@ class _GynecologistHomePageState
       builder: (context, snapshot) {
 
         if (!snapshot.hasData) {
-          return const Center(
-              child: CircularProgressIndicator());
+          return const SizedBox.shrink();
         }
 
         final data = snapshot.data!;
@@ -730,7 +807,7 @@ class _GynecologistHomePageState
         final total = normal + medium + high;
 
         if (total == 0) {
-          return const Text("Henüz risk verisi yok");
+          return const SizedBox.shrink(); // 💣 tamamen yok
         }
 
         return Column(
@@ -749,35 +826,14 @@ class _GynecologistHomePageState
                   sectionsSpace: 2,
                   centerSpaceRadius: 40,
                   sections: [
-                    PieChartSectionData(
-                      color: Colors.green,
-                      value: normal,
-                      title: "",
-                    ),
-                    PieChartSectionData(
-                      color: Colors.orange,
-                      value: medium,
-                      title: "",
-                    ),
-                    PieChartSectionData(
-                      color: Colors.red,
-                      value: high,
-                      title: "",
-                    ),
+                    PieChartSectionData(color: Colors.green, value: normal),
+                    PieChartSectionData(color: Colors.orange, value: medium),
+                    PieChartSectionData(color: Colors.red, value: high),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 15),
-            Row(
-              mainAxisAlignment:
-              MainAxisAlignment.spaceEvenly,
-              children: const [
-                _Legend(color: Colors.green, text: "Normal"),
-                _Legend(color: Colors.orange, text: "Orta"),
-                _Legend(color: Colors.red, text: "Yüksek"),
-              ],
-            )
           ],
         );
       },
@@ -904,5 +960,20 @@ class _GynecologistHomePageState
             blurRadius: 6)
       ],
     );
+  }
+  String timeAgo(Timestamp timestamp) {
+    final now = DateTime.now();
+    final date = timestamp.toDate();
+    final diff = now.difference(date);
+
+    if (diff.inSeconds < 60) {
+      return "${diff.inSeconds} sn önce";
+    } else if (diff.inMinutes < 60) {
+      return "${diff.inMinutes} dk önce";
+    } else if (diff.inHours < 24) {
+      return "${diff.inHours} saat önce";
+    } else {
+      return "${diff.inDays} gün önce";
+    }
   }
 }
