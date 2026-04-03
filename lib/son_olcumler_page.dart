@@ -90,7 +90,7 @@ class SonOlcumlerPage extends StatelessWidget {
                               clientId: patientId,
                               name: name,
                               surname: surname,
-                              initialIndex: 0,
+                              initialIndex: index, // 🔥 KRİTİK DEĞİŞİKLİK
                             ),
                           ),
                         );

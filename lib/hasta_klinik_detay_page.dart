@@ -62,7 +62,6 @@ class _HastaKlinikDetayPageState
             );
           }
 
-          // 🔥 BURASI EN KRİTİK (scroll)
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (widget.initialIndex < docs.length) {
               _controller.jumpTo(widget.initialIndex * 180);
@@ -98,7 +97,6 @@ class _HastaKlinikDetayPageState
                   CrossAxisAlignment.start,
                   children: [
 
-                    // 📅 Tarih
                     Text(
                       "${date.day}/${date.month}/${date.year}",
                       style: const TextStyle(
@@ -109,7 +107,10 @@ class _HastaKlinikDetayPageState
 
                     const SizedBox(height: 10),
 
-                    _infoRow("Tansiyon", data["tansiyon"]),
+                    _infoRow(
+                      "Tansiyon",
+                      "${data["sistolik"] ?? "-"} / ${data["diastolik"] ?? "-"}",
+                    ),
                     _infoRow("Açlık Şekeri", data["aclikSeker"]),
                     _infoRow("Tokluk Şekeri", data["toklukSeker"]),
                     _infoRow("Stres Seviyesi", data["stresSeviyesi"]),
@@ -122,12 +123,43 @@ class _HastaKlinikDetayPageState
                     _boolRow("Karın Kasılması", data["karinKasilma"]),
                     _boolRow("Bel Ağrısı", data["belAgrisi"]),
                     _boolRow("Akıntı", data["akinti"]),
+
+                    const SizedBox(height: 10),
+
+                    _infoRow("Preeklampsi Risk", data["preeklampsiRisk"] ?? "-"),
+                    _infoRow("Diyabet Risk", data["diyabetRisk"] ?? "-"),
+                    _infoRow("Preterm Risk", data["pretermRisk"] ?? "-"),
                   ],
                 ),
               );
             },
           );
         },
+      ),
+    );
+  }
+
+  Widget _riskRow(String title, String? risk) {
+    Color color = Colors.grey;
+
+    if (risk == "HIGH") color = Colors.red;
+    else if (risk == "MEDIUM") color = Colors.orange;
+    else if (risk == "LOW") color = Colors.green;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title),
+          Text(
+            risk ?? "-",
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -165,6 +165,13 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
         },
       );
 
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(uid)
+          .set({
+        "kilo": double.tryParse(kiloController.text),
+      }, SetOptions(merge: true));
+
       await FirebaseFirestore.instance.collection('risk_olcumleri').add({
         'uid': uid,
         'tarih': Timestamp.now(),

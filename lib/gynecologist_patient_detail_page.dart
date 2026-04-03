@@ -27,7 +27,6 @@ class HastaDetayPage extends StatelessWidget {
         child: Column(
           children: [
 
-            // HASTA BİLGİ KARTI
             FutureBuilder<DocumentSnapshot>(
               future: FirebaseFirestore.instance
                   .collection("users")
@@ -147,6 +146,8 @@ class HastaDetayPage extends StatelessWidget {
                     _buildTansiyonChart(docs),
                     const SizedBox(height: 30),
                     _buildSekerChart(docs),
+                    const SizedBox(height: 30),
+                    _buildKiloChart(docs),
                   ],
                 );
               },
@@ -154,7 +155,6 @@ class HastaDetayPage extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // DETAYLI ANALİZ BUTONU
             Padding(
               padding:
               const EdgeInsets.symmetric(horizontal: 20),
@@ -197,7 +197,6 @@ class HastaDetayPage extends StatelessWidget {
     );
   }
 
-  // TANSİYON GRAFİĞİ
   Widget _buildTansiyonChart(
       List<QueryDocumentSnapshot> docs) {
 
@@ -226,29 +225,27 @@ class HastaDetayPage extends StatelessWidget {
               barGroups:
               List.generate(docs.length, (i) {
 
-                final data =
-                docs[i].data() as Map<String, dynamic>;
+                final data = docs[i].data() as Map<String, dynamic>;
 
-                final raw =
-                    data["tansiyon"] ?? "0/0";
+                final sistolik =
+                    double.tryParse(data["sistolik"]?.toString() ?? "0") ?? 0;
 
-                final parts =
-                raw.toString().split("/");
-
-                double sistolik = 0;
-
-                if (parts.isNotEmpty) {
-                  sistolik =
-                      double.tryParse(parts[0]) ?? 0;
-                }
+                final diastolik =
+                    double.tryParse(data["diastolik"]?.toString() ?? "0") ?? 0;
 
                 return BarChartGroupData(
                   x: i,
+                  barsSpace: 4,
                   barRods: [
                     BarChartRodData(
                       toY: sistolik,
                       color: Colors.pink,
-                      width: 14,
+                      width: 8,
+                    ),
+                    BarChartRodData(
+                      toY: diastolik,
+                      color: Colors.blue,
+                      width: 8,
                     ),
                   ],
                 );
@@ -260,7 +257,6 @@ class HastaDetayPage extends StatelessWidget {
     );
   }
 
-  // ŞEKER GRAFİĞİ
   Widget _buildSekerChart(
       List<QueryDocumentSnapshot> docs) {
 
@@ -318,6 +314,56 @@ class HastaDetayPage extends StatelessWidget {
                       toY: tokluk,
                       color: Colors.blue,
                       width: 10,
+                    ),
+                  ],
+                );
+              }),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildKiloChart(List<QueryDocumentSnapshot> docs) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+
+        const Padding(
+          padding: EdgeInsets.only(left: 16),
+          child: Text(
+            "Kilo Değişim Grafiği",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 15),
+
+        SizedBox(
+          height: 220,
+          child: BarChart(
+            BarChartData(
+              minY: 40,
+              maxY: 120,
+              barGroups: List.generate(docs.length, (i) {
+
+                final data =
+                docs[i].data() as Map<String, dynamic>;
+
+                final kilo =
+                    double.tryParse(data["kilo"]?.toString() ?? "0") ?? 0;
+
+                return BarChartGroupData(
+                  x: i,
+                  barRods: [
+                    BarChartRodData(
+                      toY: kilo,
+                      color: Colors.purple,
+                      width: 14,
                     ),
                   ],
                 );

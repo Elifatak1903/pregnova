@@ -98,7 +98,6 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
 
                                 const Divider(),
 
-                                // PREEKLAMPSİ
                                 const Text(
                                   "Preeklampsi",
                                   style: TextStyle(
@@ -120,7 +119,6 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
 
                                 const SizedBox(height: 10),
 
-                                // DİYABET
                                 const Text(
                                   "Gestasyonel Diyabet",
                                   style: TextStyle(
@@ -141,7 +139,6 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
 
                                 const SizedBox(height: 10),
 
-                                // PRETERM
                                 const Text(
                                   "Preterm Risk",
                                   style: TextStyle(

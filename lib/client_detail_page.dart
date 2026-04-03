@@ -5,17 +5,13 @@ import 'package:fl_chart/fl_chart.dart';
 class ClientDetailPage extends StatelessWidget {
   final String clientId;
 
-
   const ClientDetailPage({super.key, required this.clientId});
-
-  // KİLO GRAFİĞİ
 
   Future<List<FlSpot>> getWeightSpots() async {
     final query = await FirebaseFirestore.instance
         .collection("risk_olcumleri")
         .where("uid", isEqualTo: clientId)
         .get();
-
 
     final docs = query.docs;
 
@@ -82,8 +78,6 @@ class ClientDetailPage extends StatelessWidget {
     return spots;
   }
 
-  // UI
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,8 +116,6 @@ class ClientDetailPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
-                //PROFİL
 
                 Card(
                   shape: RoundedRectangleBorder(
