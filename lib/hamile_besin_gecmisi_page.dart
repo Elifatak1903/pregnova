@@ -196,7 +196,7 @@ class HamileBesinGecmisiPage extends StatelessWidget {
                                 ],
 
                                 if (missing.isNotEmpty) ...[
-                                  const Text("Eksik Besib Öğeleri",
+                                  const Text("Eksik Besin Öğeleri",
                                     style: TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                   const SizedBox(height: 6),
@@ -235,7 +235,6 @@ class HamileBesinGecmisiPage extends StatelessWidget {
 
                                 const SizedBox(height: 10),
 
-                                // Silme butonu
                                 Align(
                                   alignment: Alignment.centerRight,
                                   child: IconButton(

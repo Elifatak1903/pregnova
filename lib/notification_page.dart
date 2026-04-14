@@ -24,141 +24,185 @@ class NotificationPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
 
-    return Scaffold(
-      backgroundColor: Colors.pink.shade50,
-      appBar: AppBar(
-        backgroundColor: Colors.pink,
-        title: const Text("Bildirimler"),
-        centerTitle: true,
-      ),
-      body: uid == null
-          ? Center(
-        child: Text(
-          "Bildirimleri görmek için giriş yapmalısın",
-          style: TextStyle(
-            color: Colors.grey.shade700,
-            fontSize: 16,
+    if (uid == null) {
+      return const Scaffold(
+        body: Center(child: Text("Giriş yapılmamış")),
+      );
+    }
+
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance
+          .collection("users")
+          .doc(uid)
+          .get(),
+      builder: (context, userSnap) {
+
+        if (!userSnap.hasData) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final userData =
+        userSnap.data!.data() as Map<String, dynamic>?;
+
+        final role = userData?["role"] ?? "pregnant";
+
+        final primaryColor =
+        role == "dietitian" ? Colors.green : Colors.pink;
+
+        final backgroundColor =
+        role == "dietitian"
+            ? Colors.green.shade50
+            : Colors.pink.shade50;
+
+        return Scaffold(
+          backgroundColor: backgroundColor,
+
+          appBar: AppBar(
+            backgroundColor: primaryColor,
+            title: const Text(
+              "Bildirimler",
+              style: TextStyle(color: Colors.white),
+            ),
+            centerTitle: true,
           ),
-        ),
-      )
-          : StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('notification')
-            .where('uid', isEqualTo: uid)
-            .orderBy('createdAt', descending: true)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(
-              child: Text(
-                "Henüz bildirim yok 💕",
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 16,
-                ),
-              ),
-            );
-          }
+          body: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('notification')
+                .where('uid', isEqualTo: uid)
+                .orderBy('createdAt', descending: true)
+                .snapshots(),
+            builder: (context, snapshot) {
 
-          final docs = snapshot.data!.docs;
+              if (snapshot.connectionState ==
+                  ConnectionState.waiting) {
+                return const Center(
+                    child: CircularProgressIndicator());
+              }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: docs.length,
-            itemBuilder: (context, index) {
-              final doc = docs[index];
-              final data = doc.data() as Map<String, dynamic>;
-
-              final isRead = data['isRead'] ?? false;
-              final type = data['type'] ?? "general";
-              final title = data['title'] ?? "";
-              final message = data['message'] ?? "";
-
-              final createdAt = data['createdAt'] as Timestamp?;
-              final timeText = timeAgo(createdAt);
-
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: isRead ? Colors.white : Colors.pink.shade100,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isRead
-                        ? Colors.grey.shade300
-                        : Colors.pink.shade300,
+              if (!snapshot.hasData ||
+                  snapshot.data!.docs.isEmpty) {
+                return Center(
+                  child: Text(
+                    "Henüz bildirim yok",
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 16,
+                    ),
                   ),
-                ),
-                child: ListTile(
-                  leading: Stack(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: Colors.pink,
-                        child: Icon(
-                          type == "risk_alert"
-                              ? Icons.warning
-                              : Icons.notifications,
-                          color: Colors.white,
-                        ),
+                );
+              }
+
+              final docs = snapshot.data!.docs;
+
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: docs.length,
+                itemBuilder: (context, index) {
+
+                  final doc = docs[index];
+                  final data =
+                  doc.data() as Map<String, dynamic>;
+
+                  final isRead = data['isRead'] ?? false;
+                  final type = data['type'] ?? "general";
+                  final title = data['title'] ?? "";
+                  final message = data['message'] ?? "";
+
+                  final createdAt =
+                  data['createdAt'] as Timestamp?;
+                  final timeText = timeAgo(createdAt);
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: isRead
+                          ? Colors.white
+                          : primaryColor.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isRead
+                            ? Colors.grey.shade300
+                            : primaryColor,
                       ),
-                      if (!isRead)
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          child: Container(
-                            width: 10,
-                            height: 10,
-                            decoration: const BoxDecoration(
-                              color: Colors.black,
-                              shape: BoxShape.circle,
+                    ),
+                    child: ListTile(
+                      leading: Stack(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: primaryColor,
+                            child: Icon(
+                              type == "risk_alert"
+                                  ? Icons.warning
+                                  : Icons.notifications,
+                              color: Colors.white,
                             ),
                           ),
+                          if (!isRead)
+                            const Positioned(
+                              right: 0,
+                              top: 0,
+                              child: CircleAvatar(
+                                radius: 5,
+                                backgroundColor: Colors.black,
+                              ),
+                            ),
+                        ],
+                      ),
+
+                      title: Text(
+                        title,
+                        style: TextStyle(
+                          fontWeight: isRead
+                              ? FontWeight.w500
+                              : FontWeight.bold,
+                          color: Colors.black,
                         ),
-                    ],
-                  ),
-                  title: Text(
-                    title,
-                    style: TextStyle(
-                      fontWeight: isRead ? FontWeight.w500 : FontWeight.bold,
-                      color: Colors.pink.shade800,
-                    ),
-                  ),
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          message,
-                          style: TextStyle(
-                            color: Colors.grey.shade700,
+                      ),
+
+                      subtitle: Column(
+                        crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            message,
+                            style: TextStyle(
+                              color: Colors.grey.shade700,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          timeText,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade500,
+                          const SizedBox(height: 4),
+                          Text(
+                            timeText,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade500,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+
+                      trailing: const Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
+
+                      onTap: () async {
+                        if (!isRead) {
+                          await doc.reference
+                              .update({'isRead': true});
+                        }
+                      },
                     ),
-                  ),
-                  onTap: () async {
-                    if (!isRead) {
-                      await doc.reference.update({'isRead': true});
-                    }
-                  },
-                ),
+                  );
+                },
               );
             },
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

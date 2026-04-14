@@ -1,26 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'hasta_klinik_detay_page.dart';
+import 'client_detail_page.dart';
 
-class SonOlcumlerPage extends StatelessWidget {
-  const SonOlcumlerPage({super.key});
+class SonAnalizlerPage extends StatelessWidget {
+  const SonAnalizlerPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
 
     final sevenDaysAgo =
     DateTime.now().subtract(const Duration(days: 7));
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Son Ölçümler"),
-        backgroundColor: Colors.pink,
+        title: const Text("Son Analizler"),
+        backgroundColor: Colors.green,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection("risk_olcumleri")
+            .collection("besin_analizleri")
             .where("tarih", isGreaterThan: sevenDaysAgo)
             .orderBy("tarih", descending: true)
             .snapshots(),
@@ -35,7 +33,7 @@ class SonOlcumlerPage extends StatelessWidget {
 
           if (docs.isEmpty) {
             return const Center(
-              child: Text("Son 7 günde ölçüm yok"),
+              child: Text("Son 7 günde analiz yok"),
             );
           }
 
@@ -74,23 +72,24 @@ class SonOlcumlerPage extends StatelessWidget {
                     ),
                     child: ListTile(
                       leading: const CircleAvatar(
-                        backgroundColor: Colors.pink,
-                        child: Icon(Icons.favorite, color: Colors.white),
+                        backgroundColor: Colors.green,
+                        child: Icon(Icons.restaurant, color: Colors.white),
                       ),
+
                       title: Text("$name $surname"),
+
                       subtitle: Text(
                         tarih != null ? _timeAgo(tarih) : "",
                       ),
+
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => HastaKlinikDetayPage(
+                            builder: (_) => ClientDetailPage(
                               clientId: patientId,
-                              name: name,
-                              surname: surname,
-                              initialIndex: index,
                             ),
                           ),
                         );

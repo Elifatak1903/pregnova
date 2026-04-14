@@ -89,8 +89,6 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
         _loading = true;
       });
 
-      // FOOD-GRAM DÖNÜŞÜMÜ
-
       List<Map<String, dynamic>> foodsForAnalysis = [];
 
       for (var item in besinListesi) {
@@ -109,8 +107,6 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
         });
       }
 
-      // TAKVİYE
-
       List<Map<String, dynamic>> supplementsForAnalysis = [];
 
       for (var item in takviyeListesi) {
@@ -121,24 +117,38 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
         });
       }
 
-      // NUTRITION ANALİZ
-
       final analiz = NutritionEngine.analyzeFoods(
           foodsForAnalysis,
           supplementsForAnalysis,
       );
 
-      // FIRESTORE KAYIT
+      final userDoc = await FirebaseFirestore.instance
+          .collection("users")
+          .doc(user.uid)
+          .get();
+
+      final dietitianId = userDoc["assignedDietitian"];
+      if (dietitianId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Henüz diyetisyen atanmadı ❗"),
+          ),
+        );
+        return;
+      }
 
       await FirebaseFirestore.instance
           .collection('besin_analizleri')
           .add({
 
         'uid': user.uid,
+        'dietitianId': dietitianId,
         'tarih': Timestamp.now(),
 
         'besinler': besinListesi,
         'takviyeler': takviyeListesi,
+
+        'kalori': analiz["totalCalories"] ?? 0,
 
         'foodDetails': analiz["foodDetails"],
         'consumedNutrients': analiz["consumedNutrients"],
@@ -146,7 +156,6 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
 
       });
 
-      //  ANALİZ SONUCU
       showDialog(
         context: context,
         builder: (_) => AlertDialog(

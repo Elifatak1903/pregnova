@@ -18,29 +18,111 @@ class HesabimPage extends StatefulWidget {
 }
 
 class _HesabimPageState extends State<HesabimPage> {
-  String userName = '';
 
   @override
-  void initState() {
-    super.initState();
-    getUserName();
-  }
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.deepPurple.shade50,
 
-  Future<void> getUserName() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
 
-    if (uid != null) {
-      final snapshot =
-      await FirebaseFirestore.instance.collection('users').doc(uid).get();
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
 
-      final data = snapshot.data();
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Hesabım",
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.deepPurple.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    "Hesap ayarlarını buradan yönetebilirsin",
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
 
-      if (data != null && data.containsKey('name')) {
-        setState(() {
-          userName = data['name'];
-        });
-      }
-    }
+              const SizedBox(height: 25),
+
+              hesapButonu(
+                "👤 Kişisel Bilgiler",
+                kisiselBilgiKontrol,
+              ),
+
+              hesapButonu(
+                "📊 Ölçüm Geçmişi",
+                    () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const HamileOlcumGecmisiPage(),
+                    ),
+                  );
+                },
+              ),
+
+              hesapButonu(
+                "🍽️ Besin Analizi Geçmişi",
+                    () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const HamileBesinGecmisiPage(),
+                    ),
+                  );
+                },
+              ),
+
+              hesapButonu(
+                "🔒 Şifre Değiştir",
+                    () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SifreDegistirPage(),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 20),
+              const Divider(),
+
+              hesapButonu(
+                "🩺 Uzman Olarak Başvur",
+                    () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => UzmanBasvuruPage()),
+                  );
+                },
+                color: Colors.deepPurple,
+              ),
+
+              const Spacer(),
+
+              hesapButonu(
+                "🚪 Çıkış Yap",
+                signOut,
+                color: Colors.red.shade500,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> kisiselBilgiKontrol() async {
@@ -77,98 +159,8 @@ class _HesabimPageState extends State<HesabimPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.pink.shade50,
-      appBar: AppBar(
-        title: const Text("Hesabım"),
-        backgroundColor: Colors.pink,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Merhaba, $userName 👋",
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: Colors.pink.shade700,
-              ),
-            ),
-            const SizedBox(height: 30),
-
-            hesapButonu(
-              "👤 Kişisel Bilgiler",
-              kisiselBilgiKontrol,
-            ),
-
-            hesapButonu(
-              "📊 Ölçüm Geçmişi",
-                  () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const HamileOlcumGecmisiPage(),
-                  ),
-                );
-              },
-            ),
-            hesapButonu(
-              "🍽️ Besin Analizi Geçmişi",
-                  () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const HamileBesinGecmisiPage(),
-                  ),
-                );
-              },
-            ),
-            hesapButonu(
-              "🔒 Şifre Değiştir",
-                  () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const SifreDegistirPage(),
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 20),
-            const Divider(),
-
-            hesapButonu(
-              "🩺 Uzman Olarak Başvur",
-                  () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => UzmanBasvuruPage()),
-                );
-              },
-              color: Colors.deepPurple,
-            ),
-
-            const Spacer(),
-
-            hesapButonu(
-              "🚪 Çıkış Yap",
-              signOut,
-              color: Colors.red,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget hesapButonu(String text, VoidCallback onTap,
-      {Color color = Colors.pink}) {
+      {Color color = Colors.deepPurple}) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       width: double.infinity,
@@ -176,6 +168,7 @@ class _HesabimPageState extends State<HesabimPage> {
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
+          foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
@@ -185,7 +178,6 @@ class _HesabimPageState extends State<HesabimPage> {
           text,
           style: const TextStyle(
             fontSize: 16,
-            color: Colors.white,
           ),
         ),
       ),

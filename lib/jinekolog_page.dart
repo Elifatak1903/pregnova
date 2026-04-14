@@ -87,7 +87,7 @@ class _GynecologistHomePageState
 
     final query = await FirebaseFirestore.instance
         .collection("risk_olcumleri")
-        .where("tarih", isGreaterThan: sevenDaysAgo)
+        .where("tarih", isGreaterThanOrEqualTo: Timestamp.fromDate(sevenDaysAgo))
         .get();
 
     final uniquePatients = <String>{};
@@ -273,7 +273,6 @@ class _GynecologistHomePageState
 
   @override
   Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
     return Scaffold(
       backgroundColor: Colors.pink.shade50,
 
@@ -692,56 +691,171 @@ class _GynecologistHomePageState
   }
 
   Widget _buildAccountPage() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    final user = FirebaseAuth.instance.currentUser;
 
-          const SizedBox(height: 20),
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance
+          .collection("users")
+          .doc(user!.uid)
+          .get(),
+      builder: (context, snapshot) {
 
-          const Text(
-            "Hesap Bilgileri",
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          const SizedBox(height: 30),
+        final data =
+        snapshot.data!.data() as Map<String, dynamic>?;
 
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            elevation: 4,
-            child: ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text(
-                "Çıkış Yap",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
+        final name = data?["name"] ?? "";
+        final email = user.email ?? "";
+
+        final license = data?["licenseNumber"] ?? "-";
+        final experience = data?["experience"] ?? "-";
+        final hospital = data?["hospital"] ?? "-";
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black12, blurRadius: 6)
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 35,
+                      backgroundColor: Colors.pink,
+                      child: Icon(Icons.person, color: Colors.white, size: 30),
+                    ),
+                    const SizedBox(width: 15),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Dr. $name",
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(email),
+                        const Text(
+                          "Jinekolog",
+                          style: TextStyle(color: Colors.pink),
+                        ),
+                      ],
+                    )
+                  ],
                 ),
               ),
-              onTap: () async {
-                await FirebaseAuth.instance.signOut();
 
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => LoginPage(), // kendi login sayfan
-                  ),
-                      (route) => false,
-                );
-              },
-            ),
+              const SizedBox(height: 25),
+
+              const Text(
+                "Uzmanlık Bilgileri",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              _infoCard("Lisans No", license),
+              _infoCard("Deneyim", experience),
+              _infoCard("Çalıştığı Kurum", hospital),
+
+              const SizedBox(height: 25),
+
+              _accountTile(
+                Icons.description,
+                "Diploma / Belgeler",
+                    () {
+                  // Diploma sayfası buraya
+                },
+              ),
+
+              const SizedBox(height: 25),
+
+              const Text(
+                "Ayarlar",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              _accountTile(
+                Icons.lock,
+                "Şifre Değiştir",
+                    () {
+                  // şifre sayfası
+                },
+              ),
+
+              _accountTile(
+                Icons.logout,
+                "Çıkış Yap",
+                    () async {
+                  await FirebaseAuth.instance.signOut();
+
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => LoginPage(),
+                    ),
+                        (route) => false,
+                  );
+                },
+                color: Colors.red,
+              ),
+            ],
           ),
-
-        ],
+        );
+      },
+    );
+  }
+  Widget _infoCard(String title, String value) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: ListTile(
+        title: Text(title),
+        subtitle: Text(value),
       ),
     );
   }
+
+  Widget _accountTile(
+      IconData icon,
+      String title,
+      VoidCallback onTap,
+      {Color color = Colors.black}) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        leading: Icon(icon, color: color),
+        title: Text(title),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        onTap: onTap,
+      ),
+    );
+  }
+
+
   Widget _buildRequestsPage() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),

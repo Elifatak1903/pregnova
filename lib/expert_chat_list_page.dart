@@ -53,14 +53,12 @@ class ExpertChatListPage extends StatelessWidget {
                     .get(),
                 builder: (context, userSnap) {
 
-                  /// 🔄 USER LOADING
                   if (userSnap.connectionState ==
                       ConnectionState.waiting) {
                     return const ListTile(
                         title: Text("Yükleniyor..."));
                   }
 
-                  /// ❌ USER YOK
                   if (!userSnap.hasData ||
                       userSnap.data!.data() == null) {
                     return const ListTile(
@@ -120,7 +118,7 @@ class ExpertChatListPage extends StatelessWidget {
                         trailing: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            /// ⏰ saat
+                            /// saat
                             Text(
                               timeText,
                               style: const TextStyle(fontSize: 12, color: Colors.grey),
@@ -128,7 +126,7 @@ class ExpertChatListPage extends StatelessWidget {
 
                             const SizedBox(height: 5),
 
-                            /// 🔴 BADGE
+                            /// BADGE
                             if (unreadCount > 0)
                               Container(
                                 padding: const EdgeInsets.all(6),

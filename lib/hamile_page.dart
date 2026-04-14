@@ -139,7 +139,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.pink,
+              backgroundColor: Colors.deepPurple,
             ),
             child: const Text("Şimdi Doldur"),
             onPressed: () {
@@ -160,10 +160,10 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink.shade50,
+      backgroundColor: Colors.deepPurple.shade50,
 
       appBar: AppBar(
-        backgroundColor: Colors.pink,
+        backgroundColor: Colors.deepPurple,
         title: const Text("PregNova"),
         centerTitle: true,
         actions: [
@@ -223,7 +223,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
 
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.pink,
+        selectedItemColor: Colors.deepPurple,
         unselectedItemColor: Colors.grey,
         onTap: (index) {
           setState(() {
@@ -345,7 +345,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Colors.pink.shade700,
+              color: Colors.deepPurple.shade700,
             ),
           ),
 
@@ -362,7 +362,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Colors.pink, Colors.purple],
+                colors: [Colors.deepPurple, Colors.purple],
               ),
               borderRadius: BorderRadius.circular(16),
             ),
@@ -419,7 +419,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
           gridButton(
             title: "Risk Ölçüm",
             icon: Icons.health_and_safety,
-            color: Colors.red.shade400,
+            color: Colors.deepPurple.shade400,
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
@@ -430,7 +430,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
           gridButton(
             title: "Besin Analizi",
             icon: Icons.restaurant_menu,
-            color: Colors.green.shade400,
+            color: Colors.indigo.shade400,
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
@@ -441,7 +441,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
           gridButton(
             title: "Son Ölçüm Geçmişi",
             icon: Icons.history,
-            color: Colors.orange.shade400,
+            color: Colors.deepPurple.shade400,
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
@@ -453,7 +453,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
           gridButton(
             title: "Besin & Takviye Geçmişi",
             icon: Icons.medication,
-            color: Colors.blue.shade400,
+            color: Colors.indigo.shade400,
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(

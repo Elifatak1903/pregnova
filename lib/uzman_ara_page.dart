@@ -32,7 +32,7 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
 
     return ref
         .where('role', whereIn: ['dietitian', 'gynecologist'])
-        .where('isApproved', isEqualTo: true)
+        //.where('isApproved', isEqualTo: true)
         .snapshots();
   }
 
@@ -45,21 +45,13 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.pink,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: const Text("Uzman Ara"),
-      ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFCE4EC), Color(0xFFF8BBD0)],
+            colors: [Color(0xFFEFD3F1), Color(0xFFD1C4E9)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -68,20 +60,32 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
           child: Column(
             children: [
 
-              const Padding(
-                padding: EdgeInsets.all(20),
-                child: Text(
-                  "Uzman Ara 🔍",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.pink,
-                  ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Uzman Ara 🔍",
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepPurple.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      "Size uygun uzmanı seçin",
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -114,7 +118,6 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
                     }
 
                     final experts = snapshot.data!.docs;
-                    final currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
                     return ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -127,62 +130,105 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
                         final role = data['role'] ?? '';
                         final email = data['email'] ?? "Uzman";
 
+                        final name = data['name'] ?? "Uzman";
+                        final hospital = data['hospital'] ?? "Kurum bilgisi yok";
+
                         final isClient = data['clients'] != null &&
                             (data['clients'] as List).contains(currentUserId);
 
                         return Card(
-                          elevation: 6,
-                          margin: const EdgeInsets.symmetric(vertical: 10),
+                          elevation: 3,
+                          margin: const EdgeInsets.symmetric(vertical: 6),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18),
                           ),
                           child: ListTile(
                             contentPadding: const EdgeInsets.all(16),
+
                             leading: CircleAvatar(
-                              radius: 26,
-                              backgroundColor:
-                              role == 'dietitian' ? Colors.green : Colors.teal,
+                              radius: 22,
+                              backgroundColor: Colors.deepPurple,
                               child: const Icon(
                                 Icons.medical_services,
                                 color: Colors.white,
                               ),
                             ),
+
                             title: Text(
-                              email,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
-                            subtitle: Text(
-                              role == 'dietitian'
-                                  ? "Diyetisyen"
-                                  : "Jinekolog",
+
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  role == 'dietitian'
+                                      ? "Diyetisyen"
+                                      : "Jinekolog",
+                                  style: const TextStyle(fontWeight: FontWeight.w500),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  hospital,
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
                             ),
+
                             trailing: SizedBox(
-                              width: 130,
+                              width: 100,
                               child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.deepPurple.shade400,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
                                 onPressed: isClient
                                     ? null
                                     : () async {
 
-                                  final existing = await FirebaseFirestore.instance
+                                  final requestId = "${currentUserId}_${doc.id}";
+                                  final docRef = FirebaseFirestore.instance
                                       .collection("expert_requests")
-                                      .where("clientId", isEqualTo: currentUserId)
-                                      .where("expertId", isEqualTo: doc.id)
-                                      .where("status", isEqualTo: "pending")
-                                      .get();
+                                      .doc(requestId);
+
+                                  final existingDoc = await docRef.get();
 
                                   if (!mounted) return;
 
-                                  if (existing.docs.isNotEmpty) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text("Zaten istek gönderdiniz ⏳")),
-                                    );
-                                    return;
+                                  if (existingDoc.exists) {
+                                    final status = existingDoc['status'];
+
+                                    if (status == "pending") {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text("Zaten istek gönderdiniz ⏳")),
+                                      );
+                                      return;
+                                    }
+
+                                    if (status == "approved") {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text("Zaten danışansınız ✅")),
+                                      );
+                                      return;
+                                    }
                                   }
 
-                                  await FirebaseFirestore.instance
-                                      .collection("expert_requests")
-                                      .add({
+                                  await docRef.set({
                                     "clientId": currentUserId,
                                     "expertId": doc.id,
                                     "status": "pending",
@@ -197,8 +243,8 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
                                   );
                                 },
                                 child: Text(
-                                  isClient ? "Danışansınız" : "İstek Gönder",
-                                  textAlign: TextAlign.center,
+                                  isClient ? "Danışan" : "İstek",
+                                  style: const TextStyle(fontSize: 12),
                                 ),
                               ),
                             ),
@@ -222,7 +268,7 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
-      selectedColor: Colors.pink,
+      selectedColor: Colors.deepPurple,
       labelStyle: TextStyle(
         color: isSelected ? Colors.white : Colors.black,
       ),

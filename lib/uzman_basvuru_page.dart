@@ -24,7 +24,7 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
   String city = '';
 
   bool isLoading = false;
-  String applicationStatus = 'none'; // none, pending, approved, rejected
+  String applicationStatus = 'none';
 
   @override
   void initState() {
@@ -56,27 +56,25 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
     return url;
   }
 
-
   Future<void> checkApplicationStatus() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
-    final snapshot = await FirebaseFirestore.instance
+    final doc = await FirebaseFirestore.instance
         .collection('expert_applications')
-        .where('uid', isEqualTo: uid)
-        .orderBy('createdAt', descending: true)
-        .limit(1)
+        .doc(uid)
         .get();
 
-    if (snapshot.docs.isNotEmpty) {
+    if (doc.exists && doc.data() != null) {
       setState(() {
-        applicationStatus = snapshot.docs.first['status'];
+        applicationStatus = doc['status'] ?? 'none';
       });
     }
   }
 
   Future<void> submitApplication() async {
     if (isLoading) return;
+
     if (selectedFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -92,10 +90,44 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
 
     setState(() => isLoading = true);
 
-    // 📄 belge upload
+    final docRef = FirebaseFirestore.instance
+        .collection('expert_applications')
+        .doc(user.uid);
+
+    final existingDoc = await docRef.get();
+
+    // Eğer pending ise tekrar başvuru engelle
+    if (existingDoc.exists &&
+        existingDoc.data() != null &&
+        existingDoc['status'] == 'pending') {
+      setState(() => isLoading = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Zaten başvurunuz inceleniyor ⏳"),
+        ),
+      );
+      return;
+    }
+
+    // Eğer approved ise tekrar başvuru engelle
+    if (existingDoc.exists &&
+        existingDoc.data() != null &&
+        existingDoc['status'] == 'approved') {
+      setState(() => isLoading = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Zaten uzmansınız!"),
+        ),
+      );
+      return;
+    }
+
+    // belge yükleme
     final uploadedUrl = await uploadFile();
 
-    await FirebaseFirestore.instance.collection('expert_applications').add({
+    Map<String, dynamic> data = {
       'uid': user.uid,
       'email': user.email,
       'fullName': user.displayName ?? '',
@@ -105,10 +137,15 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
       'phone': phone,
       'hospital': hospital,
       'city': city,
-      'documentUrl': uploadedUrl, // 💥 EKLENDİ
+      'documentUrl': uploadedUrl,
       'status': 'pending',
-      'createdAt': Timestamp.now(),
-    });
+    };
+
+    if (!existingDoc.exists) {
+      data['createdAt'] = FieldValue.serverTimestamp();
+    }
+
+    await docRef.set(data);
 
     await FirebaseFirestore.instance.collection('notification').add({
       'uid': user.uid,
@@ -118,7 +155,10 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
       'createdAt': FieldValue.serverTimestamp(),
     });
 
-    setState(() => isLoading = false);
+    setState(() {
+      isLoading = false;
+      applicationStatus = 'pending';
+    });
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Başvurun alındı 🙏")),

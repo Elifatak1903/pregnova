@@ -4,6 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login_page.dart';
 import 'client_detail_page.dart';
 import 'expert_chat_list_page.dart';
+import 'notification_page.dart';
+import 'son_analizler_page.dart';
+import 'sifre_degistir_page.dart';
+import 'selection_client_for_diet_page.dart';
 
 class DietitianHomePage extends StatefulWidget {
   const DietitianHomePage({super.key});
@@ -48,10 +52,10 @@ class _DietitianHomePageState
     DateTime.now().subtract(const Duration(days: 7));
 
     final query = await FirebaseFirestore.instance
-        .collection("risk_olcumleri")
-        .where("expertId", isEqualTo: uid)
+        .collection("besin_analizleri")
         .where("tarih", isGreaterThan: sevenDaysAgo)
         .get();
+
     return query.docs.length;
   }
 
@@ -224,6 +228,113 @@ class _DietitianHomePageState
     );
   }
 
+  Widget _buildRecentActivity() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection("besin_analizleri")
+          .where("dietitianId", isEqualTo: uid)
+          .orderBy("tarih", descending: true)
+          .limit(5)
+          .snapshots(),
+      builder: (context, snapshot) {
+
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final docs = snapshot.data!.docs;
+
+        if (docs.isEmpty) {
+          return const Text("Henüz aktivite yok");
+        }
+
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+
+            final doc = docs[index];
+            final data = doc.data() as Map<String, dynamic>;
+
+            final tarih = data["tarih"];
+            final patientId = data["uid"];
+
+            return FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection("users")
+                  .doc(patientId)
+                  .get(),
+              builder: (context, userSnap) {
+
+                if (!userSnap.hasData) {
+                  return const SizedBox();
+                }
+
+                final userData =
+                userSnap.data!.data() as Map<String, dynamic>?;
+
+                final name = userData?["name"] ?? "";
+                final surname = userData?["surname"] ?? "";
+
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ClientDetailPage(
+                          clientId: patientId,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 6)
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.restaurant, color: Colors.green),
+                        const SizedBox(width: 10),
+
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "$name $surname yeni analiz gönderdi",
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                timeAgo(tarih),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildHomePage() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -257,6 +368,11 @@ class _DietitianHomePageState
                     "Danışan",
                     snapshot.data?.toString() ?? "...",
                     Icons.people,
+                        () {
+                      setState(() {
+                        _selectedIndex = 1;
+                      });
+                    },
                   );
                 },
               ),
@@ -268,6 +384,11 @@ class _DietitianHomePageState
                     "Bekleyen İstek",
                     snapshot.data?.toString() ?? "...",
                     Icons.pending,
+                        () {
+                      setState(() {
+                        _selectedIndex = 2;
+                      });
+                    },
                   );
                 },
               ),
@@ -279,17 +400,39 @@ class _DietitianHomePageState
                     "Son 7 Gün Aktif",
                     snapshot.data?.toString() ?? "...",
                     Icons.timeline,
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SonAnalizlerPage(),
+                        ),
+                      );
+                    },
                   );
                 },
               ),
-
               _statCard(
                 "Beslenme Modülü",
-                "Yakında",
+                "Aç",
                 Icons.restaurant,
+                    () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SelectClientForDietPage(),
+                    ),
+                  );
+                },
               ),
             ],
           ),
+          const SizedBox(height: 30),
+
+          const Text("Son Aktiviteler"),
+
+          const SizedBox(height: 15),
+
+          _buildRecentActivity(),
         ],
       ),
     );
@@ -392,90 +535,273 @@ class _DietitianHomePageState
     );
   }
 
-  //  MESSAGES
-
   Widget _buildMessagesPage() {
     return const ExpertChatListPage();
   }
 
-  // ACCOUNT
-
   Widget _buildAccountPage() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
+    final user = FirebaseAuth.instance.currentUser;
 
-          const SizedBox(height: 30),
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance
+          .collection("users")
+          .doc(user!.uid)
+          .get(),
+      builder: (context, snapshot) {
 
-          const Text(
-            "Hesap Bilgileri",
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          const SizedBox(height: 30),
+        final data =
+        snapshot.data!.data() as Map<String, dynamic>?;
+        final diplomaUrl = data?["diplomaUrl"];
 
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            elevation: 4,
-            child: ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text(
-                "Çıkış Yap",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
+        final name = data?["name"] ?? "";
+        final email = user.email ?? "";
+
+        final expertise = data?["expertise"] ?? "-";
+        final experience = data?["experience"] ?? "-";
+        final institution = data?["institution"] ?? "-";
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black12, blurRadius: 6)
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 35,
+                      backgroundColor: Colors.green,
+                      child: Icon(Icons.person,
+                          color: Colors.white, size: 30),
+                    ),
+                    const SizedBox(width: 15),
+                    Column(
+                      crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(email),
+                        const Text(
+                          "Diyetisyen",
+                          style: TextStyle(color: Colors.green),
+                        ),
+                      ],
+                    )
+                  ],
                 ),
               ),
-              onTap: () async {
-                await FirebaseAuth.instance.signOut();
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginPage()),
-                      (route) => false,
-                );
-              },
-            ),
+
+              const SizedBox(height: 15),
+
+              ElevatedButton(
+                onPressed: () {
+                  // edit page açacağız
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text("Bilgileri Düzenle"),
+              ),
+
+              const SizedBox(height: 25),
+
+              const Text(
+                "Uzmanlık Bilgileri",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              _infoCard("Uzmanlık Alanı", expertise),
+              _infoCard("Deneyim", experience),
+              _infoCard("Çalıştığı Kurum", institution),
+
+              const SizedBox(height: 25),
+
+              _accountTile(
+                Icons.description,
+                "Diploma / Belgeler",
+                    () {
+                  if (diplomaUrl != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => Scaffold(
+                          appBar: AppBar(
+                            title: const Text("Diploma"),
+                            backgroundColor: Colors.green,
+                          ),
+                          body: Center(
+                            child: Image.network(diplomaUrl),
+                          ),
+                        ),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Henüz diploma eklenmemiş"),
+                      ),
+                    );
+                  }
+                },
+              ),
+              if (diplomaUrl != null)
+                Container(
+                  margin: const EdgeInsets.only(top: 10),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.verified, color: Colors.green),
+                      SizedBox(width: 8),
+                      Text("Diploma yüklendi"),
+                    ],
+                  ),
+                ),
+
+              const SizedBox(height: 25),
+
+              const Text(
+                "Ayarlar",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              _accountTile(
+                Icons.lock,
+                "Şifre Değiştir",
+                    () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SifreDegistirPage(),
+                    ),
+                  );
+                },
+              ),
+
+              _accountTile(
+                Icons.logout,
+                "Çıkış Yap",
+                    () async {
+                  await FirebaseAuth.instance.signOut();
+
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LoginPage(),
+                    ),
+                        (route) => false,
+                  );
+                },
+                color: Colors.red,
+              ),
+            ],
           ),
-        ],
+        );
+      },
+    );
+  }
+  Widget _infoCard(String title, String value) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: ListTile(
+        title: Text(title),
+        subtitle: Text(value),
       ),
     );
   }
 
-  Widget _statCard(String title, String value, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 6)
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Icon(icon, color: Colors.green, size: 26),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.green,
-            ),
-          ),
-          Text(title),
-        ],
+  Widget _accountTile(
+      IconData icon,
+      String title,
+      VoidCallback onTap,
+      {Color color = Colors.black}) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        leading: Icon(icon, color: color),
+        title: Text(title),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        onTap: onTap,
       ),
     );
   }
 
+  Widget _statCard(
+      String title,
+      String value,
+      IconData icon,
+      VoidCallback? onTap,
+      ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: const [
+            BoxShadow(color: Colors.black12, blurRadius: 6)
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Icon(icon, color: Colors.green, size: 26),
+
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
+              ),
+            ),
+
+            Text(title),
+          ],
+        ),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -484,6 +810,47 @@ class _DietitianHomePageState
       appBar: AppBar(
         title: const Text("PregNova"),
         backgroundColor: Colors.green,
+
+        actions: [
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection("notification")
+                .where("uid", isEqualTo: uid)
+                .where("isRead", isEqualTo: false)
+                .snapshots(),
+            builder: (context, snapshot) {
+
+              bool hasNotif =
+                  snapshot.hasData && snapshot.data!.docs.isNotEmpty;
+
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationPanel(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  if (hasNotif)
+                    const Positioned(
+                      right: 10,
+                      top: 10,
+                      child: CircleAvatar(
+                        radius: 5,
+                        backgroundColor: Colors.red,
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
 
       body: _buildBody(),
@@ -508,7 +875,6 @@ class _DietitianHomePageState
           const BottomNavigationBarItem(
               icon: Icon(Icons.pending), label: "İstekler"),
 
-          // 💣 MESAJLAR (BADGE’Lİ)
           BottomNavigationBarItem(
             icon: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
