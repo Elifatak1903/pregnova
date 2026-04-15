@@ -5,16 +5,16 @@ class AppTheme {
     switch (role) {
 
       case "dietitian":
-        return _theme(const Color(0xFF2E7D32)); // yeşil
+        return _theme(const Color(0xFF2E7D32));
 
       case "admin":
-        return _theme(const Color(0xFF1565C0)); // mavi
+        return _theme(const Color(0xFF1565C0));
 
       case "pregnant":
-        return _theme(const Color(0xFF673AB7)); // 💜 deep purple
+        return _theme(const Color(0xFF673AB7));
 
       case "gynecologist":
-        return _theme(const Color(0xFF00695C)); // teal
+        return _theme(const Color(0xFF6C0825));
 
       default:
         return _theme(const Color(0xFF673AB7));
