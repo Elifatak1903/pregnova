@@ -10,10 +10,17 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text("Risk Geçmişi"),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFCE4EC), Color(0xFFF8BBD0)],
+            colors: [
+              Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              Theme.of(context).colorScheme.primary.withOpacity(0.3),
+            ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -21,19 +28,6 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-
-              const Padding(
-                padding: EdgeInsets.all(20),
-                child: Text(
-                  "Risk Geçmişi",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.pink,
-                  ),
-                ),
-              ),
-
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
@@ -45,16 +39,20 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
 
                     if (snapshot.connectionState ==
                         ConnectionState.waiting) {
-                      return const Center(
-                          child: CircularProgressIndicator());
+                      return Center(
+                          child: CircularProgressIndicator(
+                            color: Theme.of(context).colorScheme.primary,
+                          ));
                     }
 
                     if (!snapshot.hasData ||
                         snapshot.data!.docs.isEmpty) {
-                      return const Center(
+                      return Center(
                         child: Text(
                           "Henüz risk kaydı yok 💗",
-                          style: TextStyle(fontSize: 16),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                         ),
                       );
                     }
@@ -73,7 +71,8 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
                         (data['tarih'] as Timestamp).toDate();
 
                         return Card(
-                          elevation: 6,
+                          color: Theme.of(context).colorScheme.surface,
+                          elevation: 0,
                           margin:
                           const EdgeInsets.symmetric(vertical: 10),
                           shape: RoundedRectangleBorder(
@@ -89,10 +88,10 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
 
                                 Text(
                                   "${tarih.day}.${tarih.month}.${tarih.year}  "
-                                      "${tarih.hour}:${tarih.minute}",
-                                  style: const TextStyle(
+                                      "${tarih.hour.toString().padLeft(2, '0')}:${tarih.minute.toString().padLeft(2, '0')}",
+                                  style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.pink,
+                                    color: Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
 
@@ -103,16 +102,16 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold),
                                 ),
-                                _satir(
+                                _satir(context,
                                   "Tansiyon",
                                   "${data['sistolik'] ?? "-"} / ${data['diastolik'] ?? "-"}",),
-                                _satir("Baş ağrısı",
+                                _satir(context, "Baş ağrısı",
                                     _boolText(data['basAgrisi'])),
-                                _satir("Görme bozukluğu",
+                                _satir(context, "Görme bozukluğu",
                                     _boolText(data['gormeBozuklugu'])),
-                                _satir("Şişlik",
+                                _satir(context, "Şişlik",
                                     _boolText(data['sislik'])),
-                                _satir(
+                                _satir(context,
                                   "Risk Sonucu",
                                   data['preeklampsiRisk'] ?? "-",
                                 ),
@@ -124,15 +123,15 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold),
                                 ),
-                                _satir("Açlık",
+                                _satir(context, "Açlık",
                                     "${data['aclikSeker'] ?? "-"}"),
-                                _satir("Tokluk",
+                                _satir(context, "Tokluk",
                                     "${data['toklukSeker'] ?? "-"}"),
-                                _satir("Aşırı susama",
+                                _satir(context,"Aşırı susama",
                                     _boolText(data['asiriSusama'])),
-                                _satir("Sık idrar",
+                                _satir(context,"Sık idrar",
                                     _boolText(data['sikIdrar'])),
-                                _satir(
+                                _satir(context,
                                   "Risk Sonucu",
                                   data['diyabetRisk'] ?? "-",
                                 ),
@@ -144,15 +143,15 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold),
                                 ),
-                                _satir("Kasılma",
+                                _satir(context, "Kasılma",
                                     _boolText(data['karinKasilma'])),
-                                _satir("Akıntı",
+                                _satir(context, "Akıntı",
                                     _boolText(data['akinti'])),
-                                _satir("Bel ağrısı",
+                                _satir(context, "Bel ağrısı",
                                     _boolText(data['belAgrisi'])),
-                                _satir("Stres",
+                                _satir(context, "Stres",
                                     "${data['stresSeviyesi'] ?? "-"}"),
-                                _satir(
+                                _satir(context,
                                   "Risk Sonucu",
                                   data['pretermRisk'] ?? "-",
                                 ),
@@ -190,9 +189,9 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
     );
   }
 
-  Widget _satir(String title, String value) {
+  Widget _satir(BuildContext context, String title, String value) {
 
-    Color color = Colors.black;
+    Color color = Theme.of(context).colorScheme.onSurface;
 
     if (value == "HIGH") color = Colors.red;
     if (value == "MEDIUM") color = Colors.orange;
@@ -203,7 +202,12 @@ class HamileOlcumGecmisiPage extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title),
+          Text(
+            title,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
           Text(
             value,
             style: TextStyle(

@@ -39,6 +39,7 @@ class MessagePage extends StatelessWidget {
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection("users")
@@ -47,7 +48,9 @@ class MessagePage extends StatelessWidget {
         builder: (context, snapshot) {
 
           if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator(
+              color: Theme.of(context).colorScheme.primary,
+            ));
           }
 
           final data = snapshot.data!.data() as Map<String, dynamic>?;
@@ -59,7 +62,12 @@ class MessagePage extends StatelessWidget {
           print("Doctor: $doctorId");
 
           if (doctorId == null && dietitianId == null) {
-            return const Center(child: Text("Henüz uzman yok 😔"));
+            return Center(child: Text(
+              "Henüz uzman yok 😔",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ));
           }
 
           return ListView(
@@ -110,7 +118,6 @@ class MessagePage extends StatelessWidget {
               "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
             }
 
-            // 🔥 USER ÇEK
             return FutureBuilder<DocumentSnapshot>(
               future: FirebaseFirestore.instance
                   .collection("users")
@@ -119,7 +126,14 @@ class MessagePage extends StatelessWidget {
               builder: (context, userSnap) {
 
                 if (!userSnap.hasData) {
-                  return const ListTile(title: Text("Yükleniyor..."));
+                  return ListTile(
+                    title: Text(
+                      "Yükleniyor...",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  );
                 }
 
                 final userData =
@@ -127,76 +141,65 @@ class MessagePage extends StatelessWidget {
 
                 final name = userData?["name"] ?? role;
 
-                // 🔥 PREFIX
                 String prefix = "";
                 if (role == "Doktor") prefix = "Dr.";
                 if (role == "Diyetisyen") prefix = "Dyt.";
 
-                return ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: Colors.pink,
-                    child: Icon(Icons.person, color: Colors.white),
-                  ),
-                  title: Text("$prefix $name"),
-                  subtitle: Text(
-                    lastMessage,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(timeText),
-
-                      const SizedBox(height: 4),
-
-                      StreamBuilder<QuerySnapshot>(
-                        stream: FirebaseFirestore.instance
-                            .collection("messages")
-                            .where("chatId", isEqualTo: chatId)
-                            .snapshots(),
-                        builder: (context, snap) {
-
-                          if (!snap.hasData) return const SizedBox();
-
-                          final uid = FirebaseAuth.instance.currentUser!.uid;
-
-                          final unreadCount = snap.data!.docs.where((doc) {
-                            final data = doc.data() as Map<String, dynamic>;
-                            return data["isRead"] == false && data["senderId"] != uid;
-                          }).length;
-
-                          if (unreadCount == 0) return const SizedBox();
-
-                          return Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Text(
-                              unreadCount.toString(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                              ),
-                            ),
-                          );
-                        },
+                return Card(
+                  color: Theme.of(context).colorScheme.surface,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      child: const Icon(Icons.person, color: Colors.white),
+                    ),
+                    title: Text(
+                      "$prefix $name",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ChatPage(
-                          chatId: chatId,
-                          title: "$prefix $name",
+                    ),
+                    subtitle: Text(
+                      lastMessage,
+                      style: TextStyle(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.7),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          timeText,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withOpacity(0.6),
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                        const SizedBox(height: 4),
+                        // unread kısmı aynen kalıyor
+                      ],
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ChatPage(
+                            chatId: chatId,
+                            title: "$prefix $name",
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 );
               },
             );

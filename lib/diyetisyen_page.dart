@@ -8,6 +8,7 @@ import 'notification_page.dart';
 import 'son_analizler_page.dart';
 import 'sifre_degistir_page.dart';
 import 'selection_client_for_diet_page.dart';
+import 'edit_dietitian_profile_page.dart';
 
 class DietitianHomePage extends StatefulWidget {
   const DietitianHomePage({super.key});
@@ -36,6 +37,7 @@ class _DietitianHomePageState
         .where("status", isEqualTo: "approved")
         .get();
     return query.docs.length;
+
   }
 
   Future<int> getPendingCount() async {
@@ -131,9 +133,9 @@ class _DietitianHomePageState
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(16),
 
-                    leading: const CircleAvatar(
-                      backgroundColor: Colors.green,
-                      child: Icon(Icons.person, color: Colors.white),
+                    leading: CircleAvatar(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      child: Icon(Icons.person, color: Theme.of(context).colorScheme.surface),
                     ),
 
                     title: Text(
@@ -159,7 +161,7 @@ class _DietitianHomePageState
                         ),
 
                         IconButton(
-                          icon: const Icon(Icons.check, color: Colors.green),
+                          icon: Icon(Icons.check, color: Theme.of(context).colorScheme.primary),
                           onPressed: () async {
 
                             try {
@@ -197,15 +199,18 @@ class _DietitianHomePageState
                                 });
                               }
 
+                              if (!context.mounted) return;
+
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
+                                SnackBar(
                                   content: Text("Danışan başarıyla eklendi 🎉"),
-                                  backgroundColor: Colors.green,
+                                  backgroundColor: Theme.of(context).colorScheme.primary,
                                 ),
                               );
 
                             } catch (e) {
                               print("HATA: $e");
+                              if (!context.mounted) return;
 
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -293,15 +298,18 @@ class _DietitianHomePageState
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(14),
-                      boxShadow: const [
-                        BoxShadow(color: Colors.black12, blurRadius: 6)
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).shadowColor.withOpacity(0.2),
+                          blurRadius: 6,
+                        )
                       ],
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.restaurant, color: Colors.green),
+                        Icon(Icons.restaurant, color: Theme.of(context).colorScheme.primary),
                         const SizedBox(width: 10),
 
                         Expanded(
@@ -428,7 +436,14 @@ class _DietitianHomePageState
           ),
           const SizedBox(height: 30),
 
-          const Text("Son Aktiviteler"),
+          Text(
+            "Son Aktiviteler",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
 
           const SizedBox(height: 15),
 
@@ -493,9 +508,9 @@ class _DietitianHomePageState
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(16),
 
-                    leading: const CircleAvatar(
-                      backgroundColor: Colors.green,
-                      child: Icon(Icons.person, color: Colors.white),
+                    leading: CircleAvatar(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      child: Icon(Icons.person, color: Theme.of(context).colorScheme.surface),
                     ),
 
                     title: Text(
@@ -573,19 +588,22 @@ class _DietitianHomePageState
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: const [
-                    BoxShadow(color: Colors.black12, blurRadius: 6)
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).shadowColor.withOpacity(0.2),
+                      blurRadius: 6,
+                    )
                   ],
                 ),
                 child: Row(
                   children: [
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 35,
-                      backgroundColor: Colors.green,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
                       child: Icon(Icons.person,
-                          color: Colors.white, size: 30),
+                          color: Theme.of(context).colorScheme.surface, size: 30),
                     ),
                     const SizedBox(width: 15),
                     Column(
@@ -600,9 +618,9 @@ class _DietitianHomePageState
                           ),
                         ),
                         Text(email),
-                        const Text(
+                        Text(
                           "Diyetisyen",
-                          style: TextStyle(color: Colors.green),
+                          style: TextStyle(color: Theme.of(context).colorScheme.primary),
                         ),
                       ],
                     )
@@ -614,10 +632,15 @@ class _DietitianHomePageState
 
               ElevatedButton(
                 onPressed: () {
-                  // edit page açacağız
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const EditDietitianProfilePage(),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -627,11 +650,12 @@ class _DietitianHomePageState
 
               const SizedBox(height: 25),
 
-              const Text(
+              Text(
                 "Uzmanlık Bilgileri",
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
 
@@ -654,7 +678,7 @@ class _DietitianHomePageState
                         builder: (_) => Scaffold(
                           appBar: AppBar(
                             title: const Text("Diploma"),
-                            backgroundColor: Colors.green,
+                            backgroundColor: Theme.of(context).colorScheme.primary,
                           ),
                           body: Center(
                             child: Image.network(diplomaUrl),
@@ -676,12 +700,12 @@ class _DietitianHomePageState
                   margin: const EdgeInsets.only(top: 10),
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.green.shade50,
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
-                    children: const [
-                      Icon(Icons.verified, color: Colors.green),
+                    children: [
+                      Icon(Icons.verified, color: Theme.of(context).colorScheme.primary),
                       SizedBox(width: 8),
                       Text("Diploma yüklendi"),
                     ],
@@ -690,11 +714,12 @@ class _DietitianHomePageState
 
               const SizedBox(height: 25),
 
-              const Text(
+              Text(
                 "Ayarlar",
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
 
@@ -758,7 +783,11 @@ class _DietitianHomePageState
       child: ListTile(
         leading: Icon(icon, color: color),
         title: Text(title),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+          color: Theme.of(context).colorScheme.primary,
+        ),
         onTap: onTap,
       ),
     );
@@ -775,24 +804,27 @@ class _DietitianHomePageState
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(18),
-          boxShadow: const [
-            BoxShadow(color: Colors.black12, blurRadius: 6)
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(context).shadowColor.withOpacity(0.2),
+              blurRadius: 6,
+            )
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Icon(icon, color: Colors.green, size: 26),
+            Icon(icon, color: Theme.of(context).colorScheme.primary, size: 26),
 
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Colors.green,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
 
@@ -805,11 +837,11 @@ class _DietitianHomePageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
 
       appBar: AppBar(
         title: const Text("PregNova"),
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).colorScheme.primary,
 
         actions: [
           StreamBuilder<QuerySnapshot>(
@@ -826,7 +858,10 @@ class _DietitianHomePageState
               return Stack(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.notifications),
+                    icon: Icon(
+                      Icons.notifications,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -857,7 +892,7 @@ class _DietitianHomePageState
 
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.green,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
         onTap: (index) {
@@ -908,8 +943,8 @@ class _DietitianHomePageState
                           ),
                           child: Text(
                             unreadCount > 99 ? "99+" : unreadCount.toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary,
                               fontSize: 10,
                             ),
                           ),

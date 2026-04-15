@@ -13,10 +13,10 @@ class SelectClientForDietPage extends StatelessWidget {
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
-      backgroundColor: Colors.green.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text("Danışan Seç"),
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -27,18 +27,26 @@ class SelectClientForDietPage extends StatelessWidget {
         builder: (context, snapshot) {
 
           if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator(
+              color: Theme.of(context).colorScheme.primary,
+            ));
           }
 
           final docs = snapshot.data!.docs;
 
           if (docs.isEmpty) {
-            return const Center(
-              child: Text("Danışan bulunamadı"),
+            return Center(
+              child: Text(
+                "Danışan bulunamadı",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
             );
           }
 
           return ListView.builder(
+            padding: const EdgeInsets.all(12),
             itemCount: docs.length,
             itemBuilder: (context, index) {
 
@@ -51,7 +59,9 @@ class SelectClientForDietPage extends StatelessWidget {
                     .get(),
                 builder: (context, userSnap) {
 
-                  if (!userSnap.hasData) return const SizedBox();
+                  if (!userSnap.hasData) {
+                    return const ListTile(title: Text("Yükleniyor..."));
+                  }
 
                   final data = userSnap.data!.data() as Map<String, dynamic>;
 
@@ -59,10 +69,20 @@ class SelectClientForDietPage extends StatelessWidget {
                   final surname = data["surname"] ?? "";
 
                   return Card(
+                    color: Theme.of(context).colorScheme.surface,
                     margin: const EdgeInsets.all(10),
                     child: ListTile(
-                      title: Text("$name $surname"),
-                      trailing: const Icon(Icons.arrow_forward),
+                      title: Text(
+                        "$name $surname",
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.arrow_forward,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                      ),
                       onTap: () {
                         Navigator.push(
                           context,

@@ -7,7 +7,7 @@ class WelcomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 28),
@@ -17,19 +17,17 @@ class WelcomePage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
+                  color: const Color(0xFF673AB7),
                   shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Colors.pink, Colors.purple],
-                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.pink.shade200,
+                      color: const Color(0xFF673AB7).withOpacity(0.3),
                       blurRadius: 18,
                       offset: const Offset(0, 8),
                     ),
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.pregnant_woman,
                   size: 64,
                   color: Colors.white,
@@ -43,7 +41,7 @@ class WelcomePage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
-                  color: Colors.pink.shade700,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -55,7 +53,7 @@ class WelcomePage extends StatelessWidget {
                     "sağlık, beslenme ve egzersiz tek yerde 💕",
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey.shade700,
+                  color: Theme.of(context).colorScheme.onSurface,
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,
@@ -65,7 +63,7 @@ class WelcomePage extends StatelessWidget {
 
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pink,
+                  backgroundColor: const Color(0xFF673AB7),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   minimumSize: const Size(double.infinity, 54),

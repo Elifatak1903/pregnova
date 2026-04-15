@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'besin_analiz_detay_page.dart';
+
 class ChartData {
   final List<FlSpot> spots;
   final List<DateTime> dates;
@@ -101,10 +102,10 @@ class ClientDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text("Danışan Detayı"),
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance
@@ -146,12 +147,12 @@ class ClientDetailPage extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: const [
+                      boxShadow: [
                         BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 8,
+                          color: Theme.of(context).shadowColor.withOpacity(0.2),
+                          blurRadius: 6,
                         )
                       ],
                     ),
@@ -180,9 +181,13 @@ class ClientDetailPage extends StatelessWidget {
 
                 const SizedBox(height: 30),
 
-                const Text(
+                Text(
                   "Kilo Grafiği",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
 
                 const SizedBox(height: 20),
@@ -206,7 +211,7 @@ class ClientDetailPage extends StatelessWidget {
                       height: 220,
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: spots.isEmpty
@@ -258,7 +263,7 @@ class ClientDetailPage extends StatelessWidget {
                               isCurved: true,
                               barWidth: 3,
                               dotData: FlDotData(show: true),
-                              color: Colors.green,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ],
                           lineTouchData: LineTouchData(
@@ -271,7 +276,7 @@ class ClientDetailPage extends StatelessWidget {
 
                                   return LineTooltipItem(
                                     "${date.day}/${date.month}/${date.year}\n${spot.y.toStringAsFixed(1)} kg",
-                                    const TextStyle(color: Colors.white),
+                                    TextStyle(color: Theme.of(context).colorScheme.onPrimary),
                                   );
 
                                 }).toList();
@@ -286,9 +291,13 @@ class ClientDetailPage extends StatelessWidget {
 
                 const SizedBox(height: 30),
 
-                const Text(
+                Text(
                   "Günlük Kalori Alımı",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
 
                 const SizedBox(height: 20),
@@ -312,7 +321,7 @@ class ClientDetailPage extends StatelessWidget {
                       height: 220,
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: spots.isEmpty
@@ -377,7 +386,7 @@ class ClientDetailPage extends StatelessWidget {
                             LineChartBarData(
                               spots: spots,
                               isCurved: true,
-                              color: Colors.orange,
+                              color: Theme.of(context).colorScheme.primary,
                               barWidth: 3,
                               dotData: FlDotData(show: true),
                             ),
@@ -393,7 +402,7 @@ class ClientDetailPage extends StatelessWidget {
 
                                   return LineTooltipItem(
                                     "${date.day}/${date.month}/${date.year}\n${spot.y.toInt()} kcal",
-                                    const TextStyle(color: Colors.white),
+                                    TextStyle(color: Theme.of(context).colorScheme.onPrimary),
                                   );
 
                                 }).toList();
@@ -408,9 +417,13 @@ class ClientDetailPage extends StatelessWidget {
 
                 const SizedBox(height: 30),
 
-                const Text(
+                Text(
                   "Analiz Geçmişi",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
 
                 const SizedBox(height: 20),
@@ -483,7 +496,6 @@ class _BesinCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final missing = missingNutrients;
 
     return GestureDetector(
       onTap: () {
@@ -500,10 +512,13 @@ class _BesinCard extends StatelessWidget {
           margin: const EdgeInsets.symmetric(vertical: 8),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(18),
-          boxShadow: const [
-            BoxShadow(color: Colors.black12, blurRadius: 6)
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(context).shadowColor.withOpacity(0.2),
+              blurRadius: 6,
+            )
           ],
         ),
 
@@ -551,15 +566,15 @@ class _BesinCard extends StatelessWidget {
 
               return Row(
                 children: [
-                  const Icon(Icons.check, color: Colors.green, size: 16),
+                  Icon(Icons.check, color: Theme.of(context).colorScheme.primary, size: 16),
                   const SizedBox(width: 6),
                   Text(
                     name,
-                    style: const TextStyle(
-                      color: Colors.green,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.w500,
                     ),
-                  ),
+                  )
                 ],
               );
             }).toList(),
@@ -584,15 +599,18 @@ class _BesinCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                   decoration: BoxDecoration(
-                    color: Colors.green.shade50,
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       Text(
                         "Detaylı İncele",
-                        style: TextStyle(fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       SizedBox(width: 5),
                       Icon(Icons.arrow_forward_ios, size: 14),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'expert_detail_page.dart';
+
 class AdminExpertRequestsPage extends StatelessWidget {
   const AdminExpertRequestsPage({super.key});
 
@@ -9,7 +10,7 @@ class AdminExpertRequestsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Uzman Başvuruları"),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -45,8 +46,8 @@ class AdminExpertRequestsPage extends StatelessWidget {
                 child: ListTile(
                   contentPadding: const EdgeInsets.all(16),
 
-                  leading: const CircleAvatar(
-                    backgroundColor: Colors.deepPurple,
+                  leading: CircleAvatar(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                     child: Icon(Icons.person, color: Colors.white),
                   ),
 
@@ -86,7 +87,7 @@ class AdminExpertRequestsPage extends StatelessWidget {
                       ),
 
                       IconButton(
-                        icon: const Icon(Icons.check, color: Colors.green),
+                        icon: Icon(Icons.check, color: Theme.of(context).colorScheme.primary),
                         onPressed: () async {
                           await approveExpert(context, doc);
                         },
@@ -149,6 +150,8 @@ class AdminExpertRequestsPage extends StatelessWidget {
       );
 
       await batch.commit();
+
+      if (!context.mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Uzman onaylandı ✅")),

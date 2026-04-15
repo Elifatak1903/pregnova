@@ -28,9 +28,9 @@ class _HastaKlinikDetayPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.pink,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         title: Text("${widget.name} ${widget.surname}"),
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -44,21 +44,31 @@ class _HastaKlinikDetayPageState
 
           if (snapshot.hasError) {
             return Center(
-              child: Text("Hata: ${snapshot.error}"),
+              child: Text(
+                "Hata: ${snapshot.error}",
+                style: TextStyle(color: Colors.red),
+              ),
             );
           }
 
           if (!snapshot.hasData) {
-            return const Center(
-              child: CircularProgressIndicator(),
+            return Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
             );
           }
 
           final docs = snapshot.data!.docs;
 
           if (docs.isEmpty) {
-            return const Center(
-              child: Text("Kayıt bulunamadı"),
+            return Center(
+              child: Text(
+                "Kayıt bulunamadı",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
             );
           }
 
@@ -84,11 +94,11 @@ class _HastaKlinikDetayPageState
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [
+                  boxShadow: [
                     BoxShadow(
-                        color: Colors.black12,
+                        color: Theme.of(context).shadowColor.withOpacity(0.2),
                         blurRadius: 6)
                   ],
                 ),
@@ -99,9 +109,10 @@ class _HastaKlinikDetayPageState
 
                     Text(
                       "${date.day}/${date.month}/${date.year}",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
 
@@ -115,7 +126,10 @@ class _HastaKlinikDetayPageState
                     _infoRow("Tokluk Şekeri", data["toklukSeker"]),
                     _infoRow("Stres Seviyesi", data["stresSeviyesi"]),
 
-                    const Divider(height: 25),
+                    Divider(
+                      height: 25,
+                      color: Theme.of(context).dividerColor,
+                    ),
 
                     _boolRow("Baş Ağrısı", data["basAgrisi"]),
                     _boolRow("Görme Bozukluğu", data["gormeBozuklugu"]),
@@ -151,7 +165,12 @@ class _HastaKlinikDetayPageState
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title),
+          Text(
+            title,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
           Text(
             risk ?? "-",
             style: TextStyle(
@@ -169,7 +188,10 @@ class _HastaKlinikDetayPageState
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Text(
         "$title: ${value ?? '-'}",
-        style: const TextStyle(fontSize: 14),
+        style: TextStyle(
+          fontSize: 14,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
       ),
     );
   }
@@ -192,7 +214,12 @@ class _HastaKlinikDetayPageState
         mainAxisAlignment:
         MainAxisAlignment.spaceBetween,
         children: [
-          Text(title),
+          Text(
+            title,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
           Text(
             text,
             style: TextStyle(

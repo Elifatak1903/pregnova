@@ -60,7 +60,6 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
         'bmi': bmi,
         'hafta': int.tryParse(haftaController.text.trim()) ?? 0,
 
-        // STATIC RISK FACTORS
         'chronicHypertension': chronicHypertension,
         'diabetes': diabetes,
         'thyroidDisease': thyroidDisease,
@@ -79,6 +78,7 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
         'hafta': int.tryParse(haftaController.text.trim()),
         'tarih': FieldValue.serverTimestamp(),
       });
+      if (!context.mounted) return;
 
       Navigator.pushReplacement(
         context,
@@ -87,7 +87,10 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
 
     } catch (e) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Hata: $e")));
+          .showSnackBar(SnackBar(
+        content: Text("Hata: $e"),
+        backgroundColor: Colors.red,
+      ));
     }
   }
 
@@ -132,15 +135,22 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
         },
         decoration: InputDecoration(
           filled: true,
-          fillColor: Colors.white,
+          fillColor: Theme.of(context).colorScheme.surface,
           labelText: label,
-          prefixIcon: Icon(icon, color: Colors.pink),
+          prefixIcon: Icon(
+            icon,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: Colors.pink, width: 2),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.primary,
+              width: 2,
+            ),
           ),
         ),
       ),
@@ -151,7 +161,7 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
     return CheckboxListTile(
       title: Text(title),
       value: value,
-      activeColor: Colors.pink,
+      activeColor: Theme.of(context).colorScheme.primary,
       onChanged: onChanged,
       contentPadding: EdgeInsets.zero,
     );
@@ -160,18 +170,19 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text("Profil Bilgileri"),
-        backgroundColor: Colors.pink,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Card(
+          color: Theme.of(context).colorScheme.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          elevation: 6,
+          elevation: 0,
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Form(
@@ -207,14 +218,20 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
                   ),
 
                   const SizedBox(height: 20),
-                  const Divider(),
+
+                  Divider(
+                    color: Theme.of(context).dividerColor,
+                  ),
+
                   const SizedBox(height: 10),
 
-                  const Text(
+                  Text(
                     "Kronik / Risk Faktörleri",
                     style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
 
                   const SizedBox(height: 10),
@@ -245,7 +262,8 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
                     child: ElevatedButton(
                       onPressed: kaydet,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.pink,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),

@@ -156,10 +156,12 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
 
       });
 
+      if (!context.mounted) return;
+
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
-
+          backgroundColor: Theme.of(context).colorScheme.surface,
           title: const Text("Besin Analizi"),
 
           content: Column(
@@ -210,7 +212,10 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Kaydedildi 💗")),
+        SnackBar(
+          content: const Text("Kaydedildi 💗"),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
       );
 
       setState(() {
@@ -236,9 +241,9 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.pink,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         title: const Text("Besin ve Takviye Analizi"),
         centerTitle: true,
       ),
@@ -304,7 +309,8 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
 
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pink,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 minimumSize: const Size(double.infinity, 55),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -312,7 +318,9 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
               ),
               onPressed: _loading ? null : kaydetAnaliz,
               child: _loading
-                  ? const CircularProgressIndicator(color: Colors.white)
+                  ? CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.onPrimary,
+              )
                   : const Text("Günü Kaydet",
                   style: TextStyle(fontSize: 16)),
             ),
@@ -327,10 +335,10 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
       padding: const EdgeInsets.only(bottom: 10),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          color: Colors.pink,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
     );
@@ -342,9 +350,10 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
       decoration: InputDecoration(
         labelText: label,
         filled: true,
-        fillColor: Colors.white,
+        fillColor: Theme.of(context).colorScheme.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
         ),
       ),
     );
@@ -355,7 +364,7 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
       value: value,
       decoration: InputDecoration(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: Theme.of(context).colorScheme.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -373,7 +382,8 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
   Widget _pinkButton(String text, VoidCallback onTap) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.pink.shade400,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         minimumSize: const Size(double.infinity, 45),
       ),
       onPressed: onTap,
@@ -386,7 +396,7 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -397,7 +407,12 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
                   fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           if (liste.isEmpty)
-            const Text("Henüz ekleme yok"),
+            Text(
+              "Henüz ekleme yok",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
           ...liste.map((item) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Row(

@@ -3,47 +3,95 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'welcome_page.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'app_theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initializeDateFormatting('tr_TR', null);
 
-  if (kIsWeb) {
-    await Firebase.initializeApp(
-      options: FirebaseOptions(
-        apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
-        authDomain: "pregnova-38391.firebaseapp.com",
-        projectId: "pregnova-38391",
-        storageBucket: "pregnova-38391.firebasestorage.app",
-        messagingSenderId: "452304782809",
-        appId: "1:452304782809:web:7c963f1c2ed6c6e8c445c8",
-      ),
-    );
-  } else {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  }
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
-  runApp(const MyApp());
+  runApp(const RoleLoaderPage());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String role;
+
+  const MyApp({super.key, required this.role});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+
+      theme: AppTheme.getTheme(role),
+
       home: const WelcomePage(),
     );
   }
 }
+class RoleLoaderPage extends StatefulWidget {
+  const RoleLoaderPage({super.key});
 
+  @override
+  State<RoleLoaderPage> createState() => _RoleLoaderPageState();
+}
 
+class _RoleLoaderPageState extends State<RoleLoaderPage> {
+  String? role;
 
+  @override
+  void initState() {
+    super.initState();
+    loadRole();
+  }
 
+  Future<void> loadRole() async {
+    await Future.delayed(const Duration(milliseconds: 200));
 
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      setState(() {
+        role = "pregnant";
+      });
+      return;
+    }
+
+    final doc = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(user.uid)
+        .get();
+
+    final data = doc.data();
+
+    setState(() {
+      role = data?["role"] ?? "pregnant";
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (role == null) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.getTheme("pregnant"), // geçici
+        home: Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(
+              color: Colors.deepPurple,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return MyApp(role: role!);
+  }
+}

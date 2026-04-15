@@ -12,9 +12,12 @@ class HamileBesinGecmisiPage extends StatelessWidget {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFCE4EC), Color(0xFFF8BBD0)],
+            colors: [
+              Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              Theme.of(context).colorScheme.primary.withOpacity(0.3),
+            ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -23,15 +26,14 @@ class HamileBesinGecmisiPage extends StatelessWidget {
           child: Column(
             children: [
 
-              // Başlık
-              const Padding(
+              Padding(
                 padding: EdgeInsets.all(20),
                 child: Text(
                   "Besin & Takviye Geçmişi",
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.pink,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ),
@@ -53,10 +55,12 @@ class HamileBesinGecmisiPage extends StatelessWidget {
 
                     if (!snapshot.hasData ||
                         snapshot.data!.docs.isEmpty) {
-                      return const Center(
+                      return Center(
                         child: Text(
                           "Henüz kayıt yok 💗",
-                          style: TextStyle(fontSize: 16),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                         ),
                       );
                     }
@@ -92,83 +96,86 @@ class HamileBesinGecmisiPage extends StatelessWidget {
                             data['excessNutrients'] ?? [];
 
                         return Card(
+                          color: Theme.of(context).colorScheme.surface,
                           elevation: 6,
-                          margin: const EdgeInsets.symmetric(vertical: 10),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18),
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(16),
                             child: Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
 
-                                // Tarih
                                 Text(
                                   formattedDate,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.pink,
+                                    color: Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
 
                                 const Divider(),
 
-                                // BESİNLER
                                 if (besinler.isNotEmpty) ...[
-                                  const Text(
+                                  Text(
                                     "Besinler",
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.primary,
                                     ),
                                   ),
                                   const SizedBox(height: 6),
+
                                   ...besinler.map((b) {
                                     return Padding(
-                                      padding:
-                                      const EdgeInsets.symmetric(vertical: 3),
+                                      padding: const EdgeInsets.symmetric(vertical: 3),
                                       child: Row(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(b['ad']),
+                                          Text(
+                                            b['ad'],
+                                            style: TextStyle(
+                                              color: Theme.of(context).colorScheme.onSurface,
+                                            ),
+                                          ),
                                           Text(
                                             "${b['miktar']} ${b['format']}",
-                                            style: const TextStyle(
-                                                fontWeight:
-                                                FontWeight.bold),
+                                            style: const TextStyle(fontWeight: FontWeight.bold),
                                           ),
                                         ],
                                       ),
                                     );
                                   }).toList(),
+
                                   const SizedBox(height: 10),
                                 ],
 
-                                // TAKVİYELER
                                 if (takviyeler.isNotEmpty) ...[
-                                  const Text(
+                                  Text(
                                     "Takviyeler",
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.primary,
                                     ),
                                   ),
                                   const SizedBox(height: 6),
+
                                   ...takviyeler.map((t) {
                                     return Padding(
-                                      padding:
-                                      const EdgeInsets.symmetric(vertical: 3),
+                                      padding: const EdgeInsets.symmetric(vertical: 3),
                                       child: Row(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(t['ad']),
+                                          Text(
+                                            t['ad'],
+                                            style: TextStyle(
+                                              color: Theme.of(context).colorScheme.onSurface,
+                                            ),
+                                          ),
                                           Text(
                                             "${t['miktar']} ${t['format']}",
-                                            style: const TextStyle(
-                                                fontWeight:
-                                                FontWeight.bold),
+                                            style: const TextStyle(fontWeight: FontWeight.bold),
                                           ),
                                         ],
                                       ),
@@ -179,7 +186,13 @@ class HamileBesinGecmisiPage extends StatelessWidget {
                                 const SizedBox(height: 10),
 
                                 if (consumed.isNotEmpty) ...[
-                                  const Text("Alınan Besin Öğeleri", style: TextStyle(fontWeight: FontWeight.bold),),
+                                  Text(
+                                    "Alınan Besin Öğeleri",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                                  ),
                                   const SizedBox(height: 6),
 
                                   ...consumed.map((n) {
@@ -192,12 +205,17 @@ class HamileBesinGecmisiPage extends StatelessWidget {
                                       ],
                                     );
                                   }).toList(),
+
                                   const SizedBox(height: 10),
                                 ],
 
                                 if (missing.isNotEmpty) ...[
-                                  const Text("Eksik Besin Öğeleri",
-                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  Text(
+                                    "Eksik Besin Öğeleri",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
                                   ),
                                   const SizedBox(height: 6),
 
@@ -205,7 +223,7 @@ class HamileBesinGecmisiPage extends StatelessWidget {
                                     return Row(
                                       children: [
                                         const Icon(Icons.warning,
-                                          color: Colors.orange, size: 18),
+                                            color: Colors.orange, size: 18),
                                         const SizedBox(width: 6),
                                         Text(n),
                                       ],
@@ -214,11 +232,13 @@ class HamileBesinGecmisiPage extends StatelessWidget {
                                 ],
 
                                 if (excess.isNotEmpty) ...[
-                                  const Text(
+                                  Text(
                                     "Fazla Besin Öğeleri",
-                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
                                   ),
-
                                   const SizedBox(height: 6),
 
                                   ...excess.map((n) {
@@ -238,10 +258,7 @@ class HamileBesinGecmisiPage extends StatelessWidget {
                                 Align(
                                   alignment: Alignment.centerRight,
                                   child: IconButton(
-                                    icon: const Icon(
-                                      Icons.delete,
-                                      color: Colors.red,
-                                    ),
+                                    icon: const Icon(Icons.delete, color: Colors.red),
                                     onPressed: () {
                                       FirebaseFirestore.instance
                                           .collection('besin_analizleri')

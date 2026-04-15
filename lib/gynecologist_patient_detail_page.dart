@@ -18,9 +18,9 @@ class HastaDetayPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.pink,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         title: const Text("Hasta Detayı"),
       ),
       body: SingleChildScrollView(
@@ -64,7 +64,7 @@ class HastaDetayPage extends StatelessWidget {
                 return Container(
                   margin: const EdgeInsets.all(16),
                   padding: const EdgeInsets.all(16),
-                  decoration: _cardDecoration(),
+                  decoration: _cardDecoration(context),
                   child: Row(
                     mainAxisAlignment:
                     MainAxisAlignment.spaceBetween,
@@ -80,7 +80,12 @@ class HastaDetayPage extends StatelessWidget {
                                 fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 6),
-                          Text("Gebelik Haftası: $hafta"),
+                          Text(
+                            "Gebelik Haftası: $hafta",
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
                         ],
                       ),
                       Container(
@@ -106,11 +111,13 @@ class HastaDetayPage extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            const Text(
+            Text(
               "Son 7 Gün Ölçüm Grafikleri",
               style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold),
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
 
             const SizedBox(height: 20),
@@ -138,16 +145,21 @@ class HastaDetayPage extends StatelessWidget {
                 final docs = snapshot.data!.docs;
 
                 if (docs.isEmpty) {
-                  return const Text("Ölçüm bulunamadı");
+                  return Text(
+                    "Ölçüm bulunamadı",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  );
                 }
 
                 return Column(
                   children: [
-                    _buildTansiyonChart(docs),
+                    _buildTansiyonChart(context, docs),
                     const SizedBox(height: 30),
-                    _buildSekerChart(docs),
+                    _buildSekerChart(context, docs),
                     const SizedBox(height: 30),
-                    _buildKiloChart(docs),
+                    _buildKiloChart(context, docs),
                   ],
                 );
               },
@@ -160,7 +172,8 @@ class HastaDetayPage extends StatelessWidget {
               const EdgeInsets.symmetric(horizontal: 20),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pink,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   minimumSize:
                   const Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
@@ -182,10 +195,10 @@ class HastaDetayPage extends StatelessWidget {
                     ),
                   );
                 },
-                child: const Text(
+                child: Text(
                   "Detaylı Klinik Analizi Gör",
                   style:
-                  TextStyle(color: Colors.white),
+                  TextStyle(color: Theme.of(context).colorScheme.surface,),
                 ),
               ),
             ),
@@ -197,7 +210,7 @@ class HastaDetayPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTansiyonChart(
+  Widget _buildTansiyonChart(BuildContext context,
       List<QueryDocumentSnapshot> docs) {
 
     return Column(
@@ -239,12 +252,12 @@ class HastaDetayPage extends StatelessWidget {
                   barRods: [
                     BarChartRodData(
                       toY: sistolik,
-                      color: Colors.pink,
+                      color: Theme.of(context).colorScheme.primary,
                       width: 8,
                     ),
                     BarChartRodData(
                       toY: diastolik,
-                      color: Colors.blue,
+                      color: Theme.of(context).colorScheme.secondary,
                       width: 8,
                     ),
                   ],
@@ -257,7 +270,7 @@ class HastaDetayPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSekerChart(
+  Widget _buildSekerChart(BuildContext context,
       List<QueryDocumentSnapshot> docs) {
 
     return Column(
@@ -307,12 +320,12 @@ class HastaDetayPage extends StatelessWidget {
                   barRods: [
                     BarChartRodData(
                       toY: aclik,
-                      color: Colors.orange,
+                      color: Theme.of(context).colorScheme.secondary,
                       width: 10,
                     ),
                     BarChartRodData(
                       toY: tokluk,
-                      color: Colors.blue,
+                      color: Theme.of(context).colorScheme.primary,
                       width: 10,
                     ),
                   ],
@@ -325,7 +338,7 @@ class HastaDetayPage extends StatelessWidget {
     );
   }
 
-  Widget _buildKiloChart(List<QueryDocumentSnapshot> docs) {
+  Widget _buildKiloChart(BuildContext context, List<QueryDocumentSnapshot> docs) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -362,7 +375,7 @@ class HastaDetayPage extends StatelessWidget {
                   barRods: [
                     BarChartRodData(
                       toY: kilo,
-                      color: Colors.purple,
+                      color: Theme.of(context).colorScheme.primary,
                       width: 14,
                     ),
                   ],
@@ -375,12 +388,15 @@ class HastaDetayPage extends StatelessWidget {
     );
   }
 
-  BoxDecoration _cardDecoration() {
+  BoxDecoration _cardDecoration(BuildContext context) {
     return BoxDecoration(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(18),
-      boxShadow: const [
-        BoxShadow(color: Colors.black12, blurRadius: 6)
+      boxShadow: [
+        BoxShadow(
+          color: Theme.of(context).shadowColor.withOpacity(0.2),
+          blurRadius: 6,
+        )
       ],
     );
   }

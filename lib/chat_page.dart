@@ -73,7 +73,7 @@ class _ChatPageState extends State<ChatPage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.pink,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         title: Text(widget.title),
       ),
       body: Column(
@@ -125,8 +125,9 @@ class _ChatPageState extends State<ChatPage> {
                             vertical: 4, horizontal: 10),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color:
-                          isMe ? Colors.pink : Colors.grey.shade300,
+                          color: isMe
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.surfaceVariant,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -137,8 +138,8 @@ class _ChatPageState extends State<ChatPage> {
                               data["text"] ?? "",
                               style: TextStyle(
                                 color: isMe
-                                    ? Colors.white
-                                    : Colors.black,
+                                    ? Theme.of(context).colorScheme.onPrimary
+                                    : Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -147,8 +148,8 @@ class _ChatPageState extends State<ChatPage> {
                               style: TextStyle(
                                 fontSize: 10,
                                 color: isMe
-                                    ? Colors.white70
-                                    : Colors.black54,
+                                    ? Theme.of(context).colorScheme.onPrimary.withOpacity(0.7)
+                                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                               ),
                             ),
                           ],
@@ -166,14 +167,17 @@ class _ChatPageState extends State<ChatPage> {
               Expanded(
                 child: TextField(
                   controller: controller,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: "Mesaj yaz...",
-                    contentPadding: EdgeInsets.all(12),
+                    contentPadding: const EdgeInsets.all(12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.send, color: Colors.pink),
+                icon: Icon(Icons.send, color: Theme.of(context).colorScheme.primary),
                 onPressed: sendMessage,
               )
             ],

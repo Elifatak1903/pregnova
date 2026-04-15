@@ -34,7 +34,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
     pages = [
       const MessagePage(),
       const UzmanAraPage(),
-      _buildHomeContent(),
+      Container(),
       isLoggedIn ? HesabimPage() : const LoginPage(),
     ];
 
@@ -119,6 +119,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16)),
         title: const Text("Gebelik Bilgileri"),
@@ -139,7 +140,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.deepPurple,
+              backgroundColor: Theme.of(context).colorScheme.primary,
             ),
             child: const Text("Şimdi Doldur"),
             onPressed: () {
@@ -160,10 +161,10 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.deepPurple.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
 
       appBar: AppBar(
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         title: const Text("PregNova"),
         centerTitle: true,
         actions: [
@@ -218,12 +219,17 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
 
       body: IndexedStack(
         index: _selectedIndex,
-        children: pages,
+        children: [
+          const MessagePage(),
+          const UzmanAraPage(),
+          _buildHomeContent(), // ✅ ARTIK BURADA
+          isLoggedIn ? HesabimPage() : const LoginPage(),
+        ],
       ),
 
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.deepPurple,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Colors.grey,
         onTap: (index) {
           setState(() {
@@ -327,7 +333,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
             style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: color),
+              color: Theme.of(context).colorScheme.primary,),
           ),
         ]),
       ),
@@ -345,7 +351,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Colors.deepPurple.shade700,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
 
@@ -353,7 +359,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
 
           Text(
             "Sağlık ve beslenme takibini kolayca yapabilirsin.",
-            style: TextStyle(color: Colors.grey.shade700),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
           ),
 
           const SizedBox(height: 25),
@@ -361,8 +367,11 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Colors.deepPurple, Colors.purple],
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                ],
               ),
               borderRadius: BorderRadius.circular(16),
             ),
@@ -502,10 +511,10 @@ Widget riskDashboard() {
         margin: const EdgeInsets.only(bottom: 20),
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(color: Colors.black12, blurRadius: 6)
+          boxShadow: [
+            BoxShadow(color: Theme.of(context).shadowColor.withOpacity(0.2), blurRadius: 6)
           ],
         ),
         child: Column(
@@ -522,11 +531,11 @@ Widget riskDashboard() {
 
             const SizedBox(height: 10),
 
-            riskRow("Preeklampsi",
+            riskRow(context, "Preeklampsi",
                 data["preeklampsiRisk"] ?? "LOW", riskColor),
-            riskRow("Diyabet",
+            riskRow(context, "Diyabet",
                 data["diyabetRisk"] ?? "LOW", riskColor),
-            riskRow("Preterm",
+            riskRow(context, "Preterm",
                 data["pretermRisk"] ?? "LOW", riskColor),
           ],
         ),
@@ -535,14 +544,19 @@ Widget riskDashboard() {
   );
 }
 
-Widget riskRow(
+Widget riskRow(BuildContext context,
     String title, String risk, Color Function(String) color) {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 3),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title),
+        Text(
+          title,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
         Text(
           risk,
           style: TextStyle(

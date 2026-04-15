@@ -12,11 +12,11 @@ class ExpertDetailPage extends StatelessWidget {
     final status = data['status'] ?? "pending";
 
     return Scaffold(
-      backgroundColor: Colors.deepPurple.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
 
       appBar: AppBar(
         title: const Text("Başvuru Detayı"),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
 
       body: SingleChildScrollView(
@@ -27,19 +27,24 @@ class ExpertDetailPage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(18),
-                boxShadow: const [
-                  BoxShadow(color: Colors.black12, blurRadius: 6)
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context).shadowColor.withOpacity(0.2),
+                    blurRadius: 6,
+                  )
                 ],
               ),
               child: Row(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 35,
-                    backgroundColor: Colors.deepPurple,
-                    child: Icon(Icons.person,
-                        color: Colors.white, size: 30),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    child: Icon(
+                      Icons.person,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
                   ),
                   const SizedBox(width: 15),
                   Column(
@@ -56,8 +61,9 @@ class ExpertDetailPage extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         data['role'] ?? "-",
-                        style: const TextStyle(
-                          color: Colors.deepPurple,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -68,11 +74,11 @@ class ExpertDetailPage extends StatelessWidget {
 
             const SizedBox(height: 25),
 
-            _infoCard(Icons.badge, "Lisans No", data['licenseNumber']),
-            _infoCard(Icons.work, "Deneyim", data['experience']),
-            _infoCard(Icons.phone, "Telefon", data['phone']),
-            _infoCard(Icons.local_hospital, "Kurum", data['hospital']),
-            _infoCard(Icons.location_city, "Şehir", data['city']),
+            _infoCard(context, Icons.badge, "Lisans No", data['licenseNumber']),
+            _infoCard(context, Icons.work, "Deneyim", data['experience']),
+            _infoCard(context, Icons.phone, "Telefon", data['phone']),
+            _infoCard(context, Icons.local_hospital, "Kurum", data['hospital']),
+            _infoCard(context, Icons.location_city, "Şehir", data['city']),
 
             const SizedBox(height: 25),
 
@@ -84,7 +90,7 @@ class ExpertDetailPage extends StatelessWidget {
                   icon: const Icon(Icons.picture_as_pdf),
                   label: const Text("Diplomayı Gör"),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -97,7 +103,7 @@ class ExpertDetailPage extends StatelessWidget {
                         builder: (_) => Scaffold(
                           appBar: AppBar(
                             title: const Text("Diploma"),
-                            backgroundColor: Colors.deepPurple,
+                            backgroundColor: Theme.of(context).colorScheme.primary,
                           ),
                           body: Center(
                             child: InteractiveViewer(
@@ -130,6 +136,8 @@ class ExpertDetailPage extends StatelessWidget {
                     onPressed: () async {
                       await doc.reference.update({'status': 'rejected'});
 
+                      if (!context.mounted) return;
+
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Başvuru reddedildi ❌")),
                       );
@@ -146,7 +154,7 @@ class ExpertDetailPage extends StatelessWidget {
                     icon: const Icon(Icons.check),
                     label: const Text("Onayla"),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -184,6 +192,7 @@ class ExpertDetailPage extends StatelessWidget {
                       );
 
                       await batch.commit();
+                      if (!context.mounted) return;
 
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Uzman onaylandı ✅")),
@@ -200,10 +209,10 @@ class ExpertDetailPage extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: status == "approved"
-                    ? Colors.green.shade100
+                    ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
                     : status == "rejected"
                     ? Colors.red.shade100
-                    : Colors.orange.shade100,
+                    : Theme.of(context).colorScheme.secondary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -237,14 +246,15 @@ class ExpertDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _infoCard(IconData icon, String title, dynamic value) {
+  Widget _infoCard(BuildContext context, IconData icon, String title, dynamic value) {
     return Card(
+      color: Theme.of(context).colorScheme.surface,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
       ),
       child: ListTile(
-        leading: Icon(icon, color: Colors.deepPurple),
+        leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
         title: Text(title),
         subtitle: Text(value?.toString() ?? "-"),
       ),

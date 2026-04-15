@@ -25,8 +25,13 @@ class NotificationPanel extends StatelessWidget {
     final uid = FirebaseAuth.instance.currentUser?.uid;
 
     if (uid == null) {
-      return const Scaffold(
-        body: Center(child: Text("Giriş yapılmamış")),
+      return Scaffold(
+        body: Center(child: Text(
+          "Giriş yapılmamış",
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        )),
       );
     }
 
@@ -48,22 +53,18 @@ class NotificationPanel extends StatelessWidget {
 
         final role = userData?["role"] ?? "pregnant";
 
-        final primaryColor =
-        role == "dietitian" ? Colors.green : Colors.pink;
+        final primaryColor = Theme.of(context).colorScheme.primary;
 
-        final backgroundColor =
-        role == "dietitian"
-            ? Colors.green.shade50
-            : Colors.pink.shade50;
+        final backgroundColor = Theme.of(context).colorScheme.surface;
 
         return Scaffold(
           backgroundColor: backgroundColor,
 
           appBar: AppBar(
             backgroundColor: primaryColor,
-            title: const Text(
+            title: Text(
               "Bildirimler",
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
             ),
             centerTitle: true,
           ),
@@ -78,8 +79,10 @@ class NotificationPanel extends StatelessWidget {
 
               if (snapshot.connectionState ==
                   ConnectionState.waiting) {
-                return const Center(
-                    child: CircularProgressIndicator());
+                return Center(
+                    child: CircularProgressIndicator(
+                      color: Theme.of(context).colorScheme.primary,
+                    ));
               }
 
               if (!snapshot.hasData ||
@@ -88,7 +91,7 @@ class NotificationPanel extends StatelessWidget {
                   child: Text(
                     "Henüz bildirim yok",
                     style: TextStyle(
-                      color: Colors.grey.shade600,
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                       fontSize: 16,
                     ),
                   ),
@@ -119,12 +122,12 @@ class NotificationPanel extends StatelessWidget {
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
                       color: isRead
-                          ? Colors.white
+                          ? Theme.of(context).colorScheme.surface
                           : primaryColor.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isRead
-                            ? Colors.grey.shade300
+                            ? Theme.of(context).dividerColor
                             : primaryColor,
                       ),
                     ),
@@ -158,7 +161,7 @@ class NotificationPanel extends StatelessWidget {
                           fontWeight: isRead
                               ? FontWeight.w500
                               : FontWeight.bold,
-                          color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
 
@@ -169,7 +172,7 @@ class NotificationPanel extends StatelessWidget {
                           Text(
                             message,
                             style: TextStyle(
-                              color: Colors.grey.shade700,
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -177,16 +180,16 @@ class NotificationPanel extends StatelessWidget {
                             timeText,
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey.shade500,
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                             ),
                           ),
                         ],
                       ),
 
-                      trailing: const Icon(
+                      trailing: Icon(
                         Icons.arrow_forward_ios,
                         size: 16,
-                        color: Colors.grey,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                       ),
 
                       onTap: () async {

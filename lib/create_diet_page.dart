@@ -38,8 +38,14 @@ class _CreateDietPageState extends State<CreateDietPage> {
       "createdAt": FieldValue.serverTimestamp(),
     });
 
+    if (!context.mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Diyet planı kaydedildi ✅")),
+        SnackBar(
+          content: const Text("Diyet planı kaydedildi ✅"),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        )
+
     );
 
     Navigator.pop(context);
@@ -49,17 +55,26 @@ class _CreateDietPageState extends State<CreateDietPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title,
-            style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+
         const SizedBox(height: 5),
         TextField(
           controller: controller,
           maxLines: 3,
           decoration: InputDecoration(
+            filled: true,
+            fillColor: Theme.of(context).colorScheme.surface,
+            hintText: "$title yaz...",
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
             ),
-            hintText: "$title yaz...",
           ),
         ),
         const SizedBox(height: 15),
@@ -70,7 +85,7 @@ class _CreateDietPageState extends State<CreateDietPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
 
       body: SafeArea(
         child: SingleChildScrollView(
@@ -78,11 +93,12 @@ class _CreateDietPageState extends State<CreateDietPage> {
           child: Column(
             children: [
 
-              const Text(
+              Text(
                 "Diyet Planı Oluştur 🥗",
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
 
@@ -101,8 +117,12 @@ class _CreateDietPageState extends State<CreateDietPage> {
               ElevatedButton(
                 onPressed: saveDiet,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: const Text("Kaydet"),
               ),

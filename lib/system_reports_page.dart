@@ -91,45 +91,65 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
     }
   }
 
-  Widget bigCard(String title, String value, Color color) {
+  Widget bigCard(String title, String value, BuildContext context) {
+    final color = Theme.of(context).colorScheme.primary;
+
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
+          color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           children: [
-            Text(value,
-                style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: color)),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
             const SizedBox(height: 6),
-            Text(title),
+            Text(
+              title,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget infoCard(String title, String value, Color color) {
+  Widget infoCard(String title, String value, BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: primary.withOpacity(0.08),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title),
-          Text(value,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: color)),
+          Text(
+            title,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: primary,
+            ),
+          ),
         ],
       ),
     );
@@ -148,56 +168,64 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.purple.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text("System Reports"),
-        backgroundColor: Colors.purple,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator(
+        color: Theme.of(context).colorScheme.primary,
+      ))
           : SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            /// HEADER
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Colors.purple, Colors.deepPurple],
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).colorScheme.primary,
+                    Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                  ],
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("System Overview",
+                  Text("System Overview",
                       style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onPrimary,
                           fontSize: 18,
                           fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
                   Text(getSystemComment(),
-                      style: const TextStyle(color: Colors.white70)),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
                 ],
               ),
             ),
 
             const SizedBox(height: 20),
 
-            /// USER STATS
-            const Text("Users",
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              "Users",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
 
             const SizedBox(height: 10),
 
             Row(
               children: [
-                bigCard("Total", totalUsers.toString(), Colors.blue),
+                bigCard("Total", totalUsers.toString(), context),
                 const SizedBox(width: 10),
-                bigCard("Pregnant", pregnant.toString(), Colors.pink),
+                bigCard("Pregnant", pregnant.toString(), context),
               ],
             ),
 
@@ -205,31 +233,29 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
 
             Row(
               children: [
-                bigCard("Doctors", doctors.toString(), Colors.green),
+                bigCard("Doctors", doctors.toString(), context),
                 const SizedBox(width: 10),
-                bigCard("Dietitians", dietitians.toString(), Colors.orange),
+                bigCard("Dietitians", dietitians.toString(), context),
               ],
             ),
 
             const SizedBox(height: 20),
 
-            /// RISK ANALYSIS
             const Text("Risk Analysis",
                 style: TextStyle(fontWeight: FontWeight.bold)),
 
             const SizedBox(height: 10),
 
-            infoCard("High Risk", high.toString(), Colors.red),
-            infoCard("Medium Risk", medium.toString(), Colors.orange),
-            infoCard("Low Risk", low.toString(), Colors.green),
+            infoCard("High Risk", high.toString(), context),
+            infoCard("Medium Risk", medium.toString(), context),
+            infoCard("Low Risk", low.toString(), context),
 
             const SizedBox(height: 20),
 
-            /// EXTRA INFO
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Column(

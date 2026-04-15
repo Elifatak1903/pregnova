@@ -3,9 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'admin_expert_request_page.dart';
-import 'login_page.dart';
 import 'user_management_page.dart';
 import 'system_reports_page.dart';
+import 'main.dart';
 
 class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
@@ -56,9 +56,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
   void signOut(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
+
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => const LoginPage()),
+      MaterialPageRoute(builder: (_) => const RoleLoaderPage()),
           (_) => false,
     );
   }
@@ -66,10 +67,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.deepPurple.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text("Admin Panel"),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -85,22 +86,24 @@ class _AdminHomePageState extends State<AdminHomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            // HEADER
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Colors.deepPurple, Colors.purple],
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).colorScheme.primary,
+                    Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                  ],
                 ),
                 borderRadius: BorderRadius.circular(18),
               ),
               child: Row(
-                children: const [
+                children: [
                   CircleAvatar(
                     radius: 30,
                     backgroundColor: Colors.white,
                     child: Icon(Icons.admin_panel_settings,
-                        color: Colors.deepPurple, size: 30),
+                        color: Theme.of(context).colorScheme.primary, size: 30),
                   ),
                   SizedBox(width: 16),
                   Expanded(
@@ -124,14 +127,13 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
             const SizedBox(height: 24),
 
-            // STAT CARDS
             Row(
               children: [
                 _statCard(
                   title: "Pending\nRequests",
                   value: pendingRequests.toString(),
                   icon: Icons.pending_actions,
-                  color: Colors.orange,
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -146,7 +148,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   title: "Total\nUsers",
                   value: totalUsers.toString(),
                   icon: Icons.people,
-                  color: Colors.blue,
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -167,14 +169,14 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   title: "Active\nExperts",
                   value: activeExperts.toString(),
                   icon: Icons.medical_services,
-                  color: Colors.green,
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
                 ),
                 const SizedBox(width: 12),
                 _statCard(
                   title: "System\nReports",
                   value: reports.toString(),
                   icon: Icons.bar_chart,
-                  color: Colors.purple,
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -189,12 +191,12 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
             const SizedBox(height: 30),
 
-            const Text(
+            Text(
               "Admin Actions",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.deepPurple,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
 
@@ -204,7 +206,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
               title: "Expert Applications",
               subtitle: "Approve or reject expert requests",
               icon: Icons.health_and_safety,
-              color: Colors.deepPurple,
+              color: Theme.of(context).colorScheme.primary,
               onTap: () {
                 Navigator.push(
                   context,
@@ -219,7 +221,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
               title: "User Management",
               subtitle: "View all users",
               icon: Icons.people_outline,
-              color: Colors.blue,
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
               onTap: () {
                 Navigator.push(
                   context,

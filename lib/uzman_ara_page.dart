@@ -48,18 +48,11 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
     final currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFEFD3F1), Color(0xFFD1C4E9)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
         child: SafeArea(
           child: Column(
             children: [
-
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -70,14 +63,14 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
-                        color: Colors.deepPurple.shade700,
+                          color: Theme.of(context).colorScheme.onSurface
                       ),
                     ),
                     const SizedBox(height: 5),
                     Text(
                       "Size uygun uzmanı seçin",
                       style: TextStyle(
-                        color: Colors.grey.shade600,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
                   ],
@@ -104,16 +97,28 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
                   builder: (context, snapshot) {
 
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
+                      return Center(child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.primary,
+                      ));
                     }
 
                     if (snapshot.hasError) {
-                      return const Center(child: Text("Bir hata oluştu 😢"));
+                      return Center(child: Text(
+                        "Bir hata oluştu 😢",
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ));
                     }
 
                     if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return const Center(
-                        child: Text("Uygun uzman bulunamadı 😔"),
+                      return Center(
+                        child: Text(
+                          "Uygun uzman bulunamadı 😔",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
                       );
                     }
 
@@ -137,7 +142,8 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
                             (data['clients'] as List).contains(currentUserId);
 
                         return Card(
-                          elevation: 3,
+                          elevation: 0,
+                          color: Theme.of(context).colorScheme.surface,
                           margin: const EdgeInsets.symmetric(vertical: 6),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18),
@@ -147,7 +153,7 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
 
                             leading: CircleAvatar(
                               radius: 22,
-                              backgroundColor: Colors.deepPurple,
+                              backgroundColor: Theme.of(context).colorScheme.primary,
                               child: const Icon(
                                 Icons.medical_services,
                                 color: Colors.white,
@@ -156,9 +162,10 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
 
                             title: Text(
                               name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
+                                  color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
 
@@ -175,7 +182,7 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
                                 Text(
                                   hospital,
                                   style: TextStyle(
-                                    color: Colors.grey.shade600,
+                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                     fontSize: 13,
                                   ),
                                 ),
@@ -186,8 +193,8 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
                               width: 100,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.deepPurple.shade400,
-                                  foregroundColor: Colors.white,
+                                  backgroundColor: Theme.of(context).colorScheme.primary,
+                                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                   minimumSize: Size.zero,
                                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -238,8 +245,10 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
                                   if (!mounted) return;
 
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text("İstek gönderildi ✅")),
+                                    SnackBar(
+                                      content: const Text("İstek gönderildi ✅"),
+                                      backgroundColor: Theme.of(context).colorScheme.primary,
+                                    ),
                                   );
                                 },
                                 child: Text(
@@ -268,7 +277,7 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
-      selectedColor: Colors.deepPurple,
+      selectedColor: Theme.of(context).colorScheme.primary,
       labelStyle: TextStyle(
         color: isSelected ? Colors.white : Colors.black,
       ),

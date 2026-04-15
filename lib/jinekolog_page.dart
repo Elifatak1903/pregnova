@@ -143,7 +143,9 @@ class _GynecologistHomePageState
       builder: (context, snapshot) {
 
         if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(child: CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+          ));
         }
 
         final docs = snapshot.data!.docs;
@@ -181,15 +183,17 @@ class _GynecologistHomePageState
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(14),
-                    boxShadow: const [
-                      BoxShadow(color: Colors.black12, blurRadius: 6)
+                    boxShadow: [
+                      BoxShadow(
+                        color: Theme.of(context).shadowColor.withOpacity(0.2),
+                      )
                     ],
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.timeline, color: Colors.pink),
+                      Icon(Icons.timeline, color: Theme.of(context).colorScheme.primary),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Column(
@@ -204,7 +208,7 @@ class _GynecologistHomePageState
                               timeAgo(tarih),
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey.shade600,
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                               ),
                             ),
                           ],
@@ -274,11 +278,11 @@ class _GynecologistHomePageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
 
       appBar: AppBar(
         title: const Text("PregNova"),
-        backgroundColor: Colors.pink,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         actions: [
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
@@ -325,7 +329,7 @@ class _GynecologistHomePageState
 
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.pink,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
         onTap: (index) {
@@ -427,11 +431,13 @@ class _GynecologistHomePageState
           const SizedBox(height: 20),
           _buildHighRiskBanner(),
 
-          const Text(
+          Text(
             "Jinekolog Paneli",
             style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold),
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
 
           const SizedBox(height: 25),
@@ -525,11 +531,12 @@ class _GynecologistHomePageState
 
           const SizedBox(height: 30),
 
-          const Text(
+          Text(
             "Danışma İstekleri",
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
 
@@ -539,11 +546,13 @@ class _GynecologistHomePageState
 
           const SizedBox(height: 30),
 
-          const Text(
+          Text(
             "Son Aktiviteler",
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold),
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
           const SizedBox(height: 15),
           _buildRecentActivity(),
@@ -562,18 +571,22 @@ class _GynecologistHomePageState
       builder: (context, snapshot) {
 
         if (!snapshot.hasData) {
-          return const Center(
-              child: CircularProgressIndicator());
+          return Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ));
         }
 
         final docs = snapshot.data!.docs;
 
         if (docs.isEmpty) {
-          return const Center(
+          return Center(
             child: Text(
               "Henüz danışan bulunmuyor",
-              style: TextStyle(fontSize: 16),
-            ),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            )
           );
         }
 
@@ -619,7 +632,8 @@ class _GynecologistHomePageState
                 }
 
                 return Card(
-                  elevation: 4,
+                  color: Theme.of(context).colorScheme.surface,
+                  elevation: 0,
                   margin: const EdgeInsets.only(bottom: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -723,17 +737,17 @@ class _GynecologistHomePageState
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: const [
-                    BoxShadow(color: Colors.black12, blurRadius: 6)
+                  boxShadow: [
+                    BoxShadow(color: Theme.of(context).shadowColor.withOpacity(0.2), blurRadius: 6)
                   ],
                 ),
                 child: Row(
                   children: [
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 35,
-                      backgroundColor: Colors.pink,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
                       child: Icon(Icons.person, color: Colors.white, size: 30),
                     ),
                     const SizedBox(width: 15),
@@ -748,9 +762,9 @@ class _GynecologistHomePageState
                           ),
                         ),
                         Text(email),
-                        const Text(
+                        Text(
                           "Jinekolog",
-                          style: TextStyle(color: Colors.pink),
+                          style: TextStyle(color: Theme.of(context).colorScheme.primary),
                         ),
                       ],
                     )
@@ -828,6 +842,7 @@ class _GynecologistHomePageState
   }
   Widget _infoCard(String title, String value) {
     return Card(
+      color: Theme.of(context).colorScheme.surface,
       margin: const EdgeInsets.only(bottom: 10),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
@@ -843,11 +858,14 @@ class _GynecologistHomePageState
       IconData icon,
       String title,
       VoidCallback onTap,
-      {Color color = Colors.black}) {
+      {Color? color}) {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
-        leading: Icon(icon, color: color),
+        leading: Icon(
+          icon,
+          color: color ?? Theme.of(context).colorScheme.onSurface,
+        ),
         title: Text(title),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
         onTap: onTap,
@@ -875,10 +893,12 @@ class _GynecologistHomePageState
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(18),
-          boxShadow: const [
-            BoxShadow(color: Colors.black12, blurRadius: 6)
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(context).shadowColor.withOpacity(0.2),
+            )
           ],
         ),
         child: Column(
@@ -926,11 +946,13 @@ class _GynecologistHomePageState
 
         return Column(
           children: [
-            const Text(
+            Text(
               "Risk Dağılımı",
               style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold),
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
             ),
             const SizedBox(height: 20),
             SizedBox(
@@ -1066,12 +1088,13 @@ class _GynecologistHomePageState
 
   BoxDecoration _cardDecoration() {
     return BoxDecoration(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(14),
-      boxShadow: const [
+      boxShadow: [
         BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6)
+          color: Theme.of(context).shadowColor.withOpacity(0.2),
+          blurRadius: 6,
+        )
       ],
     );
   }

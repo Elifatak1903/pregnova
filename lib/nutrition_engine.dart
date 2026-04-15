@@ -174,7 +174,8 @@ class NutritionEngine {
       String name = food["name"]
           .toString()
           .toLowerCase()
-          .trim();
+          .trim()
+          .replaceAll("ı", "i");
 
       String unit = food["unit"] ?? "gram";
 

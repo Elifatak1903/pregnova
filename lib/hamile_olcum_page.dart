@@ -61,9 +61,11 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
       final diastolik = int.tryParse(diastolikController.text) ?? 0;
 
       if (diastolik >= sistolik) {
+        setState(() => _loading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Küçük tansiyon büyükten küçük olmalıdır"),
+          SnackBar(
+            content: const Text("Küçük tansiyon büyükten küçük olmalıdır"),
+            backgroundColor: Theme.of(context).colorScheme.primary,
           ),
         );
         return;
@@ -144,6 +146,7 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
             return Colors.green;
           }
           return AlertDialog(
+            backgroundColor: Theme.of(context).colorScheme.surface,
             title: const Text("Risk Sonucu"),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -201,7 +204,10 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
         setState(() => _loading = false);
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Risk verileri kaydedildi 💗")),
+        SnackBar(
+          content: const Text("Risk verileri kaydedildi 💗"),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
       );
       Navigator.pop(context);
     } catch (e) {
@@ -210,7 +216,10 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Hata: $e")),
+        SnackBar(
+          content: Text("Hata: $e"),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -237,10 +246,10 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text("Risk Takip Formu"),
-        backgroundColor: Colors.pink,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -316,13 +325,16 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
                 child: ElevatedButton(
                   onPressed: _loading ? null : kaydet,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.pink,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
                   child: _loading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? CircularProgressIndicator(
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  )
                       : const Text("Kaydet"),
                 ),
               )
@@ -338,10 +350,10 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: Colors.pink,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
     );
@@ -380,9 +392,16 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
         decoration: InputDecoration(
           labelText: label,
           filled: true,
-          fillColor: Colors.white,
+          fillColor: Theme.of(context).colorScheme.surface,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
         ),
       ),
@@ -393,7 +412,7 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
     return SwitchListTile(
       value: value,
       title: Text(title),
-      activeColor: Colors.pink,
+      activeColor: Theme.of(context).colorScheme.primary,
       onChanged: onChanged,
     );
   }

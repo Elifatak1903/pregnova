@@ -7,6 +7,7 @@ import 'admin_home_page.dart';
 import 'diyetisyen_page.dart';
 import 'jinekolog_page.dart';
 import 'login_page.dart';
+import 'app_theme.dart';
 
 class AuthRedirect extends StatelessWidget {
   const AuthRedirect({super.key});
@@ -17,16 +18,23 @@ class AuthRedirect extends StatelessWidget {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, authSnapshot) {
 
+        // 🔄 loading
         if (authSnapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+          return const MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
           );
         }
 
         final user = authSnapshot.data;
 
         if (user == null) {
-          return const LoginPage();
+          return const MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: LoginPage(),
+          );
         }
 
         return FutureBuilder<DocumentSnapshot>(
@@ -37,36 +45,54 @@ class AuthRedirect extends StatelessWidget {
           builder: (context, snapshot) {
 
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
+              return const MaterialApp(
+                debugShowCheckedModeBanner: false,
+                home: Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                ),
               );
             }
 
             if (!snapshot.hasData || !snapshot.data!.exists) {
-              return const Scaffold(
-                body: Center(child: Text("Kullanıcı verisi bulunamadı")),
+              return const MaterialApp(
+                debugShowCheckedModeBanner: false,
+                home: Scaffold(
+                  body: Center(child: Text("Kullanıcı verisi bulunamadı")),
+                ),
               );
             }
 
             final data =
             snapshot.data!.data() as Map<String, dynamic>;
-            final role = data['role'];
+
+            final role = data['role'] ?? "pregnant";
+
+            Widget homePage;
 
             switch (role) {
 
               case 'admin':
-                return const AdminHomePage();
+                homePage = const AdminHomePage();
+                break;
 
               case 'dietitian':
-                return const DietitianHomePage();
+                homePage = const DietitianHomePage();
+                break;
 
               case 'gynecologist':
-                return const GynecologistHomePage();
+                homePage = const GynecologistHomePage();
+                break;
 
               case 'pregnant':
               default:
-                return const HamileAnaSayfa();
+                homePage = const HamileAnaSayfa();
             }
+
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.getTheme(role),
+              home: homePage,
+            );
           },
         );
       },

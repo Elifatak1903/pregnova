@@ -7,9 +7,10 @@ class UserManagementPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text("Kullanıcılar"),
-        backgroundColor: Colors.blue,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -18,10 +19,23 @@ class UserManagementPage extends StatelessWidget {
         builder: (context, snapshot) {
 
           if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator(
+              color: Theme.of(context).colorScheme.primary,
+            ));
           }
 
           final users = snapshot.data!.docs;
+
+          if (users.isEmpty) {
+            return Center(
+              child: Text(
+                "Kullanıcı bulunamadı",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            );
+          }
 
           return ListView.builder(
             itemCount: users.length,
@@ -29,10 +43,32 @@ class UserManagementPage extends StatelessWidget {
 
               final data = users[index].data() as Map<String, dynamic>;
 
-              return ListTile(
-                leading: const Icon(Icons.person),
-                title: Text(data['name'] ?? "İsimsiz"),
-                subtitle: Text(data['role'] ?? ""),
+              return Card(
+                elevation: 0,
+                color: Theme.of(context).colorScheme.surface,
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    child: Icon(Icons.person,
+                        color: Theme.of(context).colorScheme.onPrimary),
+                  ),
+
+                  title: Text(
+                    data['name'] ?? "İsimsiz",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  subtitle: Text(
+                    data['role'] ?? "",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                ),
               );
             },
           );

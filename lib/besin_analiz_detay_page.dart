@@ -12,11 +12,11 @@ class BesinAnalizDetayPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
 
       appBar: AppBar(
         title: const Text("Besin Analizi Detayı"),
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
 
       body: FutureBuilder<DocumentSnapshot>(
@@ -54,7 +54,7 @@ class BesinAnalizDetayPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: const [
                     BoxShadow(color: Colors.black12, blurRadius: 6)
@@ -78,10 +78,10 @@ class BesinAnalizDetayPage extends StatelessWidget {
 
                     Text(
                       "Toplam Kalori: ${kalori.toInt()} kcal",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: Colors.green,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                   ],
@@ -90,11 +90,12 @@ class BesinAnalizDetayPage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              const Text(
+              Text(
                 "Tüketilen Besinler",
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
 
@@ -109,7 +110,7 @@ class BesinAnalizDetayPage extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: const [
                       BoxShadow(
@@ -124,15 +125,16 @@ class BesinAnalizDetayPage extends StatelessWidget {
 
                       Text(
                         name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w500,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
 
                       Text(
                         "$amount gr",
-                        style: const TextStyle(
-                          color: Colors.grey,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                         ),
                       ),
                     ],

@@ -56,21 +56,22 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
       future: getRole(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+          return Scaffold(
+            body: Center(child: CircularProgressIndicator(
+              color: Theme.of(context).colorScheme.primary,
+            )),
           );
         }
 
         final role = snapshot.data!;
         final isDietitian = role == 'dietitian';
-        final mainColor = isDietitian ? Colors.green : Colors.pink;
-
+        final primary = Theme.of(context).colorScheme.primary;
         return Scaffold(
-          backgroundColor: mainColor.shade50,
+            backgroundColor: Theme.of(context).colorScheme.surface,
           appBar: AppBar(
             title: Text(
                 isDietitian ? "Diyetisyen Paneli" : "Jinekolog Paneli"),
-            backgroundColor: mainColor,
+        backgroundColor: Theme.of(context).colorScheme.primary,
             actions: [
               IconButton(
                 icon: const Icon(Icons.logout),
@@ -78,15 +79,15 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
               ),
             ],
           ),
-          body: _buildBody(isDietitian, mainColor),
+          body: _buildBody(isDietitian, context),
           bottomNavigationBar: BottomNavigationBar(
             currentIndex: _selectedIndex,
             onTap: (i) => setState(() => _selectedIndex = i),
             type: BottomNavigationBarType.fixed,
 
-            selectedItemColor: mainColor,
-            unselectedItemColor: mainColor.withOpacity(0.6),
-
+            selectedItemColor: Theme.of(context).colorScheme.primary,
+            unselectedItemColor:
+            Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
             selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
             unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
 
@@ -106,7 +107,7 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
     );
   }
 
-  Widget _buildBody(bool isDietitian, MaterialColor mainColor) {
+  Widget _buildBody(bool isDietitian, BuildContext context) {
     if (_selectedIndex == 1) return _buildDanisanlar();
     if (_selectedIndex == 2) return _buildPendingRequests();
 
@@ -114,11 +115,16 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
-            child: Text("Hoş geldin 👋",
-                style: TextStyle(
-                    fontSize: 26, fontWeight: FontWeight.bold)),
+            child: Text(
+              "Hoş geldin 👋",
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
           ),
           const SizedBox(height: 20),
           Row(
@@ -130,7 +136,7 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
                     return _statCard(
                         "Danışan",
                         snapshot.data?.toString() ?? "...",
-                        mainColor);
+                        context);
                   },
                 ),
               ),
@@ -142,7 +148,7 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
                     return _statCard(
                         isDietitian ? "Eksik Besin" : "Riskli Hasta",
                         snapshot.data?.toString() ?? "...",
-                        Colors.red);
+                        context);
                   },
                 ),
               ),
@@ -153,25 +159,32 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
     );
   }
 
-  Widget _statCard(String title, String value, Color color) {
+  Widget _statCard(String title, String value, BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: primary.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 5)
-        ],
       ),
       child: Column(
         children: [
-          Text(value,
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: color)),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: primary,
+            ),
+          ),
           const SizedBox(height: 6),
-          Text(title),
+          Text(
+            title,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
         ],
       ),
     );
@@ -186,13 +199,20 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(child: CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+          ));
         }
 
         final docs = snapshot.data!.docs;
 
         if (docs.isEmpty) {
-          return const Center(child: Text("Henüz danışan yok"));
+          return Center(child: Text(
+            "Henüz danışan yok",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ));
         }
 
         return ListView(
@@ -221,7 +241,12 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
         final docs = snapshot.data!.docs;
 
         if (docs.isEmpty) {
-          return const Center(child: Text("Bekleyen istek yok"));
+          return Center(child: Text(
+            "Bekleyen istek yok",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ));
         }
 
         return ListView.builder(
@@ -246,6 +271,8 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
                   final surname = userData?["surname"] ?? "";
 
                   return Card(
+                    color: Theme.of(context).colorScheme.surface,
+                    elevation: 0,
                     child: ListTile(
                       title: Text("$name $surname",
                         style: const TextStyle(
@@ -256,15 +283,15 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.check, color: Colors.green),
+                            icon: Icon(Icons.check, color: Theme.of(context).colorScheme.primary),
                             onPressed: () {
                               requestDoc.reference
                                   .update({"status": "approved"});
                             },
                           ),
                           IconButton(
-                            icon: const Icon(Icons.close,
-                                color: Colors.red),
+                            icon: Icon(Icons.close,
+                                color: Theme.of(context).colorScheme.primary),
                             onPressed: () {
                               requestDoc.reference
                                   .update({"status": "rejected"});

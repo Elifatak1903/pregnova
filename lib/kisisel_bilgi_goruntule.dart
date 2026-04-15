@@ -13,7 +13,7 @@ class KisiselBilgilerGoruntulePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Kişisel Bilgiler"),
-        backgroundColor: Colors.pink,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -22,12 +22,8 @@ class KisiselBilgilerGoruntulePage extends StatelessWidget {
         ),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFFCE4EC), Color(0xFFF8BBD0)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
         ),
         child: SafeArea(
           child: Column(
@@ -36,12 +32,12 @@ class KisiselBilgilerGoruntulePage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 alignment: Alignment.centerLeft,
-                child: const Text(
+                child: Text(
                   "Kişisel Bilgiler",
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.pink,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ),
@@ -55,16 +51,23 @@ class KisiselBilgilerGoruntulePage extends StatelessWidget {
                   builder: (context, snapshot) {
 
                     if (!snapshot.hasData) {
-                      return const Center(
-                          child: CircularProgressIndicator());
+                      return Center(
+                          child: CircularProgressIndicator(
+                            color: Theme.of(context).colorScheme.primary,
+                          ));
                     }
 
                     final data =
                     snapshot.data!.data() as Map<String, dynamic>?;
 
                     if (data == null) {
-                      return const Center(
-                          child: Text("Veri bulunamadı"));
+                      return Center(
+                          child: Text(
+                            "Veri bulunamadı",
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ));
                     }
 
                     return Padding(
@@ -72,37 +75,37 @@ class KisiselBilgilerGoruntulePage extends StatelessWidget {
                       child: Column(
                         children: [
 
-                          bilgiKart(
+                          bilgiKart(context,
                             "Kronik Hipertansiyon",
                             (data['chronicHypertension'] ?? false) ? "Var" : "Yok",
                             Icons.monitor_heart,
                           ),
 
-                          bilgiKart(
+                          bilgiKart(context,
                             "Diyabet",
                             (data['diabetes'] ?? false) ? "Var" : "Yok",
                             Icons.bloodtype,
                           ),
 
-                          bilgiKart(
+                          bilgiKart(context,
                             "Tiroid Hastalığı",
                             (data['thyroidDisease'] ?? false) ? "Var" : "Yok",
                             Icons.health_and_safety,
                           ),
 
-                          bilgiKart(
+                          bilgiKart(context,
                             "Önceki Preterm",
                             (data['previousPreterm'] ?? false) ? "Var" : "Yok",
                             Icons.warning,
                           ),
 
-                          bilgiKart(
+                          bilgiKart(context,
                             "Çoğul Gebelik",
                             (data['multiplePregnancy'] ?? false) ? "Var" : "Yok",
                             Icons.groups,
                           ),
 
-                          bilgiKart(
+                          bilgiKart(context,
                             "Sigara",
                             (data['smoker'] ?? false) ? "Var" : "Yok",
                             Icons.smoking_rooms,
@@ -124,7 +127,8 @@ class KisiselBilgilerGoruntulePage extends StatelessWidget {
                                 );
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.pink,
+                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                                 shape: RoundedRectangleBorder(
                                   borderRadius:
                                   BorderRadius.circular(16),
@@ -156,28 +160,36 @@ class KisiselBilgilerGoruntulePage extends StatelessWidget {
     );
   }
 
-  Widget bilgiKart(String title, String value, IconData icon) {
+  Widget bilgiKart(BuildContext context, String title, String value, IconData icon) {
     return Card(
-      elevation: 6,
+      color: Theme.of(context).colorScheme.surface,
+      elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
       ),
       margin: const EdgeInsets.symmetric(vertical: 10),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: Colors.pink.shade100,
-          child: Icon(icon, color: Colors.pink),
+          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+          child: Icon(
+            icon,
+            color: Theme.of(context).colorScheme.primary,
+          ),
         ),
         title: Text(
           title,
-          style: const TextStyle(fontSize: 14),
+          style: TextStyle(
+            fontSize: 14,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
         ),
         subtitle: Text(
           value.isEmpty ? "Belirtilmemiş" : value,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
-          ),
+            color: Theme.of(context).colorScheme.onSurface,
+          )
         ),
       ),
     );

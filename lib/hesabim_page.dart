@@ -22,8 +22,7 @@ class _HesabimPageState extends State<HesabimPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.deepPurple.shade50,
-
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -40,14 +39,14 @@ class _HesabimPageState extends State<HesabimPage> {
                     style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
-                      color: Colors.deepPurple.shade700,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                   const SizedBox(height: 5),
                   Text(
                     "Hesap ayarlarını buradan yönetebilirsin",
                     style: TextStyle(
-                      color: Colors.grey.shade600,
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                     ),
                   ),
                 ],
@@ -97,7 +96,9 @@ class _HesabimPageState extends State<HesabimPage> {
               ),
 
               const SizedBox(height: 20),
-              const Divider(),
+              Divider(
+                color: Theme.of(context).dividerColor,
+              ),
 
               hesapButonu(
                 "🩺 Uzman Olarak Başvur",
@@ -108,7 +109,7 @@ class _HesabimPageState extends State<HesabimPage> {
                         builder: (_) => UzmanBasvuruPage()),
                   );
                 },
-                color: Colors.deepPurple,
+                color: Theme.of(context).colorScheme.primary,
               ),
 
               const Spacer(),
@@ -160,15 +161,15 @@ class _HesabimPageState extends State<HesabimPage> {
   }
 
   Widget hesapButonu(String text, VoidCallback onTap,
-      {Color color = Colors.deepPurple}) {
+      {Color? color}) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       width: double.infinity,
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
+          backgroundColor: color ?? Theme.of(context).colorScheme.primary,
+          foregroundColor: Theme.of(context).colorScheme.onPrimary,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),

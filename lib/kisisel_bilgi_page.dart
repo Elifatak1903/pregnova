@@ -96,7 +96,10 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
       }, SetOptions(merge: true));
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Bilgiler güncellendi ✅")),
+        SnackBar(
+          content: const Text("Bilgiler güncellendi ✅"),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
       );
 
       await Future.delayed(const Duration(seconds: 1));
@@ -105,7 +108,10 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
 
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Hata oluştu: $e")),
+        SnackBar(
+          content: Text("Hata oluştu: $e"),
+          backgroundColor: Colors.red,
+        ),
       );
     }
 
@@ -133,23 +139,32 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
           contentPadding:
           const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: Theme.of(context).colorScheme.surface,
           labelText: label,
-          labelStyle: const TextStyle(color: Colors.pink),
-          prefixIcon: Icon(icon, color: Colors.pink),
+          labelStyle: TextStyle(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          prefixIcon: Icon(
+            icon,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(18),
             borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(18),
-            borderSide:
-            BorderSide(color: Colors.pink.shade100, width: 1.5),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+              width: 1.5,
+            ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(18),
-            borderSide:
-            const BorderSide(color: Colors.pink, width: 2),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.primary,
+              width: 2,
+            ),
           ),
         ),
       ),
@@ -160,7 +175,7 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
     return CheckboxListTile(
       title: Text(title),
       value: value,
-      activeColor: Colors.pink,
+      activeColor: Theme.of(context).colorScheme.primary,
       onChanged: onChanged,
       contentPadding: EdgeInsets.zero,
     );
@@ -169,13 +184,15 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text("Kişisel Bilgiler"),
-        backgroundColor: Colors.pink,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator(
+        color: Theme.of(context).colorScheme.primary,
+      ))
           : Padding(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -206,18 +223,21 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
                 ),
 
                 const SizedBox(height: 10),
-                const Divider(),
+                Divider(
+                  color: Theme.of(context).dividerColor,
+                ),
                 const SizedBox(height: 10),
 
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     "Risk Faktörleri",
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                  ),
+                  )
                 ),
 
                 const SizedBox(height: 10),
@@ -248,7 +268,8 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
                   child: ElevatedButton(
                     onPressed: isSaving ? null : kaydet,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.pink,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),

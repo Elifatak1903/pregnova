@@ -1,5 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+class RiskLevel {
+  static const low = "LOW";
+  static const medium = "MEDIUM";
+  static const high = "HIGH";
+}
+
 class RiskResult {
   final String preeklampsi;
   final String diyabet;
@@ -13,7 +19,6 @@ class RiskResult {
 }
 
 class RiskEngine {
-
   static Future<String> calculatePreeklampsi({
     required String uid,
     required int sistolik,
@@ -25,7 +30,7 @@ class RiskEngine {
   }) async {
 
     if (sistolik >= 160 || diastolik >= 110) {
-      return "HIGH";
+      return RiskLevel.high;
     }
 
     int score = 0;
@@ -40,11 +45,11 @@ class RiskEngine {
     String risk;
 
     if (score <= 2) {
-      risk = "LOW";
+      risk = RiskLevel.low;
     } else if (score <= 5) {
-      risk = "MEDIUM";
+      risk = RiskLevel.medium;
     } else {
-      risk = "HIGH";
+      risk = RiskLevel.high;
     }
 
     final query = await FirebaseFirestore.instance
@@ -68,17 +73,17 @@ class RiskEngine {
       }
 
       if (abnormalCount == 3) {
-        if (risk == "LOW") risk = "MEDIUM";
-        if (risk == "MEDIUM") risk = "HIGH";
+        if (risk == RiskLevel.low) risk = RiskLevel.medium;
+        if (risk == RiskLevel.medium) risk = RiskLevel.high;
       }
-      await FirebaseFirestore.instance
-          .collection("users")
-          .doc(uid)
-          .set({
-        "riskLevel": risk.toLowerCase(),
-      }, SetOptions(merge: true));
     }
 
+    await FirebaseFirestore.instance
+        .collection("users")
+        .doc(uid)
+        .set({
+      "riskLevel": risk.toLowerCase(),
+    }, SetOptions(merge: true));
 
     return risk;
   }
@@ -93,7 +98,7 @@ class RiskEngine {
 
     if ((aclik != null && aclik >= 126) ||
         (tokluk != null && tokluk >= 200)) {
-      return "HIGH";
+      return RiskLevel.high;
     }
 
     int score = 0;
@@ -104,9 +109,9 @@ class RiskEngine {
     if (sikIdrar) score += 1;
     if (diabetes) score += 2;
 
-    if (score <= 2) return "LOW";
-    if (score <= 5) return "MEDIUM";
-    return "HIGH";
+    if (score <= 2) return RiskLevel.low;
+    if (score <= 5) return RiskLevel.medium;
+    return RiskLevel.high;
   }
 
   static String calculatePreterm({
@@ -133,9 +138,9 @@ class RiskEngine {
     if (previousPreterm) score += 2;
     if (multiplePregnancy) score += 2;
 
-    if (score <= 2) return "LOW";
-    if (score <= 5) return "MEDIUM";
-    return "HIGH";
+    if (score <= 2) return RiskLevel.low;
+    if (score <= 5) return RiskLevel.medium;
+    return RiskLevel.high;
   }
 
   static Future<void> sendRiskNotification({
@@ -144,7 +149,7 @@ class RiskEngine {
     required String riskLevel,
   }) async {
 
-    if (riskLevel != "HIGH") return;
+    if (riskLevel != RiskLevel.high) return;
 
     final userDoc = await FirebaseFirestore.instance
         .collection("users")
@@ -152,14 +157,15 @@ class RiskEngine {
         .get();
 
     final userData = userDoc.data();
+    if (userData == null) return;
 
-    final doctorId = userData?["assignedDoctor"];
+    final doctorId = userData["assignedDoctor"];
     if (doctorId == null) return;
 
     final patientName =
-    (userData?["name"] ?? "").toString().isEmpty
+    (userData["name"] ?? "").toString().isEmpty
         ? "Bilinmeyen hasta"
-        : userData!["name"];
+        : userData["name"];
 
     final existing = await FirebaseFirestore.instance
         .collection("notification")
@@ -177,14 +183,11 @@ class RiskEngine {
       if (time != null && time is Timestamp) {
         final diff = DateTime.now().difference(time.toDate());
 
-        if (diff.inMinutes < 30) {
-          return;
-        }
+        if (diff.inMinutes < 30) return;
       }
     }
 
     String fieldName = "";
-
     if (riskType == "Preeklampsi") fieldName = "preeklampsiRisk";
     if (riskType == "Gestasyonel Diyabet") fieldName = "diyabetRisk";
     if (riskType == "Preterm Doğum") fieldName = "pretermRisk";
@@ -199,7 +202,7 @@ class RiskEngine {
     if (lastRisk.docs.isNotEmpty && fieldName.isNotEmpty) {
       final prev = lastRisk.docs.first.data();
 
-      if (prev[fieldName] == "HIGH") {
+      if (prev[fieldName] == RiskLevel.high) {
         return;
       }
     }

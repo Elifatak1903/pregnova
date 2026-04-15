@@ -14,7 +14,7 @@ class ExpertChatListPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Mesajlar"),
-        backgroundColor: Colors.pink,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -29,7 +29,12 @@ class ExpertChatListPage extends StatelessWidget {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text("Henüz mesaj yok"));
+            return Center(child: Text(
+              "Henüz mesaj yok",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              ),
+            ));
           }
 
           final chats = snapshot.data!.docs;
@@ -55,8 +60,13 @@ class ExpertChatListPage extends StatelessWidget {
 
                   if (userSnap.connectionState ==
                       ConnectionState.waiting) {
-                    return const ListTile(
-                        title: Text("Yükleniyor..."));
+                    return ListTile(
+                        title: Text(
+                          "Yükleniyor...",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ));
                   }
 
                   if (!userSnap.hasData ||
@@ -99,20 +109,29 @@ class ExpertChatListPage extends StatelessWidget {
                       }
 
                       return ListTile(
-                        leading: const CircleAvatar(
-                          backgroundColor: Colors.pink,
-                          child: Icon(Icons.person, color: Colors.white),
+                        leading: CircleAvatar(
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          child: Icon(
+                            Icons.person,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
                         ),
 
                         title: Text(
                           "$name $surname",
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                         ),
 
                         subtitle: Text(
                           data["lastMessage"] ?? "",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          ),
                         ),
 
                         trailing: Column(
@@ -121,12 +140,14 @@ class ExpertChatListPage extends StatelessWidget {
                             /// saat
                             Text(
                               timeText,
-                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                              ),
                             ),
 
                             const SizedBox(height: 5),
 
-                            /// BADGE
                             if (unreadCount > 0)
                               Container(
                                 padding: const EdgeInsets.all(6),
@@ -136,8 +157,8 @@ class ExpertChatListPage extends StatelessWidget {
                                 ),
                                 child: Text(
                                   unreadCount.toString(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.onPrimary,
                                     fontSize: 10,
                                   ),
                                 ),

@@ -12,9 +12,10 @@ class SonAnalizlerPage extends StatelessWidget {
     DateTime.now().subtract(const Duration(days: 7));
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text("Son Analizler"),
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -25,15 +26,22 @@ class SonAnalizlerPage extends StatelessWidget {
         builder: (context, snapshot) {
 
           if (!snapshot.hasData) {
-            return const Center(
-                child: CircularProgressIndicator());
+            return Center(
+                child: CircularProgressIndicator(
+                  color: Theme.of(context).colorScheme.primary,
+                ));
           }
 
           final docs = snapshot.data!.docs;
 
           if (docs.isEmpty) {
-            return const Center(
-              child: Text("Son 7 günde analiz yok"),
+            return Center(
+              child: Text(
+                "Son 7 günde analiz yok",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
             );
           }
 
@@ -56,7 +64,9 @@ class SonAnalizlerPage extends StatelessWidget {
                 builder: (context, userSnap) {
 
                   if (!userSnap.hasData) {
-                    return const SizedBox();
+                    return const ListTile(
+                      title: Text("Yükleniyor..."),
+                    );
                   }
 
                   final userData =
@@ -66,23 +76,38 @@ class SonAnalizlerPage extends StatelessWidget {
                   final surname = userData?["surname"] ?? "";
 
                   return Card(
+                    color: Theme.of(context).colorScheme.surface,
+                    elevation: 0,
                     margin: const EdgeInsets.only(bottom: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: ListTile(
-                      leading: const CircleAvatar(
-                        backgroundColor: Colors.green,
-                        child: Icon(Icons.restaurant, color: Colors.white),
+                      leading: CircleAvatar(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        child: Icon(Icons.restaurant, color: Theme.of(context).colorScheme.onPrimary,),
                       ),
 
-                      title: Text("$name $surname"),
+                        title: Text(
+                          "$name $surname",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
 
                       subtitle: Text(
                         tarih != null ? _timeAgo(tarih) : "",
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                        ),
                       ),
 
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      trailing: Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                      ),
 
                       onTap: () {
                         Navigator.push(

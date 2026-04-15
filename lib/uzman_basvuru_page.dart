@@ -161,7 +161,10 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Başvurun alındı 🙏")),
+      SnackBar(
+        content: const Text("Başvurun alındı 🙏"),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
     );
 
     Navigator.pop(context);
@@ -169,28 +172,28 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
 
   Widget buildStatusView() {
     if (applicationStatus == 'pending') {
-      return const Center(
+      return Center(
         child: Text(
           "⏳ Başvurunuz inceleniyor...",
-          style: TextStyle(fontSize: 18, color: Colors.orange),
+          style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.primary),
         ),
       );
     }
 
     if (applicationStatus == 'approved') {
-      return const Center(
+      return Center(
         child: Text(
           "✅ Zaten uzmansınız!",
-          style: TextStyle(fontSize: 18, color: Colors.green),
+          style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.primary),
         ),
       );
     }
 
     if (applicationStatus == 'rejected') {
-      return const Center(
+      return Center(
         child: Text(
           "❌ Başvurunuz reddedildi. Tekrar deneyebilirsiniz.",
-          style: TextStyle(fontSize: 18, color: Colors.red),
+          style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.primary),
         ),
       );
     }
@@ -198,117 +201,143 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
     return const SizedBox();
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text("Uzman Başvurusu"),
-        backgroundColor: Colors.pink,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: applicationStatus != 'none'
-            ? buildStatusView()
-            : Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                DropdownButtonFormField(
-                  value: role,
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'dietitian',
-                      child: Text("Diyetisyen"),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: applicationStatus != 'none'
+              ? buildStatusView()
+              : Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  DropdownButtonFormField(
+                    value: role,
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'dietitian',
+                        child: Text("Diyetisyen"),
+                      ),
+                      DropdownMenuItem(
+                        value: 'gynecologist',
+                        child: Text("Jinekolog"),
+                      ),
+                    ],
+                    onChanged: (val) => setState(() => role = val!),
+                    decoration: buildInput(context, "Uzmanlık Alanı"),
+                  ),
+
+                  TextFormField(
+                    decoration: buildInput(context, "Lisans / Sicil No"),
+                    onChanged: (v) => licenseNo = v,
+                    validator: (v) =>
+                    v!.isEmpty ? "Zorunlu alan" : null,
+                  ),
+
+                  TextFormField(
+                    decoration: buildInput(context, "Deneyim"),
+                    onChanged: (v) => experience = v,
+                  ),
+
+                  TextFormField(
+                    decoration: buildInput(context, "Telefon"),
+                    keyboardType: TextInputType.phone,
+                    onChanged: (v) => phone = v,
+                  ),
+
+                  TextFormField(
+                    decoration: buildInput(context, "Çalıştığı Kurum"),
+                    onChanged: (v) => hospital = v,
+                  ),
+
+                  TextFormField(
+                    decoration: buildInput(context, "Şehir"),
+                    onChanged: (v) => city = v,
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  ElevatedButton.icon(
+                    onPressed: pickFile,
+                    icon: const Icon(Icons.upload_file),
+                    label: const Text("Belge Yükle"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     ),
-                    DropdownMenuItem(
-                      value: 'gynecologist',
-                      child: Text("Jinekolog"),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  if (selectedFile != null)
+                    Text(
+                      "Seçilen dosya: ${selectedFile!.name}",
+                      style: TextStyle(color: Theme.of(context).colorScheme.primary),
                     ),
-                  ],
-                  onChanged: (val) => setState(() => role = val!),
-                  decoration:
-                  const InputDecoration(labelText: "Uzmanlık Alanı"),
-                ),
 
-                TextFormField(
-                  decoration: const InputDecoration(
-                      labelText: "Lisans / Sicil No"),
-                  onChanged: (v) => licenseNo = v,
-                  validator: (v) =>
-                  v!.isEmpty ? "Zorunlu alan" : null,
-                ),
-
-                TextFormField(
-                  decoration:
-                  const InputDecoration(labelText: "Deneyim"),
-                  onChanged: (v) => experience = v,
-                ),
-
-                TextFormField(
-                  decoration:
-                  const InputDecoration(labelText: "Telefon"),
-                  keyboardType: TextInputType.phone,
-                  onChanged: (v) => phone = v,
-                ),
-
-                TextFormField(
-                  decoration:
-                  const InputDecoration(labelText: "Çalıştığı Kurum"),
-                  onChanged: (v) => hospital = v,
-                ),
-
-                TextFormField(
-                  decoration:
-                  const InputDecoration(labelText: "Şehir"),
-                  onChanged: (v) => city = v,
-                ),
-
-                const SizedBox(height: 30),
-
-                ElevatedButton.icon(
-                  onPressed: pickFile,
-                  icon: const Icon(Icons.upload_file),
-                  label: const Text("Belge Yükle"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey.shade700,
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                if (selectedFile != null)
-                  Text(
-                    "Seçilen dosya: ${selectedFile!.name}",
-                    style: const TextStyle(color: Colors.green),
-                  ),
-
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      submitApplication();
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.pink,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 16, horizontal: 40),
-                  ),
-                  child: isLoading
-                      ? const CircularProgressIndicator(
-                    color: Colors.white,
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        submitApplication();
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 16, horizontal: 40),
+                    ),
+                    child: isLoading
+                        ? const CircularProgressIndicator(
+                      color: Colors.white,
+                    )
+                        : const Text(
+                      "Başvuruyu Gönder",
+                      style: TextStyle(color: Colors.white),
+                    ),
                   )
-                      : const Text(
-                    "Başvuruyu Gönder",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                )
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
+InputDecoration buildInput(BuildContext context, String label) {
+  return InputDecoration(
+    labelText: label,
+    filled: true,
+    fillColor: Theme.of(context).colorScheme.surface,
+    labelStyle: TextStyle(
+      color: Theme.of(context).colorScheme.primary,
+    ),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide.none,
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(
+        color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+      ),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(
+        color: Theme.of(context).colorScheme.primary,
+        width: 2,
+      ),
+    ),
+  );
 }
