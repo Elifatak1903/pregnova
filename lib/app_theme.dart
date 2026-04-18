@@ -14,7 +14,7 @@ class AppTheme {
         return _theme(const Color(0xFF673AB7));
 
       case "gynecologist":
-        return _theme(const Color(0xFF6C0825));
+        return _theme(const Color(0xFF7C4DFF));
 
       default:
         return _theme(const Color(0xFF673AB7));
@@ -23,7 +23,7 @@ class AppTheme {
 
   static ThemeData _theme(Color primaryColor) {
     return ThemeData(
-      useMaterial3: false, //naber
+      useMaterial3: false,
 
       colorScheme: ColorScheme(
         brightness: Brightness.light,

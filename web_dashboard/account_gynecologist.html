@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Hesabım</title>
+
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/gynecologist.css">
+    <link rel="stylesheet" href="css/account_gynecologist.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h2 style="display:flex; align-items:center; gap:10px;">
+            <img src="assets/icon/app_icon.jpeg" width="30">
+            PregNova
+        </h2>
+
+        <ul>
+            <li onclick="go('gynecologist.html')"><span>🏠</span> Dashboard</li>
+            <li onclick="go('patients.html')"><span>👩‍⚕️</span> Danışanlar</li>
+            <li onclick="go('requests_gynecologist.html')"><span>📥</span> İstekler</li>
+
+            <li onclick="go('messages_gynecologist.html')">
+                <span>💬</span> Mesajlar
+            </li>
+
+            <li class="active">
+                <span>👤</span> Hesabım
+            </li>
+
+            <li onclick="logout()">
+                <span>🚪</span> Çıkış
+            </li>
+        </ul>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <h1 class="page-title">Hesabım</h1>
+
+        <div class="account-page">
+
+            <!-- PROFIL -->
+            <div class="profile-card">
+                <div class="avatar">👤</div>
+
+                <div>
+                    <h2 id="name">Yükleniyor...</h2>
+                    <p id="email"></p>
+                    <span class="role">Jinekolog</span>
+                </div>
+            </div>
+
+            <!-- INFO -->
+            <h3>Uzmanlık Bilgileri</h3>
+
+            <div class="info-card">
+                <span>Lisans No</span>
+                <b id="license"></b>
+            </div>
+
+            <div class="info-card">
+                <span>Deneyim</span>
+                <b id="experience"></b>
+            </div>
+
+            <div class="info-card">
+                <span>Kurum</span>
+                <b id="hospital"></b>
+            </div>
+
+            <!-- SETTINGS -->
+            <h3>Ayarlar</h3>
+
+            <div class="settings">
+
+                <div class="setting-item">
+                    🔒 Şifre Değiştir
+                </div>
+
+                <div class="setting-item logout" onclick="logout()">
+                    🚪 Çıkış Yap
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- JS -->
+<script type="module">
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+
+    /* FIREBASE */
+    const app = initializeApp({
+      apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
+      authDomain: "pregnova-38391.firebaseapp.com",
+      projectId: "pregnova-38391"
+    });
+
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    /* AUTH */
+    onAuthStateChanged(auth, async (user) => {
+
+      if (!user) return location.href = "login.html";
+
+      const snap = await getDoc(doc(db, "users", user.uid));
+      const data = snap.data();
+
+      document.getElementById("name").innerText =
+        "Dr. " + (data?.name || "") + " " + (data?.surname || "");
+
+      document.getElementById("email").innerText =
+        user.email;
+
+      document.getElementById("license").innerText =
+        data?.licenseNumber || "-";
+
+      document.getElementById("experience").innerText =
+        data?.experience || "-";
+
+      document.getElementById("hospital").innerText =
+        data?.hospital || "-";
+    });
+
+    /* LOGOUT */
+    window.logout = async function () {
+      await signOut(auth);
+      location.href = "login.html";
+    };
+
+    /* NAV */
+    window.go = function(page) {
+      window.location.href = page;
+    };
+
+</script>
+<script type="module" src="app.js"></script>
+
+</body>
+</html>

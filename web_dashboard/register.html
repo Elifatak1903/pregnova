@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Kayıt Ol</title>
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+
+<body class="split-body">
+
+<div class="split-container">
+
+    <!-- SOL PANEL -->
+    <div class="left-panel">
+
+        <img src="assets/icon/app_icon.jpeg" class="big-logo">
+
+        <h1>PregNova</h1>
+
+        <p>
+            PregNova, özellikle yüksek riskli gebeliklerin takibi için geliştirilmiş bir Klinik Karar Destek Sistemidir. <br><br>
+
+            Sistem, hamile bireylerin sağlık ölçümlerini ve beslenme verilerini kaydetmesine olanak tanırken, sağlık profesyonellerinin bu verileri takip edip değerlendirmesine yardımcı olur.
+        </p>
+
+    </div>
+
+    <!-- SAĞ PANEL -->
+    <div class="right-panel">
+
+        <div class="login-card">
+
+            <h2>Kayıt Ol</h2>
+
+            <input id="name" class="input" placeholder="Ad Soyad">
+            <input id="email" class="input" placeholder="Email">
+            <input id="password" type="password" class="input" placeholder="Şifre">
+
+            <button class="main-btn" onclick="register()">Kayıt Ol</button>
+
+            <p id="error"></p>
+
+            <p class="switch-text">
+                Zaten hesabınız var mı?
+                <span onclick="go('login.html')">Giriş yap</span>
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+
+<script type="module">
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+    const app = initializeApp({
+      apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
+      authDomain: "pregnova-38391.firebaseapp.com",
+      projectId: "pregnova-38391"
+    });
+
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.register = async function () {
+
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      if (!name || !email || !password) {
+        document.getElementById("error").innerText = "Tüm alanları doldurun";
+        return;
+      }
+
+      if (password.length < 6) {
+        document.getElementById("error").innerText = "Şifre en az 6 karakter olmalı";
+        return;
+      }
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
+
+        await setDoc(doc(db, "users", uid), {
+          name: name,
+          email: email,
+          role: "pregnant",
+          createdAt: serverTimestamp()
+        });
+
+        window.location.href = "redirect.html";
+
+      } catch (e) {
+        document.getElementById("error").innerText = e.message;
+      }
+    };
+
+</script>
+</body>
+</html>

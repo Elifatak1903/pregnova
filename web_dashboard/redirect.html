@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+    const app = initializeApp({
+      apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
+      authDomain: "pregnova-38391.firebaseapp.com",
+      projectId: "pregnova-38391"
+    });
+
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) return window.location.href = "login.html";
+
+      const snap = await getDoc(doc(db, "users", user.uid));
+      const role = snap.data()?.role;
+
+      if (role === "gynecologist") window.location.href = "gynecologist.html";
+      else window.location.href = "patients.html";
+    });
+</script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

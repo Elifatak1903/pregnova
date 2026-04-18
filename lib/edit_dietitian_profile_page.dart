@@ -42,7 +42,7 @@ class _EditDietitianProfilePageState
 
     if (data != null) {
       nameController.text = data["name"] ?? "";
-      emailController.text = data["email"] ?? ""; // 💣
+      emailController.text = data["email"] ?? "";
       expertiseController.text = data["expertise"] ?? "";
       experienceController.text = data["experience"] ?? "";
       institutionController.text = data["institution"] ?? "";
@@ -50,114 +50,34 @@ class _EditDietitianProfilePageState
     }
   }
 
+  // 💣 SADECE PROFİL GÜNCELLE (EMAIL YOK)
   Future<void> saveData() async {
-    final user = FirebaseAuth.instance.currentUser!;
-    final uid = user.uid;
+    final uid = FirebaseAuth.instance.currentUser!.uid;
 
-    // 💣 EMAIL DEĞİŞTİ Mİ?
-    final newEmail = emailController.text.trim();
-    final oldEmail = user.email;
+    await FirebaseFirestore.instance
+        .collection("users")
+        .doc(uid)
+        .update({
+      "name": nameController.text,
+      "expertise": expertiseController.text,
+      "experience": experienceController.text,
+      "institution": institutionController.text,
+      "diploma": diplomaUrl,
+    });
 
-    try {
+    if (!context.mounted) return;
 
-      // 🔐 Eğer email değiştiyse re-auth iste
-      if (newEmail != oldEmail) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text("Bilgiler güncellendi ✅"),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
+    );
 
-        String password = "";
-
-        // 🔥 ŞİFRE DİALOG
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) {
-            final passController = TextEditingController();
-
-            return AlertDialog(
-              title: const Text("Güvenlik Doğrulama"),
-              content: TextField(
-                controller: passController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: "Şifrenizi girin",
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text("İptal"),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    password = passController.text;
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Onayla"),
-                ),
-              ],
-            );
-          },
-        );
-
-        if (password.isEmpty) return;
-
-        // 🔥 RE-AUTH
-        final credential = EmailAuthProvider.credential(
-          email: oldEmail!,
-          password: password,
-        );
-
-        await user.reauthenticateWithCredential(credential);
-
-        // 🔥 AUTH EMAIL UPDATE
-        await user.updateEmail(newEmail);
-      }
-
-      // 💣 FIRESTORE UPDATE
-      await FirebaseFirestore.instance
-          .collection("users")
-          .doc(uid)
-          .update({
-        "name": nameController.text,
-        "email": newEmail,
-        "expertise": expertiseController.text,
-        "experience": experienceController.text,
-        "institution": institutionController.text,
-        "diploma": diplomaUrl,
-      });
-
-      if (!context.mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Bilgiler güncellendi ✅"),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-        ),
-      );
-
-      Navigator.pop(context);
-
-    } on FirebaseAuthException catch (e) {
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message ?? "Email güncellenemedi"),
-          backgroundColor: Colors.red,
-        ),
-      );
-
-    } catch (e) {
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Beklenmeyen hata"),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+    Navigator.pop(context);
   }
 
+  // 💣 DİPLOMA UPLOAD
   Future<void> pickDiploma() async {
     final result = await FilePicker.platform.pickFiles(
       withData: true,
@@ -217,7 +137,7 @@ class _EditDietitianProfilePageState
 
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: readOnly ? Colors.grey.shade100 : Colors.white,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
@@ -261,7 +181,9 @@ class _EditDietitianProfilePageState
           children: [
 
             buildField("İsim Soyisim", nameController),
-            buildField("Email", emailController),
+
+            buildField("Email", emailController, readOnly: true),
+
             buildField("Uzmanlık", expertiseController),
             buildField("Deneyim", experienceController),
             buildField("Kurum", institutionController),

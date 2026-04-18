@@ -1,0 +1,202 @@
+/* ===================================================== */
+/* 🔐 AUTH PAGES (WELCOME + LOGIN + REGISTER) */
+/* ===================================================== */
+
+/* GENEL */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* ========================= */
+/* 🌸 WELCOME PAGE */
+/* ========================= */
+
+.welcome-body {
+  background: linear-gradient(
+    135deg,
+    #f3f0ff,
+    #e0f7f5,
+    #f8f7fc
+  );
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.welcome-container {
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+  padding: 20px;
+}
+
+/* LOGO */
+.logo-circle {
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 25px;
+
+  border-radius: 50%;
+  background: white;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.logo-circle img {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
+}
+
+/* TEXT */
+.title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1a1a1a;
+}
+
+.desc {
+  margin-top: 12px;
+  font-size: 15px;
+  color: #555;
+  line-height: 1.6;
+}
+
+/* ========================= */
+/* 🔐 LOGIN & REGISTER */
+/* ========================= */
+
+.split-body {
+  margin: 0;
+}
+
+.split-container {
+  display: flex;
+  height: 100vh;
+}
+
+/* SOL PANEL */
+.left-panel {
+  flex: 1;
+  background: linear-gradient(135deg, #7C4DFF, #00BFA5);
+  color: white;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  text-align: center;
+  padding: 40px;
+}
+
+.big-logo {
+  width: 160px;
+  margin-bottom: 20px;
+}
+
+.left-panel h1 {
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+
+.left-panel p {
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 320px;
+  opacity: 0.95;
+}
+
+/* SAĞ PANEL */
+.right-panel {
+  flex: 1;
+  background: linear-gradient(
+    135deg,
+    #f3f0ff,
+    #e0f7f5,
+    #f8f7fc
+  );
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* CARD */
+.login-card {
+  width: 320px;
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+/* INPUT */
+.input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 12px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #673AB7;
+  box-shadow: 0 0 0 2px rgba(103,58,183,0.2);
+}
+
+/* BUTTON */
+.main-btn {
+  margin-top: 20px;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+
+  background: linear-gradient(135deg, #7C4DFF, #00BFA5);
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+
+  box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+  transition: 0.2s;
+}
+
+.main-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* SWITCH TEXT */
+.switch-text {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #555;
+}
+
+.switch-text span {
+  color: #7C4DFF;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.switch-text span:hover {
+  text-decoration: underline;
+}
+
+/* ERROR */
+#error {
+  margin-top: 10px;
+  color: red;
+  font-size: 14px;
+}

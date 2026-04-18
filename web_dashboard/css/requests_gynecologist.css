@@ -1,0 +1,79 @@
+/* ============================= */
+/* REQUESTS PAGE */
+/* ============================= */
+
+.requests-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* CARD */
+.request-card {
+  background: var(--card);
+  padding: 16px;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: 0.2s;
+}
+
+.request-card:hover {
+  transform: translateY(-3px);
+}
+
+/* LEFT */
+.request-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.request-info b {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.request-info span {
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+/* BUTTONS */
+.request-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ✅ ACCEPT BUTTON */
+.accept {
+  background: var(--success);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.accept:hover {
+  opacity: 0.9;
+}
+
+/* ✅ REJECT BUTTON */
+.reject {
+  background: var(--danger);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.reject:hover {
+  opacity: 0.9;
+}

@@ -1,0 +1,53 @@
+/* ===================================================== */
+/* 🎨 GLOBAL THEME */
+/* ===================================================== */
+
+:root {
+  /* DEFAULT = PREGNANT (mor) */
+  --primary: #673AB7;
+  --secondary: #5E35B1;
+
+  --background: #F8F7FC;
+  --card: #FFFFFF;
+
+  --text: #1A1A1A;
+  --text-light: #777;
+
+  --success: #00B894;
+  --warning: #FFA000;
+  --danger: #EF5350;
+}
+
+/* ===================================================== */
+/* 👩‍⚕️ ROLE THEMES */
+/* ===================================================== */
+
+.gynecologist {
+  --primary: #7C4DFF;
+  --secondary: #673AB7;
+}
+
+body.dietitian {
+  --primary: #00B894;
+  --secondary: #00997A;
+}
+
+body.admin {
+  --primary: #1565C0;
+  --secondary: #0D47A1;
+}
+
+body.pregnant {
+  --primary: #673AB7;
+}
+
+body {
+  opacity: 0;
+  transform: translateY(5px);
+  transition: all 0.2s ease;
+}
+
+body.ready {
+  opacity: 1;
+  transform: translateY(0);
+}

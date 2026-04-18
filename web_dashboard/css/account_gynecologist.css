@@ -1,0 +1,83 @@
+/* ============================= */
+/* ACCOUNT PAGE */
+/* ============================= */
+
+.account-page {
+  padding: 20px;
+}
+
+/* PROFILE */
+.profile-card {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  background: var(--card);
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.profile-card:hover {
+  transform: translateY(-3px);
+}
+
+/* AVATAR */
+.avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 28px;
+}
+
+/* ROLE */
+.role {
+  color: var(--primary);
+  font-weight: bold;
+}
+
+/* TITLES */
+h3 {
+  margin-top: 25px;
+  color: var(--primary);
+}
+
+/* INFO */
+.info-card {
+  background: var(--card);
+  padding: 15px;
+  border-radius: 14px;
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* SETTINGS */
+.settings {
+  margin-top: 10px;
+}
+
+.setting-item {
+  background: var(--card);
+  padding: 15px;
+  border-radius: 14px;
+  margin-top: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  transition: 0.2s;
+}
+
+.setting-item:hover {
+  transform: translateY(-2px);
+}
+
+/* LOGOUT */
+.logout {
+  color: var(--danger);
+}

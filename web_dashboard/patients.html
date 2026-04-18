@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Danışanlar</title>
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/gynecologist.css">
+    <link rel="stylesheet" href="css/patients.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="sidebar">
+        <h2 style="display:flex; align-items:center; gap:10px;">
+            <img src="assets/icon/app_icon.jpeg" width="30">
+            PregNova
+        </h2>
+
+        <ul>
+            <li onclick="go('gynecologist.html')">
+                <span>🏠</span> Dashboard
+            </li>
+
+            <li class="active">
+                <span>👩‍⚕️</span> Danışanlar
+            </li>
+
+            <li onclick="go('requests_gynecologist.html')">
+                <span>📥</span> İstekler
+            </li>
+
+            <li onclick="go('messages_gynecologist.html')">
+                <span>💬</span> Mesajlar
+            </li>
+
+            <li onclick="go('account_gynecologist.html')">
+                <span>👤</span> Hesabım
+            </li>
+
+            <li onclick="logout()">
+                <span>🚪</span> Çıkış
+            </li>
+        </ul>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <h1 class="page-title">Danışanlar</h1>
+
+        <div class="patients-layout">
+
+            <!-- SOL -->
+            <div class="patient-list">
+
+                <!-- 🔍 TOP BAR BURAYA -->
+                <div class="top-bar">
+
+                    <div class="search-box">
+                        <label>Ara</label>
+                        <input type="text" id="searchInput" placeholder="Hasta ara...">
+                    </div>
+
+                    <div class="filter-box">
+                        <label>Filtrele</label>
+                        <select id="filterSelect">
+                            <option value="default">Varsayılan</option>
+                            <option value="riskHigh">Yüksek Risk</option>
+                            <option value="riskLow">Düşük Risk</option>
+                            <option value="newest">En Yeni</option>
+                            <option value="oldest">En Eski</option>
+                        </select>
+                    </div>
+
+                </div>
+                <div id="list"></div>
+
+            </div>
+
+            <!-- SAĞ -->
+            <div class="summary-box">
+                <h3>Genel Durum</h3>
+
+                <p>Toplam Hasta: <b id="totalCount">0</b></p>
+                <p>Yüksek Risk: <b id="highCount">0</b></p>
+                <p>Orta Risk: <b id="mediumCount">0</b></p>
+                <p>Normal: <b id="normalCount">0</b></p>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script type="module">
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      query,
+      where,
+      getDoc,
+      doc
+    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+    import {
+      getAuth,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+
+    const app = initializeApp({
+      apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
+      authDomain: "pregnova-38391.firebaseapp.com",
+      projectId: "pregnova-38391"
+    });
+
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, async (user) => {
+
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const uid = user.uid;
+
+      loadPatients(uid);
+
+      document.getElementById("searchInput")
+        .addEventListener("input", filterPatients);
+
+      document.getElementById("filterSelect")
+        .addEventListener("change", filterPatients);
+    });
+
+    let allPatients = [];
+
+    async function loadPatients(uid) {
+
+      const container = document.getElementById("list");
+
+      const snap = await getDocs(query(
+        collection(db,"expert_requests"),
+        where("expertId","==", uid),
+        where("status","==","approved")
+      ));
+
+      container.innerHTML = "";
+      allPatients = [];
+
+      let high = 0, medium = 0, normal = 0;
+
+      for (const item of snap.docs) {
+
+        const clientId = item.data().clientId;
+
+        const userDoc = await getDoc(doc(db,"users",clientId));
+        const data = userDoc.data();
+
+        const name = data?.name || "";
+        const surname = data?.surname || "";
+        const hafta = data?.hafta || "-";
+        const risk = data?.riskLevel || "normal";
+
+        if (risk === "high") high++;
+        else if (risk === "medium") medium++;
+        else normal++;
+
+        const patient = {
+          name,
+          surname,
+          hafta,
+          risk
+        };
+
+        allPatients.push(patient);
+      }
+
+      renderPatients(allPatients);
+
+      document.getElementById("totalCount").innerText = allPatients.length;
+      document.getElementById("highCount").innerText = high;
+      document.getElementById("mediumCount").innerText = medium;
+      document.getElementById("normalCount").innerText = normal;
+    }
+
+    function renderPatients(list) {
+
+      const container = document.getElementById("list");
+      container.innerHTML = "";
+
+      const searchValue = document.getElementById("searchInput").value;
+
+      list.forEach(p => {
+
+        let color = "#00BFA5";
+        let text = "Normal";
+
+        if (p.risk === "medium") {
+          color = "#FFA000";
+          text = "Orta";
+        }
+
+        if (p.risk === "high") {
+          color = "#EF5350";
+          text = "Yüksek";
+        }
+
+        // DETAY RISK
+        let detail = "";
+        if (p.preeklampsi === "HIGH") detail = "Preeklampsi";
+        else if (p.preterm === "HIGH") detail = "Preterm";
+
+        // FULL NAME + HIGHLIGHT
+        const fullName = `${p.name} ${p.surname}`;
+        const highlightedName = highlight(fullName, searchValue);
+
+        const div = document.createElement("div");
+        div.className = "patient-card";
+
+        div.innerHTML = `
+          <b>${highlightedName}</b><br>
+          Hafta: ${p.hafta}<br>
+          <span style="color:${color}">
+            Risk: ${text} ${detail ? "(" + detail + ")" : ""}
+          </span>
+        `;
+
+        container.appendChild(div);
+      });
+    }
+
+    /* 🔍 FILTER */
+    function filterPatients() {
+
+      const value = document.getElementById("searchInput").value.toLowerCase().trim();
+
+      let result = allPatients;
+
+      // 🔍 SEARCH
+      if (value) {
+        result = result.filter(p => {
+          const fullName = ((p.name || "") + " " + (p.surname || "")).toLowerCase();
+          return fullName.includes(value);
+        });
+      }
+
+      // 🔽 FILTER
+      result = applyFilter(result);
+
+      renderPatients(result);
+    }
+
+    function highlight(text, value) {
+      if (!value) return text;
+
+      const regex = new RegExp(`(${value})`, "gi");
+      return text.replace(regex, `<span class="highlight">$1</span>`);
+    }
+
+    function applyFilter(list) {
+
+      const filter = document.getElementById("filterSelect").value;
+
+      let sorted = [...list];
+
+      if (filter === "riskHigh") {
+        sorted.sort((a, b) => {
+          if (a.risk === "high" && b.risk !== "high") return -1;
+          if (a.risk !== "high" && b.risk === "high") return 1;
+          return 0;
+        });
+      }
+
+      if (filter === "riskLow") {
+        sorted.sort((a, b) => {
+          if (a.risk === "normal" && b.risk !== "normal") return -1;
+          if (a.risk !== "normal" && b.risk === "normal") return 1;
+          return 0;
+        });
+      }
+
+      if (filter === "newest") {
+        sorted.reverse();
+      }
+
+      if (filter === "oldest") {
+        sorted = sorted;
+      }
+
+      return sorted;
+    }
+
+</script>
+
+<script type="module" src="app.js"></script>
+
+</body>
+</html>
