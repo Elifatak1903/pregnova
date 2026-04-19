@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Bildirimler</title>
+
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/gynecologist.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- SIDEBAR aynı -->
+
+    <div class="main">
+
+        <div class="top-bar header-bar">
+            <h1 class="page-title">Bildirimler</h1>
+        </div>
+
+        <div id="allNotifications"></div>
+
+    </div>
+
+</div>
+
+<script>
+    const container = document.getElementById("allNotifications");
+
+    container.innerHTML = `
+      <div class="notif-item">Yeni hasta isteği</div>
+      <div class="notif-item">Yeni mesaj</div>
+      <div class="notif-item">Risk uyarısı</div>
+    `;
+</script>
+
+<script type="module" src="app.js"></script>
+
+</body>
+</html>

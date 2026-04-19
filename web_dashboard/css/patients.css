@@ -180,3 +180,11 @@ body {
   flex-direction: column;
   gap: 10px;
 }
+
+.header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 20px;
+}

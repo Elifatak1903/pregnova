@@ -81,6 +81,7 @@ body {
 }
 
 .stat-card {
+  cursor: pointer;
   padding: 14px;
   border-radius: 12px;
   background: var(--card);
@@ -208,3 +209,51 @@ body {
   box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
 
+.view-all {
+  margin-top: 10px;
+  text-align: right;
+}
+
+.view-all button {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* NOTIFICATION */
+.notification-btn {
+  position: relative;
+  font-size: 20px;
+  cursor: pointer;
+  background: white;
+  padding: 8px 12px;
+  border-radius: 10px;
+
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  transition: 0.2s;
+}
+
+.notification-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* BADGE */
+.notification-btn .badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+
+  background: #EF5350;
+  color: white;
+  font-size: 10px;
+  padding: 3px 6px;
+  border-radius: 50%;
+}

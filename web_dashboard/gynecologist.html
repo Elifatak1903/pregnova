@@ -10,6 +10,8 @@
         }
     </script>
     <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/gynecologist.css">
 </head>
 
@@ -53,7 +55,25 @@
     <!-- 🔥 MAIN -->
     <div class="main">
 
-        <h1 class="page-title">Jinekolog Paneli</h1>
+        <div class="top-bar">
+
+            <h1 class="page-title">Jinekolog Paneli</h1>
+
+            <div class="notification-btn" onclick="toggleNotifications(event)">
+                🔔
+                <span class="badge">3</span>
+
+                <div class="notif-dropdown hidden">
+                    <div class="notif-list">
+                        <div class="notif-item">Yeni ölçüm geldi</div>
+                        <div class="notif-item">Mesaj aldınız</div>
+                    </div>
+                    <div class="notif-footer" onclick="go('notifications.html')">
+                        Tümünü Gör →
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- 🔥 STAT CARDS -->
         <div class="cards">
@@ -82,7 +102,7 @@
                 <span id="highRisk">0</span>
             </div>
 
-            <div class="card stat-card">
+            <div class="card stat-card" onclick="go('son_olcumler.html')">
                 <div class="card-top">
                     <p>Son 7 Gün</p>
                     <div class="icon green">📈</div>
@@ -94,18 +114,23 @@
 
         <div class="dashboard-row">
 
-            <!-- 🔥 SOL: SON ÖLÇÜMLER -->
+            <!-- 🔥 SOL -->
             <div class="dashboard-box">
                 <h3>Son Aktiviteler</h3>
+
                 <div id="activity"></div>
+
+                <div class="view-all">
+                    <button onclick="go('son_olcumler.html')">
+                        Tümünü Gör →
+                    </button>
+                </div>
             </div>
 
-            <!-- 🔥 SAĞ: RISK -->
+            <!-- 🔥 SAĞ -->
             <div class="dashboard-box chart-dashboard-box">
                 <h3>Risk Dağılımı</h3>
                 <canvas id="chart"></canvas>
-
-                <!-- 🔥 BURAYA -->
                 <div id="riskLegend"></div>
             </div>
 

@@ -2,19 +2,18 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>İstekler</title>
+    <title>Son Ölçümler</title>
 
     <link rel="stylesheet" href="css/theme.css">
     <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/requests_gynecologist.css">
+    <link rel="stylesheet" href="css/son_olcumler.css">
 </head>
 
 <body>
 
 <div class="container">
 
-    <!-- SIDEBAR -->
     <div class="sidebar">
         <h2 style="display:flex; align-items:center; gap:10px;">
             <img src="assets/icon/app_icon.jpeg" width="30">
@@ -22,38 +21,20 @@
         </h2>
 
         <ul>
-            <li onclick="go('gynecologist.html')">
-                <span>🏠</span> Dashboard
-            </li>
-
-            <li onclick="go('patients.html')">
-                <span>👩‍⚕️</span> Danışanlar
-            </li>
-
-            <li class="active" onclick="go('requests_gynecologist.html')">
-                <span>📥</span> İstekler
-            </li>
-
-            <li onclick="go('messages_gynecologist.html')">
-                <span>💬</span> Mesajlar
-            </li>
-
-            <li onclick="go('account_gynecologist.html')">
-                <span>👤</span> Hesabım
-            </li>
-
-            <li onclick="logout()">
-                <span>🚪</span> Çıkış
-            </li>
+            <li onclick="go('gynecologist.html')"><span>🏠</span> Dashboard</li>
+            <li onclick="go('patients.html')"><span>👩‍⚕️</span> Danışanlar</li>
+            <li onclick="go('requests_gynecologist.html')"><span>📥</span> İstekler</li>
+            <li onclick="go('messages_gynecologist.html')"><span>💬</span> Mesajlar</li>
+            <li onclick="go('account_gynecologist.html')"><span>👤</span> Hesabım</li>
+            <li onclick="logout()"><span>🚪</span> Çıkış</li>
         </ul>
     </div>
 
-    <!-- MAIN -->
     <div class="main">
 
         <div class="top-bar header-bar">
 
-            <h1 class="page-title">Danışma İstekleri</h1>
+            <h1 class="page-title">Son Ölçümler</h1>
 
             <div class="notification-btn" onclick="toggleNotifications(event)">
                 🔔
@@ -70,14 +51,22 @@
 
         </div>
 
-        <!-- BURASI DOLACAK -->
-        <div id="requestsList"></div>
+        <div id="measurementsList"></div>
 
     </div>
 
 </div>
 
-<script type="module" src="requests_gynecologist.js"></script>
+<div id="popup" class="popup hidden">
+    <div class="popup-content">
+        <h3 id="popupName"></h3>
+        <div id="popupData"></div>
+        <button class="popup-btn" onclick="closePopup()">Kapat</button>
+    </div>
+</div>
+
+<script type="module" src="son_olcumler.js"></script>
 <script type="module" src="app.js"></script>
+
 </body>
 </html>

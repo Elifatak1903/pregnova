@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <title>Danışanlar</title>
     <link rel="stylesheet" href="css/theme.css">
-    <link rel="stylesheet" href="css/gynecologist.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/patients.css">
 </head>
 
@@ -48,7 +49,24 @@
     <!-- MAIN -->
     <div class="main">
 
-        <h1 class="page-title">Danışanlar</h1>
+        <div class="top-bar header-bar">
+
+            <h1 class="page-title">Danışanlar</h1>
+
+            <div class="notification-btn" onclick="toggleNotifications(event)">
+                🔔
+                <span class="badge">3</span>
+
+                <div class="notif-dropdown hidden">
+                    <div class="notif-list"></div>
+
+                    <div class="notif-footer" onclick="go('notifications.html')">
+                        Tümünü Gör →
+                    </div>
+                </div>
+            </div>
+
+        </div>
 
         <div class="patients-layout">
 

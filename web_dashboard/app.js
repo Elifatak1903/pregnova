@@ -26,3 +26,28 @@ onAuthStateChanged(auth, async (user) => {
   document.body.classList.add("ready");
 
 });
+
+window.toggleNotifications = function(e) {
+
+  e.stopPropagation();
+
+  const dropdown = e.currentTarget.querySelector(".notif-dropdown");
+
+  dropdown.classList.toggle("hidden");
+};
+
+window.addEventListener("click", () => {
+  const dropdown = document.getElementById("notifDropdown");
+  if (dropdown) dropdown.classList.add("hidden");
+});
+
+function loadNotifications() {
+
+  const list = document.getElementById("notifList");
+
+  list.innerHTML = `
+    <div class="notif-item">Yeni hasta isteği geldi</div>
+    <div class="notif-item">Yeni mesaj aldınız</div>
+    <div class="notif-item">Yüksek riskli hasta tespit edildi</div>
+  `;
+}
