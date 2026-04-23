@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mesajlar</title>
+
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/messages_pregnant.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h2 style="display:flex; align-items:center; gap:10px;">
+            <img src="assets/icon/app_icon.jpeg" width="30">
+            PregNova
+        </h2>
+
+        <ul>
+            <li onclick="go('pregnant.html')"><span>🏠</span> Ana Sayfa</li>
+            <li class="active"><span>💬</span> Mesajlar</li>
+            <li onclick="go('expert_search.html')">
+                <span>🔍</span> Uzman Ara
+            </li>
+            <li onclick="go('account_pregnant.html')"><span>👤</span> Hesabım</li>
+            <li onclick="logout()"><span>🚪</span> Çıkış</li>
+        </ul>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <div class="top-bar">
+            <h1 class="page-title">Mesajlar</h1>
+        </div>
+
+        <div class="chat-layout">
+
+            <!-- SOL -->
+            <div id="chatList" class="chat-list"></div>
+
+            <!-- SAĞ -->
+            <div class="chat-window">
+
+                <div id="chatHeader" class="chat-header">
+                    Sohbet seç
+                </div>
+
+                <div id="messages" class="chat-messages"></div>
+
+                <div class="chat-input">
+                    <input id="messageInput" placeholder="Mesaj yaz...">
+                    <button onclick="sendMessage()">Gönder</button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script type="module" src="app.js"></script>
+<script type="module" src="messages_pregnant.js"></script>
+
+</body>
+</html>

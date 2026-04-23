@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Uzman Ara</title>
+
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/expert.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h2 style="display:flex; align-items:center; gap:10px;">
+            <img src="assets/icon/app_icon.jpeg" width="30">
+            PregNova
+        </h2>
+
+        <ul>
+            <li onclick="go('pregnant.html')"><span>🏠</span> Ana Sayfa</li>
+            <li onclick="go('messages_pregnant.html')"><span>💬</span> Mesajlar</li>
+            <li class="active"><span>🩺</span> Uzman Ara</li>
+            <li onclick="go('account_pregnant.html')"><span>👤</span> Hesabım</li>
+            <li onclick="logout()"><span>🚪</span> Çıkış</li>
+        </ul>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <div class="top-bar">
+            <h1 class="page-title">Uzman Ara</h1>
+        </div>
+
+        <!-- FILTER -->
+        <div class="filter-bar">
+            <input id="searchInput" placeholder="İsim ara...">
+
+            <select id="roleFilter">
+                <option value="">Tümü</option>
+                <option value="gynecologist">Jinekolog</option>
+                <option value="dietitian">Diyetisyen</option>
+            </select>
+        </div>
+
+        <!-- LIST -->
+        <div id="expertList" class="expert-list"></div>
+
+    </div>
+
+</div>
+
+<script type="module" src="app.js"></script>
+<script type="module" src="expert.js"></script>
+
+</body>
+</html>

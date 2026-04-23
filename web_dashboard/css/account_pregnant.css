@@ -1,0 +1,45 @@
+.account-content {
+  max-width: 500px;
+}
+
+.subtitle {
+  color: var(--text-light);
+  margin-bottom: 20px;
+}
+
+.account-buttons button {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.account-buttons button:hover {
+  opacity: 0.9;
+}
+
+.account-buttons .primary {
+  background: var(--primary);
+}
+
+.account-buttons hr {
+  margin: 15px 0;
+}
+
+.logout {
+  margin-top: 30px;
+}
+
+.logout .danger {
+  width: 100%;
+  padding: 14px;
+  background: #EF5350;
+  color: white;
+  border: none;
+  border-radius: 12px;
+}

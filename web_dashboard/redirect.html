@@ -17,13 +17,33 @@
     const db = getFirestore(app);
 
     onAuthStateChanged(auth, async user => {
-      if (!user) return window.location.href = "login.html";
+
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
 
       const snap = await getDoc(doc(db, "users", user.uid));
       const role = snap.data()?.role;
 
-      if (role === "gynecologist") window.location.href = "gynecologist.html";
-      else window.location.href = "patients.html";
+      console.log("ROLE:", role);
+
+      if (role === "pregnant") {
+        window.location.href = "pregnant.html";
+      }
+      else if (role === "gynecologist") {
+        window.location.href = "gynecologist.html";
+      }
+      else if (role === "dietitian") {
+        window.location.href = "dietitian.html";
+      }
+      else if (role === "admin") {
+        window.location.href = "admin.html";
+      }
+      else {
+        window.location.href = "login.html";
+      }
+
     });
 </script>
 <script type="module" src="app.js"></script>

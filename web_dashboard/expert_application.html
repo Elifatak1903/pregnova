@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Uzman Başvurusu</title>
+
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/expert_application.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h2 style="display:flex; align-items:center; gap:10px;">
+            <img src="assets/icon/app_icon.jpeg" width="30">
+            PregNova
+        </h2>
+
+        <ul>
+            <li onclick="go('pregnant.html')"><span>🏠</span> Ana Sayfa</li>
+            <li onclick="go('messages_pregnant.html')"><span>💬</span> Mesajlar</li>
+            <li onclick="go('expert_search.html')"><span>🔍</span> Uzman Ara</li>
+            <li class="active"><span>👤</span> Hesabım</li>
+            <li onclick="logout()"><span>🚪</span> Çıkış</li>
+        </ul>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <h1 class="page-title">Uzman Başvurusu</h1>
+
+        <!-- STATUS -->
+        <div id="statusView" class="status"></div>
+
+        <!-- FORM -->
+        <form id="applicationForm" class="form hidden">
+
+            <div class="input-group">
+                <label>Uzmanlık Alanı</label>
+                <select id="role">
+                    <option value="dietitian">Diyetisyen</option>
+                    <option value="gynecologist">Jinekolog</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Lisans / Sicil No</label>
+                <input type="text" id="licenseNo" required>
+            </div>
+
+            <div class="input-group">
+                <label>Deneyim</label>
+                <input type="text" id="experience">
+            </div>
+
+            <div class="input-group">
+                <label>Telefon</label>
+                <input type="tel" id="phone">
+            </div>
+
+            <div class="input-group">
+                <label>Çalıştığı Kurum</label>
+                <input type="text" id="hospital">
+            </div>
+
+            <div class="input-group">
+                <label>Şehir</label>
+                <input type="text" id="city">
+            </div>
+
+            <div class="input-group">
+                <label>Belge Yükle</label>
+                <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png">
+                <small id="fileName" class="file-name"></small>
+            </div>
+
+            <button type="submit" id="submitBtn" class="save-btn">
+                Başvuruyu Gönder
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script type="module" src="app.js"></script>
+<script type="module" src="expert_application.js"></script>
+
+</body>
+</html>

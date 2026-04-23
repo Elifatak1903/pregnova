@@ -1,0 +1,40 @@
+.week-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  padding: 20px;
+  border-radius: 16px;
+
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    var(--secondary)
+  );
+
+  color: white;
+}
+
+.action-card {
+  padding: 18px;
+  border-radius: 16px;
+
+  background: rgba(103,58,183,0.1);
+  border: 1px solid rgba(103,58,183,0.2);
+
+  cursor: pointer;
+  font-weight: bold;
+
+  transition: 0.2s;
+}
+
+.action-card:hover {
+  transform: translateY(-3px);
+  background: rgba(103,58,183,0.2);
+}
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}

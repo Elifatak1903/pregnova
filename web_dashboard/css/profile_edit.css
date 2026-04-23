@@ -1,0 +1,72 @@
+.form {
+  max-width: 520px;
+  margin: 30px auto;
+  background: var(--card);
+  padding: 25px;
+  border-radius: 18px;
+}
+
+/* INPUT GROUP */
+.input-group {
+  margin-bottom: 18px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: var(--text-light);
+}
+
+.input-group input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1.5px solid var(--primary);
+  background: var(--background);
+  color: var(--text);
+  font-size: 15px;
+}
+
+/* SECTION */
+.section-title {
+  margin: 15px 0 10px;
+  color: var(--primary);
+}
+
+/* CHECKBOX */
+.checkbox-group {
+  margin-top: 10px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.checkbox-item input {
+  transform: scale(1.2);
+}
+
+/* BUTTON */
+.save-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 15px;
+  border: none;
+  border-radius: 14px;
+
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.page-title {
+  color: var(--primary);
+  font-weight: 700;
+}

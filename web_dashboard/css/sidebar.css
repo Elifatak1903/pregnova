@@ -6,7 +6,7 @@
   width: 220px;
   background: linear-gradient(180deg, var(--primary), var(--secondary));
   color: white;
-  height: 100vh;
+  min-height: 100vh;
   padding: 20px;
 }
 

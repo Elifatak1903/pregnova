@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Risk Ölçüm</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/risk.css">
+</head>
+
+<body class="pregnant">
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h2 style="display:flex; align-items:center; gap:10px;">
+            <img src="assets/icon/app_icon.jpeg" width="30">
+            PregNova
+        </h2>
+
+        <ul>
+            <li onclick="go('pregnant.html')"><span>🏠</span> Ana Sayfa</li>
+            <li onclick="go('messages_pregnant.html')"><span>💬</span> Mesajlar</li>
+            <li onclick="go('expert_search.html')"><span>🩺</span> Uzman Ara</li>
+            <li onclick="go('account_pregnant.html')"><span>👤</span> Hesabım</li>
+            <li onclick="logout()"><span>🚪</span> Çıkış</li>
+        </ul>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <!-- TOP BAR -->
+        <div class="top-bar">
+            <h1 class="page-title">Risk Ölçüm</h1>
+
+            <!-- NOTIFICATION -->
+            <div class="notification-btn" onclick="toggleNotifications(event)">
+                🔔
+                <span class="badge"></span>
+
+                <div id="notifDropdown" class="notif-dropdown hidden">
+                    <div id="notifList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FORM -->
+        <div class="content">
+
+            <div class="form-container">
+
+                <input id="kilo" placeholder="Kilo (kg)">
+
+                <!-- PRE -->
+                <h3>Preeklampsi</h3>
+
+                <input id="sistolik" placeholder="Sistolik">
+                <input id="diastolik" placeholder="Diastolik">
+
+                <div class="checkbox-item">
+                    <input type="checkbox" id="basAgrisi">
+                    <label for="basAgrisi">Baş ağrısı</label>
+                </div>
+
+                <div class="checkbox-item">
+                    <input type="checkbox" id="gorme">
+                    <label for="gorme">Görme bozukluğu</label>
+                </div>
+
+                <div class="checkbox-item">
+                    <input type="checkbox" id="sislik">
+                    <label for="sislik">Şişlik</label>
+                </div>
+
+                <!-- DİYABET -->
+                <h3>Diyabet</h3>
+
+                <input id="aclik" placeholder="Açlık şekeri">
+                <input id="tokluk" placeholder="Tokluk şekeri">
+
+                <div class="checkbox-item">
+                    <input type="checkbox" id="susama">
+                    <label for="susama">Aşırı susama</label>
+                </div>
+
+                <div class="checkbox-item">
+                    <input type="checkbox" id="idrar">
+                    <label for="idrar">Sık idrar</label>
+                </div>
+                <!-- PRETERM -->
+                <h3>Preterm</h3>
+
+                <div class="checkbox-item">
+                    <input type="checkbox" id="kasilma">
+                    <label for="kasilma">Karın kasılması</label>
+                </div>
+
+                <div class="checkbox-item">
+                    <input type="checkbox" id="akinti">
+                    <label for="akinti">Akıntı</label>
+                </div>
+
+                <div class="checkbox-item">
+                    <input type="checkbox" id="bel">
+                    <label for="bel">Bel ağrısı</label>
+                </div>
+
+                <div class="slider-box">
+                    <p>Stres Seviyesi: <b id="stresValue">1</b></p>
+                    <input type="range" id="stres" min="1" max="5" value="1">
+                </div>
+
+                <button onclick="calculateRisk()">Kaydet</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- JS -->
+<script type="module" src="app.js"></script>
+<script type="module" src="risk.js"></script>
+
+<script>
+    const slider = document.getElementById("stres");
+    const value = document.getElementById("stresValue");
+
+    slider.oninput = () => {
+        value.innerText = slider.value;
+    };
+</script>
+<!-- 🔥 MODAL BURAYA -->
+<div id="resultModal" class="modal hidden">
+    <div class="modal-box">
+        <h3>Risk Sonucu</h3>
+        <p id="resultText"></p>
+        <button onclick="closeModal()">Tamam</button>
+    </div>
+</div>
+</body>
+</html>

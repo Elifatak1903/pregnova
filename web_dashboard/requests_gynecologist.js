@@ -8,7 +8,9 @@ import {
   where,
   doc,
   getDoc,
-  updateDoc
+  updateDoc,
+  serverTimestamp,
+  addDoc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 import {
@@ -16,7 +18,6 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
-/* 🔥 FIREBASE INIT */
 const app = initializeApp({
   apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
   authDomain: "pregnova-38391.firebaseapp.com",
@@ -26,87 +27,150 @@ const app = initializeApp({
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-/* 🔥 AUTH */
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     window.location.href = "login.html";
     return;
   }
 
+  console.log("✅ Expert giriş yaptı:", user.uid);
+
   loadRequests(user.uid);
 });
 
-/* ========================= */
-/* 🔥 LOAD REQUESTS */
-/* ========================= */
+async function createNotification(targetUid, title, message) {
+
+  await addDoc(collection(db, "notification"), {
+    uid: targetUid,
+    title: title,
+    message: message,
+    isRead: false,
+    createdAt: serverTimestamp()
+  });
+
+}
+
 async function loadRequests(uid) {
 
   const container = document.getElementById("requestsList");
+  if (!container) return;
+
+  container.innerHTML = "Yükleniyor... ⏳";
   container.className = "requests-container";
 
-  const snap = await getDocs(query(
-    collection(db, "expert_requests"),
-    where("expertId", "==", uid),
-    where("status", "==", "pending")
-  ));
+  try {
 
-  container.innerHTML = "";
+    const q = query(
+      collection(db, "expert_requests"),
+      where("expertId", "==", uid),
+      where("status", "==", "pending")
+    );
 
-  if (snap.empty) {
-    container.innerHTML = "Bekleyen istek yok.";
-    return;
-  }
+    const snap = await getDocs(q);
 
-  for (const item of snap.docs) {
+    container.innerHTML = "";
 
-    const clientId = item.data().clientId;
+    if (snap.empty) {
+      container.innerHTML = "Bekleyen istek yok 👍";
+      return;
+    }
 
-    const userDoc = await getDoc(doc(db, "users", clientId));
-    const data = userDoc.data();
+    for (const item of snap.docs) {
 
-    const name = data?.name || "";
-    const surname = data?.surname || "";
-    const hafta = data?.hafta || "-";
+      const req = item.data();
+      const clientId = req.clientId;
 
-    const div = document.createElement("div");
-    div.className = "request-card";
+      const userDoc = await getDoc(doc(db, "users", clientId));
+      const data = userDoc.data() || {};
 
-    div.innerHTML = `
-      <div class="request-info">
-        <b>${name} ${surname}</b>
-        <span>Gebelik Haftası: ${hafta}</span>
-      </div>
+      const name = data.name || "İsimsiz";
+      const surname = data.surname || "";
+      const hafta = data.hafta || "-";
 
-      <div class="request-actions">
-        <button class="accept">Kabul</button>
-        <button class="reject">Reddet</button>
-      </div>
-    `;
+      const div = document.createElement("div");
+      div.className = "request-card";
 
-    /* ✅ KABUL */
-    div.querySelector(".accept").onclick = async () => {
+      div.innerHTML = `
+        <div class="request-info">
+          <b>${name} ${surname}</b>
+          <span>Gebelik Haftası: ${hafta}</span>
+        </div>
 
-      await updateDoc(doc(db, "expert_requests", item.id), {
-        status: "approved"
-      });
+        <div class="request-actions">
+          <button class="accept">Kabul</button>
+          <button class="reject">Reddet</button>
+        </div>
+      `;
 
-      await updateDoc(doc(db, "users", clientId), {
-        assignedDoctor: uid
-      });
+      div.querySelector(".accept").onclick = async () => {
 
-      loadRequests(uid);
-    };
+        if (!confirm("Danışanı kabul etmek istiyor musunuz?")) return;
 
-    /* ❌ REDDET */
-    div.querySelector(".reject").onclick = async () => {
+        try {
 
-      await updateDoc(doc(db, "expert_requests", item.id), {
-        status: "rejected"
-      });
+          console.log("✔️ Kabul ediliyor:", item.id);
 
-      loadRequests(uid);
-    };
+          await updateDoc(doc(db, "expert_requests", item.id), {
+            status: "approved",
+            approvedAt: serverTimestamp()
+          });
 
-    container.appendChild(div);
+          await updateDoc(doc(db, "users", clientId), {
+            assignedDoctor: uid
+          });
+
+          await createNotification(
+            clientId,
+            "👩‍⚕️ Doktor Onayı",
+            "Doktorunuz sizi danışan olarak kabul etti 🎉"
+          );
+
+          alert("Danışan kabul edildi ✅");
+
+          loadRequests(uid);
+
+        } catch (e) {
+          console.error("❌ Kabul hatası:", e);
+          alert("Hata: " + e.message);
+        }
+      };
+
+      div.querySelector(".reject").onclick = async () => {
+
+        if (!confirm("İsteği reddetmek istiyor musunuz?")) return;
+
+        try {
+
+          console.log("❌ Reddediliyor:", item.id);
+
+          await updateDoc(doc(db, "expert_requests", item.id), {
+            status: "rejected",
+            rejectedAt: serverTimestamp()
+          });
+
+          await createNotification(
+            clientId,
+            "❌ İstek Reddedildi",
+            "Gönderdiğiniz danışan isteği reddedildi."
+          );
+
+          alert("İstek reddedildi ❌");
+
+          loadRequests(uid);
+
+        } catch (e) {
+          console.error("❌ Red hatası:", e);
+          alert("Hata: " + e.message);
+        }
+      };
+
+      container.appendChild(div);
+    }
+
+  } catch (e) {
+
+    console.error(" LOAD ERROR:", e);
+    container.innerHTML = "Hata oluştu ❌";
+
   }
 }

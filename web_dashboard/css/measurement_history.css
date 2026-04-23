@@ -1,0 +1,42 @@
+.history-card {
+background: white;
+border-radius: 18px;
+padding: 18px;
+margin-bottom: 15px;
+box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+.date {
+font-weight: bold;
+margin-bottom: 10px;
+color: var(--primary);
+}
+
+.risk-row {
+display: flex;
+justify-content: space-between;
+margin: 8px 0;
+}
+
+.badge {
+padding: 6px 12px;
+border-radius: 10px;
+font-size: 12px;
+font-weight: bold;
+}
+
+/* COLORS */
+.LOW {
+background: #d4edda;
+color: #2e7d32;
+}
+
+.MEDIUM {
+background: #fff3cd;
+color: #ff9800;
+}
+
+.HIGH {
+background: #f8d7da;
+color: #c62828;
+}

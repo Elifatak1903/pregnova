@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Hasta Detay</title>
+
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/patient_detail.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="sidebar">
+        <h2 style="display:flex; align-items:center; gap:10px;">
+            <img src="assets/icon/app_icon.jpeg" width="30">
+            PregNova
+        </h2>
+
+        <ul>
+            <li onclick="go('gynecologist.html')">
+                <span>🏠</span> Dashboard
+            </li>
+
+            <li class="active">
+                <span>👩‍⚕️</span> Danışanlar
+            </li>
+
+            <li onclick="go('requests_gynecologist.html')">
+                <span>📥</span> İstekler
+            </li>
+
+            <li onclick="go('messages_gynecologist.html')">
+                <span>💬</span> Mesajlar
+            </li>
+
+            <li onclick="go('account_gynecologist.html')">
+                <span>👤</span> Hesabım
+            </li>
+
+            <li onclick="logout()">
+                <span>🚪</span> Çıkış
+            </li>
+        </ul>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <div class="top-bar">
+            <h1 id="patientName" class="page-title"></h1>
+        </div>
+
+        <div class="detail-layout">
+
+            <!-- SOL -->
+            <div class="left">
+
+                <h2 class="section-title">Grafikler</h2>
+
+                <div class="chart-box">
+                    <canvas id="sugarChart"></canvas>
+                </div>
+
+                <div class="chart-box">
+                    <canvas id="bpChart"></canvas>
+                </div>
+
+            </div>
+
+            <!-- SAĞ -->
+            <div class="right">
+
+                <h2 class="section-title">Ölçümler</h2>
+
+                <div id="measurementsList"></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="module" src="patient_detail.js"></script>
+<script type="module" src="app.js"></script>
+
+</body>
+</html>
