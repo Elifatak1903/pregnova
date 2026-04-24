@@ -1,16 +1,7 @@
-/* ===================================================== */
-/* 🔐 AUTH PAGES (WELCOME + LOGIN + REGISTER) */
-/* ===================================================== */
-
-/* GENEL */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
 }
-
-/* ========================= */
-/* 🌸 WELCOME PAGE */
-/* ========================= */
 
 .welcome-body {
   background: linear-gradient(
@@ -69,10 +60,7 @@ body {
   line-height: 1.6;
 }
 
-/* ========================= */
-/* 🔐 LOGIN & REGISTER */
-/* ========================= */
-
+/* LOGIN & REGISTER */
 .split-body {
   margin: 0;
 }

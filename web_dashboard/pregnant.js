@@ -166,9 +166,6 @@ function loadNotifications(uid) {
             isRead: true
           });
         }
-
-        // 👉 İstersen yönlendirme buraya eklenir
-        // window.location.href = "somepage.html";
       };
 
       list.appendChild(div);

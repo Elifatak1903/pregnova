@@ -15,7 +15,7 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
-/* FIREBASE (TEK SEFER!) */
+/* FIREBASE */
 const app = initializeApp({
   apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
   authDomain: "pregnova-38391.firebaseapp.com",

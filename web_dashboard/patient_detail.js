@@ -18,7 +18,6 @@ const app = initializeApp({
 
 const db = getFirestore(app);
 
-/* PARAMS */
 const params = new URLSearchParams(window.location.search);
 const uid = params.get("uid");
 const name = params.get("name");
@@ -27,7 +26,6 @@ console.log("FULL URL:", window.location.href);
 console.log("UID:", uid);
 console.log("NAME:", name);
 
-/* DOM */
 const nameEl = document.getElementById("patientName");
 const list = document.getElementById("measurementsList");
 

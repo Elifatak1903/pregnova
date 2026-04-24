@@ -1,7 +1,3 @@
-/* ===================== */
-/* GLOBAL LAYOUT */
-/* ===================== */
-
 .container {
   display: flex;
   min-height: 100vh;
@@ -34,7 +30,7 @@ html, body {
   background: var(--background);
 }
 
-/* 🔔 NOTIFICATION DROPDOWN */
+/* NOTIFICATION DROPDOWN */
 .notification-btn {
   position: relative;
 

@@ -21,7 +21,6 @@ const app = initializeApp({
 
 const db = getFirestore(app);
 
-/* DOM LOAD */
 document.addEventListener("DOMContentLoaded", () => {
 
   const list = document.getElementById("measurementsList");
@@ -84,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div>➡️</div>
       `;
 
-      /* TIKLAYINCA POPUP */
+      /* POPUP */
       div.onclick = () => openPopup(data, name, surname);
 
       list.appendChild(div);

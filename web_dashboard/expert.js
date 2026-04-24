@@ -171,7 +171,6 @@ window.filterExperts = async function () {
   await renderExperts(result);
 };
 
-/* EVENT */
 document.getElementById("searchInput")
   ?.addEventListener("input", window.filterExperts);
 

@@ -18,7 +18,7 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
-/* FIREBASE INIT */
+/* FIREBASE */
 const app = initializeApp({
   apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
   authDomain: "pregnova-38391.firebaseapp.com",
@@ -43,9 +43,6 @@ onAuthStateChanged(auth, async (user) => {
   await loadChart();
 });
 
-/* ========================= */
-/* DASHBOARD */
-/* ========================= */
 async function loadDashboard(uid) {
 
   const approvedSnap = await getDocs(query(
@@ -90,9 +87,6 @@ async function loadDashboard(uid) {
     weeklySnap.size + " ölçüm";
 }
 
-/* ========================= */
-/* AKTİVİTE */
-/* ========================= */
 async function loadActivity() {
 
   const container = document.getElementById("activity");
@@ -140,9 +134,6 @@ async function loadActivity() {
   }
 }
 
-/* ========================= */
-/* CHART */
-/* ========================= */
 async function loadChart() {
 
   const normal = await getDocs(query(
@@ -215,9 +206,6 @@ function createLegend(normalCount, mediumCount, highCount) {
   `;
 }
 
-/* ========================= */
-/* TIME */
-/* ========================= */
 function timeAgo(timestamp) {
 
   if (!timestamp) return "-";
