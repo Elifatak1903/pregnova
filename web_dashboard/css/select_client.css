@@ -1,0 +1,17 @@
+.client-card {
+  background: var(--card);
+  padding: 14px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+}
+
+.client-card:hover {
+  transform: translateX(4px);
+}

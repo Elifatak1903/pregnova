@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Profil Düzenle</title>
+
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/edit_profile.css">
+</head>
+
+<body class="dietitian">
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h2 style="display:flex; align-items:center; gap:10px;">
+            <img src="assets/icon/app_icon.jpeg" width="30">
+            PregNova
+        </h2>
+
+        <ul>
+            <li onclick="go('dietitian.html')">🏠 Ana Sayfa</li>
+            <li onclick="go('dietitian_clients.html')">👩‍⚕️ Danışanlar</li>
+            <li onclick="go('dietitian_requests.html')">📥 İstekler</li>
+            <li onclick="go('messages_dietitian.html')">💬 Mesajlar</li>
+            <li onclick="go('account_dietitian.html')" class="active">👤 Hesabım</li>
+            <li onclick="logout()">🚪 Çıkış</li>
+        </ul>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <!-- TOP BAR -->
+        <div class="top-bar">
+            <h1 class="page-title">Bilgileri Düzenle</h1>
+        </div>
+
+        <!-- FORM -->
+        <div class="form-container">
+
+            <div class="form-group">
+                <label>İsim Soyisim</label>
+                <input type="text" id="name">
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="text" id="email" disabled>
+            </div>
+
+            <div class="form-group">
+                <label>Uzmanlık</label>
+                <input type="text" id="expertise">
+            </div>
+
+            <div class="form-group">
+                <label>Deneyim</label>
+                <input type="text" id="experience">
+            </div>
+
+            <div class="form-group">
+                <label>Kurum</label>
+                <input type="text" id="institution">
+            </div>
+
+            <button id="uploadBtn">📄 Diploma Yükle</button>
+
+            <p id="uploadStatus"></p>
+
+            <button class="save-btn" onclick="saveData()">Kaydet</button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script type="module" src="app.js"></script>
+<script type="module" src="edit_profile.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,48 @@
+.request-card {
+  background: var(--card);
+  padding: 16px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+}
+
+.req-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.req-name {
+  font-weight: 600;
+}
+
+.req-meta {
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+.req-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  border: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.btn-approve {
+  background: var(--success);
+  color: white;
+}
+
+.btn-reject {
+  background: var(--danger);
+  color: white;
+}

@@ -1,0 +1,51 @@
+.analysis-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  cursor: pointer;
+}
+
+/* LEFT */
+.analysis-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ICON */
+.analysis-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+
+  background: var(--primary);
+  color: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* TEXT */
+.analysis-text b {
+  display: block;
+  font-size: 14px;
+}
+
+.analysis-text span {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+/* RIGHT */
+.analysis-arrow {
+  font-size: 14px;
+  color: var(--text-light);
+}

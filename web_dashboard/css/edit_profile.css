@@ -1,0 +1,58 @@
+.form-container {
+  max-width: 500px;
+  margin: auto;
+  margin-top: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 5px;
+
+  border-radius: 12px;
+  border: none;
+
+  background: var(--card);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+#uploadBtn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+
+  background: var(--primary);
+  color: white;
+
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.save-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
+
+  background: var(--primary);
+  color: white;
+
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#uploadStatus {
+  margin-top: 10px;
+  color: var(--primary);
+}
