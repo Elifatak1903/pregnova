@@ -84,11 +84,19 @@ class _DietitianHomePageState
           .collection("expert_requests")
           .where("expertId", isEqualTo: uid)
           .where("status", isEqualTo: "pending")
-          .snapshots(),
+          .snapshots(includeMetadataChanges: true),
       builder: (context, snapshot) {
 
-        if (!snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData) {
+          return const Center(child: Text("Veri yok"));
+        }
+
+        if (snapshot.data!.metadata.isFromCache) {
+          return const SizedBox(); // 🔥 cache ignore
         }
 
         final docs = snapshot.data!.docs;
@@ -114,16 +122,19 @@ class _DietitianHomePageState
                   .get(),
               builder: (context, userSnapshot) {
 
-                if (!userSnapshot.hasData) {
-                  return const SizedBox();
+                if (userSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.all(10),
+                    child: LinearProgressIndicator(),
+                  );
                 }
 
                 final userData =
-                userSnapshot.data!.data() as Map<String, dynamic>?;
+                    userSnapshot.data?.data() as Map<String, dynamic>? ?? {};
 
-                final name = userData?["name"] ?? "";
-                final surname = userData?["surname"] ?? "";
-                final hafta = userData?["hafta"] ?? "-";
+                final name = userData["name"] ?? "";
+                final surname = userData["surname"] ?? "";
+                final hafta = userData["hafta"] ?? "-";
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 14),
@@ -135,19 +146,16 @@ class _DietitianHomePageState
 
                     leading: CircleAvatar(
                       backgroundColor: Theme.of(context).colorScheme.primary,
-                      child: Icon(Icons.person, color: Theme.of(context).colorScheme.surface),
+                      child: Icon(Icons.person,
+                          color: Theme.of(context).colorScheme.surface),
                     ),
 
                     title: Text(
                       "$name $surname",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
 
-                    subtitle: Text(
-                      "Gebelik Haftası: $hafta",
-                    ),
+                    subtitle: Text("Gebelik Haftası: $hafta"),
 
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -161,64 +169,15 @@ class _DietitianHomePageState
                         ),
 
                         IconButton(
-                          icon: Icon(Icons.check, color: Theme.of(context).colorScheme.primary),
+                          icon: Icon(Icons.check,
+                              color: Theme.of(context).colorScheme.primary),
                           onPressed: () async {
 
-                            try {
-                              await doc.reference.update({'status': 'approved'});
+                            setState(() {
+                              docs.removeAt(index); // 🔥 smooth
+                            });
 
-                              await FirebaseFirestore.instance
-                                  .collection("users")
-                                  .doc(clientId)
-                                  .set({
-                                "assignedDietitian": uid
-                              }, SetOptions(merge: true));
-
-                              final existingChats = await FirebaseFirestore.instance
-                                  .collection("chats")
-                                  .where("users", arrayContains: uid)
-                                  .get();
-
-                              bool chatExists = false;
-
-                              for (var c in existingChats.docs) {
-                                final users = List<String>.from(c["users"]);
-                                if (users.contains(clientId)) {
-                                  chatExists = true;
-                                  break;
-                                }
-                              }
-
-                              if (!chatExists) {
-                                await FirebaseFirestore.instance
-                                    .collection("chats")
-                                    .add({
-                                  "users": [clientId, uid],
-                                  "lastMessage": "",
-                                  "lastMessageTime": FieldValue.serverTimestamp(),
-                                });
-                              }
-
-                              if (!context.mounted) return;
-
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("Danışan başarıyla eklendi 🎉"),
-                                  backgroundColor: Theme.of(context).colorScheme.primary,
-                                ),
-                              );
-
-                            } catch (e) {
-                              print("HATA: $e");
-                              if (!context.mounted) return;
-
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Bir hata oluştu ❌"),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
+                            await doc.reference.update({'status': 'approved'});
                           },
                         ),
                       ],
