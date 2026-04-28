@@ -1,0 +1,40 @@
+.welcome-box {
+    background: linear-gradient(135deg, #6C4CF1, #8E6CFF);
+    color: white;
+    padding: 25px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    cursor: pointer;
+}
+
+.card h3 {
+    font-size: 14px;
+    color: gray;
+}
+
+.card p {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.action-card {
+    background: #f5f6ff;
+    padding: 18px;
+    border-radius: 14px;
+    margin-top: 10px;
+    cursor: pointer;
+}

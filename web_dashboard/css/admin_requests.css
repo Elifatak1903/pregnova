@@ -1,0 +1,149 @@
+.request-list {
+    margin-top: 20px;
+}
+
+.request-card {
+    background: white;
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.request-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.request-info {
+    margin-top: 10px;
+    color: #555;
+    font-size: 14px;
+}
+
+.request-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-approve {
+    background: #6C4CF1;
+    color: white;
+}
+
+.btn-reject {
+    background: red;
+    color: white;
+}
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.filters input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+}
+
+.filter-buttons button {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: none;
+    background: #eee;
+    cursor: pointer;
+}
+
+.request-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-radius: 16px;
+    background: white;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.request-left {
+    flex: 1;
+}
+
+.request-email {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 10px;
+}
+
+.badge.pending { background: #ffe7c2; color: #a66b00; }
+.badge.approved { background: #d4f8e8; color: #0a8f5b; }
+.badge.rejected { background: #ffd6d6; color: #a10000; }
+
+.request-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* GENEL BUTTON */
+.action-btn {
+    border: none;
+    padding: 8px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* DETAY */
+.btn-detail {
+    background: var(--background);
+    color: var(--text);
+}
+
+.btn-detail:hover {
+    background: #eaeaea;
+}
+
+/* APPROVE (THEME PRIMARY) */
+.btn-approve {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+}
+
+.btn-approve:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* REJECT */
+.btn-reject {
+    background: rgba(239, 83, 80, 0.1);
+    color: var(--danger);
+}
+
+.btn-reject:hover {
+    background: rgba(239, 83, 80, 0.2);
+}

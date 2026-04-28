@@ -8,8 +8,9 @@ class SonAnalizlerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    final sevenDaysAgo =
-    DateTime.now().subtract(const Duration(days: 7));
+    final sevenDaysAgo = Timestamp.fromDate(
+      DateTime.now().subtract(const Duration(days: 7)),
+    );
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -20,8 +21,8 @@ class SonAnalizlerPage extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection("besin_analizleri")
-            .where("tarih", isGreaterThan: sevenDaysAgo)
-            .orderBy("tarih", descending: true)
+            .where("createdAt", isGreaterThan: sevenDaysAgo)
+            .orderBy("createdAt", descending: true)
             .snapshots(),
         builder: (context, snapshot) {
 
@@ -54,7 +55,7 @@ class SonAnalizlerPage extends StatelessWidget {
               docs[index].data() as Map<String, dynamic>;
 
               final patientId = data["uid"];
-              final tarih = data["tarih"] as Timestamp?;
+              final tarih = data["createdAt"] as Timestamp?;
 
               return FutureBuilder<DocumentSnapshot>(
                 future: FirebaseFirestore.instance

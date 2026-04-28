@@ -1,0 +1,111 @@
+.top-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: var(--card);
+    padding: 16px;
+    border-radius: 14px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.stat-card span {
+    font-size: 13px;
+    color: var(--text-light);
+}
+
+.stat-card strong {
+    font-size: 22px;
+    display: block;
+    margin-top: 5px;
+    color: var(--primary);
+}
+
+.report-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1.4fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.chart-card {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 18px;
+    height: 360px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-card canvas {
+    max-width: 260px;
+    max-height: 260px;
+    margin: auto;
+}
+
+.insight-card {
+    padding: 20px;
+    border-radius: 16px;
+    margin-bottom: 15px;
+    font-weight: 600;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.risk-box {
+    background: var(--card);
+    padding: 18px;
+    border-radius: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.risk-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.progress {
+    height: 10px;
+    background: #eee;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+.bar {
+    height: 100%;
+    border-radius: 10px;
+}
+
+@media (max-width: 900px) {
+
+    .top-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .report-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.bottom-insight {
+    margin-top: 20px;
+    background: var(--card);
+    padding: 16px;
+    border-radius: 16px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.bottom-insight h3 {
+    margin-bottom: 10px;
+}
+
+.bottom-insight p {
+    margin: 5px 0;
+    color: var(--text);
+}

@@ -50,12 +50,14 @@ class _DietitianHomePageState
   }
 
   Future<int> getActiveThisWeek() async {
-    final sevenDaysAgo =
-    DateTime.now().subtract(const Duration(days: 7));
+
+    final sevenDaysAgo = Timestamp.fromDate(
+        DateTime.now().subtract(const Duration(days: 7))
+    );
 
     final query = await FirebaseFirestore.instance
         .collection("besin_analizleri")
-        .where("tarih", isGreaterThan: sevenDaysAgo)
+        .where("createdAt", isGreaterThan: sevenDaysAgo)
         .get();
 
     return query.docs.length;
@@ -197,20 +199,20 @@ class _DietitianHomePageState
       stream: FirebaseFirestore.instance
           .collection("besin_analizleri")
           .where("dietitianId", isEqualTo: uid)
-          .orderBy("tarih", descending: true)
+          .orderBy("createdAt", descending: true)
           .limit(5)
           .snapshots(),
       builder: (context, snapshot) {
 
-        if (!snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final docs = snapshot.data!.docs;
-
-        if (docs.isEmpty) {
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const Text("Henüz aktivite yok");
         }
+
+        final docs = snapshot.data!.docs;
 
         return ListView.builder(
           shrinkWrap: true,
@@ -221,7 +223,7 @@ class _DietitianHomePageState
             final doc = docs[index];
             final data = doc.data() as Map<String, dynamic>;
 
-            final tarih = data["tarih"];
+            final createdAt = data["createdAt"];
             final patientId = data["uid"];
 
             return FutureBuilder<DocumentSnapshot>(
@@ -231,15 +233,15 @@ class _DietitianHomePageState
                   .get(),
               builder: (context, userSnap) {
 
-                if (!userSnap.hasData) {
+                if (userSnap.connectionState == ConnectionState.waiting) {
                   return const SizedBox();
                 }
 
                 final userData =
-                userSnap.data!.data() as Map<String, dynamic>?;
+                    userSnap.data?.data() as Map<String, dynamic>? ?? {};
 
-                final name = userData?["name"] ?? "";
-                final surname = userData?["surname"] ?? "";
+                final name = userData["name"] ?? "";
+                final surname = userData["surname"] ?? "";
 
                 return GestureDetector(
                   onTap: () {
@@ -268,7 +270,10 @@ class _DietitianHomePageState
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.restaurant, color: Theme.of(context).colorScheme.primary),
+                        Icon(
+                          Icons.restaurant,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                         const SizedBox(width: 10),
 
                         Expanded(
@@ -280,8 +285,9 @@ class _DietitianHomePageState
                                 style: const TextStyle(fontSize: 14),
                               ),
                               const SizedBox(height: 4),
+
                               Text(
-                                timeAgo(tarih),
+                                formatDate(createdAt),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey.shade600,
@@ -922,4 +928,16 @@ class _DietitianHomePageState
       ),
     );
   }
+}
+
+String formatDate(dynamic timestamp) {
+  if (timestamp == null) return "Tarih yok";
+
+  final date = timestamp.toDate();
+
+  return "${date.day.toString().padLeft(2, '0')}."
+      "${date.month.toString().padLeft(2, '0')}."
+      "${date.year} "
+      "${date.hour.toString().padLeft(2, '0')}:"
+      "${date.minute.toString().padLeft(2, '0')}";
 }

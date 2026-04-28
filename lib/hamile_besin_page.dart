@@ -143,7 +143,8 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
 
         'uid': user.uid,
         'dietitianId': dietitianId,
-        'tarih': Timestamp.now(),
+
+        'createdAt': FieldValue.serverTimestamp(),
 
         'besinler': besinListesi,
         'takviyeler': takviyeListesi,

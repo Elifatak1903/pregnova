@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Expert Requests</title>
+
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/admin_requests.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h2 style="display:flex; align-items:center; gap:10px;">
+            <img src="assets/icon/app_icon.jpeg" width="30">
+            PregNova
+        </h2>
+
+        <ul>
+            <li onclick="go('admin.html')">📊 Dashboard</li>
+            <li class="active">📩 Expert Requests</li>
+            <li onclick="go('admin_users.html')">👥 User Management</li>
+            <li onclick="go('admin_reports.html')">📄 System Reports</li>
+            <li onclick="logout()">🚪 Çıkış</li>
+        </ul>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <div class="top-bar">
+            <h1 class="page-title">Expert Applications 📩</h1>
+        </div>
+
+        <div class="filters">
+
+            <input type="text" id="searchInput" placeholder="E-posta, hastane veya lisans ara...">
+
+            <div class="filter-buttons">
+                <button onclick="setRoleFilter('all')">Tümü</button>
+                <button onclick="setRoleFilter('gynecologist')">Doktorlar</button>
+                <button onclick="setRoleFilter('dietitian')">Diyetisyenler</button>
+            </div>
+
+            <div class="filter-buttons">
+                <button onclick="setStatusFilter('all')">Tüm Durumlar</button>
+                <button onclick="setStatusFilter('pending')">Bekleyen</button>
+                <button onclick="setStatusFilter('approved')">Onaylanan</button>
+                <button onclick="setStatusFilter('rejected')">Reddedilen</button>
+            </div>
+
+        </div>
+
+        <div id="requestList" class="request-list"></div>
+
+    </div>
+
+</div>
+
+<script type="module" src="app.js"></script>
+<script type="module" src="admin_requests.js"></script>
+
+</body>
+</html>

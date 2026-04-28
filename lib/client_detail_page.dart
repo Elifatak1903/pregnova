@@ -10,15 +10,32 @@ class ChartData {
   ChartData(this.spots, this.dates);
 }
 
-class ClientDetailPage extends StatelessWidget {
+class ClientDetailPage extends StatefulWidget {
   final String clientId;
 
   const ClientDetailPage({super.key, required this.clientId});
 
+  @override
+  State<ClientDetailPage> createState() => _ClientDetailPageState();
+}
+
+class _ClientDetailPageState extends State<ClientDetailPage> {
+  late Future<ChartData> calorieFuture;
+  late Future<ChartData> weightFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    calorieFuture = getCalorieSpots();
+    weightFuture = getWeightSpots();
+  }
+
   Future<ChartData> getWeightSpots() async {
+
     final query = await FirebaseFirestore.instance
         .collection("risk_olcumleri")
-        .where("uid", isEqualTo: clientId)
+        .where("uid", isEqualTo: widget.clientId)
         .get();
 
     final docs = query.docs;
@@ -26,28 +43,48 @@ class ClientDetailPage extends StatelessWidget {
     if (docs.isEmpty) return ChartData([], []);
 
     docs.sort((a, b) {
-      final ta = a["tarih"] as Timestamp?;
-      final tb = b["tarih"] as Timestamp?;
-      if (ta == null || tb == null) return 0;
-      return ta.compareTo(tb);
+      final ta = a["tarih"];
+      final tb = b["tarih"];
+
+      if (ta == null && tb == null) return 0;
+      if (ta == null) return -1;
+      if (tb == null) return 1;
+
+      return (ta as Timestamp).compareTo(tb as Timestamp);
     });
 
     List<FlSpot> spots = [];
     List<DateTime> dates = [];
 
-    for (int i = 0; i < docs.length; i++) {
+    for (var doc in docs) {
 
-      final rawKilo = docs[i]["kilo"];
+      final data = doc.data() as Map<String, dynamic>;
 
-      final kilo = (rawKilo is int)
-          ? rawKilo.toDouble()
-          : (rawKilo is double)
-          ? rawKilo
-          : 0.0;
+      final rawKilo = data["kilo"];
+      final ts = data["tarih"];
 
-      final date = (docs[i]["tarih"] as Timestamp).toDate();
+      if (rawKilo == null || ts == null) continue;
 
-      spots.add(FlSpot(i.toDouble(), kilo));
+      double kilo;
+      if (rawKilo is int) {
+        kilo = rawKilo.toDouble();
+      } else if (rawKilo is double) {
+        kilo = rawKilo;
+      } else if (rawKilo is String) {
+        kilo = double.tryParse(rawKilo) ?? 0;
+      } else {
+        kilo = 0;
+      }
+
+      if (kilo <= 0) continue;
+
+      final date = ts is Timestamp
+          ? ts.toDate()
+          : ts as DateTime;
+
+      double x = spots.length.toDouble();
+
+      spots.add(FlSpot(x, kilo));
       dates.add(date);
     }
 
@@ -56,49 +93,64 @@ class ClientDetailPage extends StatelessWidget {
 
   Future<ChartData> getCalorieSpots() async {
 
-    print("CLIENT ID: $clientId");
-
     final query = await FirebaseFirestore.instance
         .collection("besin_analizleri")
-        .where("uid", isEqualTo: clientId)
+        .where("uid", isEqualTo: widget.clientId)
         .get();
 
     final docs = query.docs;
 
-    print("DOC COUNT: ${docs.length}");
-
     if (docs.isEmpty) return ChartData([], []);
 
+    // 🔥 createdAt'e göre sırala
     docs.sort((a, b) {
-      final ta = a["tarih"] as Timestamp?;
-      final tb = b["tarih"] as Timestamp?;
-      if (ta == null || tb == null) return 0;
-      return ta.compareTo(tb);
+      final ta = a["createdAt"];
+      final tb = b["createdAt"];
+
+      if (ta == null && tb == null) return 0;
+      if (ta == null) return -1;
+      if (tb == null) return 1;
+
+      return (ta as Timestamp).compareTo(tb as Timestamp);
     });
 
     List<FlSpot> spots = [];
     List<DateTime> dates = [];
 
-    for (int i = 0; i < docs.length; i++) {
+    for (var doc in docs) {
 
-      final data = docs[i].data() as Map<String, dynamic>;
+      final data = doc.data() as Map<String, dynamic>;
 
-      print("DOC UID: ${data["uid"]}");
-      print("KALORI RAW: ${data["kalori"]}");
+      final raw = data["kalori"];
 
-      double kalori = (data["kalori"] ?? 0).toDouble();
+      double kalori;
+      if (raw is int) {
+        kalori = raw.toDouble();
+      } else if (raw is double) {
+        kalori = raw;
+      } else if (raw is String) {
+        kalori = double.tryParse(raw) ?? 0;
+      } else {
+        kalori = 0;
+      }
 
-      print("KALORI FINAL: $kalori");
+      if (kalori <= 0) continue;
 
-      final date = (data["tarih"] as Timestamp).toDate();
+      final ts = data["createdAt"];
+      if (ts == null) continue;
 
-      spots.add(FlSpot(i.toDouble(), kalori));
+      final date = ts is Timestamp
+          ? ts.toDate()
+          : ts as DateTime;
+
+      double x = spots.length.toDouble();
+
+      spots.add(FlSpot(x, kalori));
       dates.add(date);
     }
 
     return ChartData(spots, dates);
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,11 +162,11 @@ class ClientDetailPage extends StatelessWidget {
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance
             .collection("users")
-            .doc(clientId)
+            .doc(widget.clientId)
             .get(),
         builder: (context, snapshot) {
 
-          if (!snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -122,9 +174,7 @@ class ClientDetailPage extends StatelessWidget {
           snapshot.data!.data() as Map<String, dynamic>?;
 
           if (data == null) {
-            return const Center(
-              child: Text("Danışan bulunamadı"),
-            );
+            return const Center(child: Text("Danışan bulunamadı"));
           }
 
           final name = data["name"] ?? "";
@@ -143,23 +193,11 @@ class ClientDetailPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   elevation: 4,
-                  child: Container(
-                    width: double.infinity,
+                  child: Padding(
                     padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Theme.of(context).shadowColor.withOpacity(0.2),
-                          blurRadius: 6,
-                        )
-                      ],
-                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-
                         Text(
                           "$name $surname",
                           style: const TextStyle(
@@ -167,13 +205,10 @@ class ClientDetailPage extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-
                         const SizedBox(height: 15),
-
                         Text("Gebelik Haftası: $hafta"),
                         const SizedBox(height: 10),
                         Text("Güncel Kilo: $kilo kg"),
-
                       ],
                     ),
                   ),
@@ -193,70 +228,26 @@ class ClientDetailPage extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 FutureBuilder<ChartData>(
-                  future: getWeightSpots(),
+                  future: weightFuture,
                   builder: (context, snapshot) {
 
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+                    if (!snapshot.hasData) {
                       return const SizedBox(
                         height: 220,
                         child: Center(child: CircularProgressIndicator()),
                       );
                     }
 
-                    final chartData = snapshot.data;
-                    final spots = chartData?.spots ?? [];
-                    final dates = chartData?.dates ?? [];
+                    final spots = snapshot.data!.spots;
+                    final dates = snapshot.data!.dates;
 
                     return Container(
                       height: 220,
                       padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
                       child: spots.isEmpty
-                          ? const Center(
-                        child: Text("Henüz kilo ölçümü girilmemiş"),
-                      )
+                          ? const Center(child: Text("Veri yok"))
                           : LineChart(
                         LineChartData(
-                          gridData: FlGridData(show: true),
-                          titlesData: FlTitlesData(
-                            leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                getTitlesWidget: (value, meta) {
-                                  return Text(value.toInt().toString());
-                                },
-                              ),
-                            ),
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                getTitlesWidget: (value, meta) {
-
-                                  int index = value.toInt();
-
-                                  if (index >= dates.length) return const SizedBox();
-
-                                  final date = dates[index];
-
-                                  const days = ["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
-
-                                  return Text(
-                                    days[date.weekday - 1],
-                                    style: const TextStyle(fontSize: 10),
-                                  );
-                                },
-                              ),
-                            ),
-                            rightTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                            topTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                          ),
                           lineBarsData: [
                             LineChartBarData(
                               spots: spots,
@@ -266,17 +257,55 @@ class ClientDetailPage extends StatelessWidget {
                               color: Theme.of(context).colorScheme.primary,
                             ),
                           ],
+
+                          titlesData: FlTitlesData(
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+
+                                  int index = value.toInt();
+
+                                  if (index < 0 || index >= dates.length) {
+                                    return const SizedBox();
+                                  }
+
+                                  final d = dates[index];
+
+                                  return Text(
+                                    "${d.day}/${d.month}",
+                                    style: const TextStyle(fontSize: 10),
+                                  );
+                                },
+                              ),
+                            ),
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: true),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            topTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+
                           lineTouchData: LineTouchData(
                             touchTooltipData: LineTouchTooltipData(
                               getTooltipItems: (touchedSpots) {
                                 return touchedSpots.map((spot) {
 
-                                  final index = spot.x.toInt();
-                                  final date = dates[index];
+                                  int index = spot.x.toInt();
+
+                                  if (index >= dates.length) {
+                                    return null;
+                                  }
+
+                                  final d = dates[index];
 
                                   return LineTooltipItem(
-                                    "${date.day}/${date.month}/${date.year}\n${spot.y.toStringAsFixed(1)} kg",
-                                    TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+                                    "${d.day}/${d.month}\n${spot.y.toStringAsFixed(1)} kg",
+                                    const TextStyle(color: Colors.white),
                                   );
 
                                 }).toList();
@@ -292,7 +321,7 @@ class ClientDetailPage extends StatelessWidget {
                 const SizedBox(height: 30),
 
                 Text(
-                  "Günlük Kalori Alımı",
+                  "Kalori Grafiği",
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -303,106 +332,120 @@ class ClientDetailPage extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 FutureBuilder<ChartData>(
-                  future: getCalorieSpots(),
+                  future: calorieFuture,
                   builder: (context, snapshot) {
 
+                    /// ❌ HATA
+                    if (snapshot.hasError) {
+                      print("❌ CALORIE ERROR: ${snapshot.error}");
+                      return const SizedBox(
+                        height: 220,
+                        child: Center(child: Text("Hata oluştu")),
+                      );
+                    }
+
+                    /// ⏳ LOADING
                     if (snapshot.connectionState == ConnectionState.waiting) {
+                      print("⏳ CALORIE LOADING...");
                       return const SizedBox(
                         height: 220,
                         child: Center(child: CircularProgressIndicator()),
                       );
                     }
 
-                    final chartData = snapshot.data;
-                    final spots = chartData?.spots ?? [];
-                    final dates = chartData?.dates ?? [];
+                    /// 🚨 DATA YOK
+                    if (!snapshot.hasData) {
+                      print("❌ CALORIE DATA YOK");
+                      return const SizedBox(
+                        height: 220,
+                        child: Center(child: Text("Veri alınamadı")),
+                      );
+                    }
+
+                    final spots = snapshot.data!.spots;
+                    final dates = snapshot.data!.dates;
+
+                    print("📊 CALORIE SPOTS: ${spots.length}");
+
+                    /// 📭 BOŞ VERİ
+                    if (spots.isEmpty) {
+                      print("⚠️ CALORIE BOŞ");
+                      return const SizedBox(
+                        height: 220,
+                        child: Center(child: Text("Veri yok")),
+                      );
+                    }
 
                     return Container(
                       height: 220,
                       padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: spots.isEmpty
-                          ? const Center(
-                        child: Text("Henüz kalori verisi girilmemiş"),
-                      )
-                          : LineChart(
-                        LineChartData(
-                          gridData: FlGridData(show: true),
-                          titlesData: FlTitlesData(
 
-                            leftTitles: AxisTitles(
+                      child: LineChart(
+                        LineChartData(
+
+                          /// 📈 ÇİZGİ
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: spots,
+                              isCurved: true,
+                              barWidth: 3,
+                              color: Theme.of(context).colorScheme.primary,
+                              dotData: FlDotData(show: true),
+                            ),
+                          ],
+
+                          /// 🧭 AXIS
+                          titlesData: FlTitlesData(
+                            bottomTitles: AxisTitles(
                               sideTitles: SideTitles(
                                 showTitles: true,
-                                interval: 500,
+
                                 getTitlesWidget: (value, meta) {
+
+                                  int index = value.toInt();
+
+                                  if (index < 0 || index >= dates.length) {
+                                    return const SizedBox();
+                                  }
+
+                                  final d = dates[index];
+
                                   return Text(
-                                    value.toInt().toString(),
+                                    "${d.day}/${d.month}",
                                     style: const TextStyle(fontSize: 10),
                                   );
                                 },
                               ),
                             ),
 
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                interval: 1,
-                                getTitlesWidget: (value, meta) {
-
-                                  int index = value.toInt();
-
-                                  if (index >= dates.length) {
-                                    return const SizedBox();
-                                  }
-
-                                  final date = dates[index];
-
-                                  const days = [
-                                    "Pzt","Sal","Çar","Per","Cum","Cmt","Paz"
-                                  ];
-
-                                  return Text(
-                                    days[date.weekday - 1],
-                                    style: const TextStyle(fontSize: 10),
-                                  );
-                                },
-                              ),
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: true),
                             ),
 
                             rightTitles: AxisTitles(
                               sideTitles: SideTitles(showTitles: false),
                             ),
+
                             topTitles: AxisTitles(
                               sideTitles: SideTitles(showTitles: false),
                             ),
                           ),
 
-                          borderData: FlBorderData(show: true),
-
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: spots,
-                              isCurved: true,
-                              color: Theme.of(context).colorScheme.primary,
-                              barWidth: 3,
-                              dotData: FlDotData(show: true),
-                            ),
-                          ],
-
+                          /// 🎯 TOOLTIP
                           lineTouchData: LineTouchData(
                             touchTooltipData: LineTouchTooltipData(
                               getTooltipItems: (touchedSpots) {
                                 return touchedSpots.map((spot) {
 
-                                  final index = spot.x.toInt();
-                                  final date = dates[index];
+                                  int index = spot.x.toInt();
+
+                                  if (index >= dates.length) return null;
+
+                                  final d = dates[index];
 
                                   return LineTooltipItem(
-                                    "${date.day}/${date.month}/${date.year}\n${spot.y.toInt()} kcal",
-                                    TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+                                    "${d.day}/${d.month}\n${spot.y.toInt()} kcal",
+                                    const TextStyle(color: Colors.white),
                                   );
 
                                 }).toList();
@@ -414,7 +457,6 @@ class ClientDetailPage extends StatelessWidget {
                     );
                   },
                 ),
-
                 const SizedBox(height: 30),
 
                 Text(
@@ -431,45 +473,68 @@ class ClientDetailPage extends StatelessWidget {
                 StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection("besin_analizleri")
-                      .where("uid", isEqualTo: clientId)
-                      .orderBy("tarih", descending: true)
+                      .where("uid", isEqualTo: widget.clientId)
+                      .orderBy("createdAt", descending: true)
                       .snapshots(),
                   builder: (context, snapshot) {
 
-                    if (!snapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const SizedBox(
+                        height: 100,
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text("Henüz analiz yok"),
+                      );
                     }
 
                     final docs = snapshot.data!.docs;
 
-                    if (docs.isEmpty) {
-                      return const Text("Henüz analiz yok");
-                    }
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: docs.length,
+                      itemBuilder: (context, index) {
 
-                    return Column(
-                      children: docs.map((doc) {
-
+                        final doc = docs[index];
                         final data = doc.data() as Map<String, dynamic>;
 
-                        final tarih = data["tarih"] != null
-                            ? (data["tarih"] as Timestamp).toDate()
+                        final ts = data["createdAt"];
+                        final tarih = ts is Timestamp
+                            ? ts.toDate()
                             : null;
 
-                        final takviyeler = data["takviyeler"] ?? [];
+                        final rawKalori = data["kalori"];
+                        double kalori;
+
+                        if (rawKalori is int) {
+                          kalori = rawKalori.toDouble();
+                        } else if (rawKalori is double) {
+                          kalori = rawKalori;
+                        } else if (rawKalori is String) {
+                          kalori = double.tryParse(rawKalori) ?? 0;
+                        } else {
+                          kalori = 0;
+                        }
+
+                        final takviyeler = (data["takviyeler"] as List?) ?? [];
+                        final eksikler = (data["missingNutrients"] as List?) ?? [];
 
                         return _BesinCard(
                           tarih: tarih,
                           takviyeler: takviyeler,
-                          kalori: (data["kalori"] ?? 0).toDouble(),
+                          kalori: kalori,
                           docId: doc.id,
-                          missingNutrients: data["missingNutrients"] ?? [],
+                          missingNutrients: eksikler,
                         );
-
-                      }).toList(),
+                      },
                     );
                   },
                 ),
-
               ],
             ),
           );
@@ -478,13 +543,13 @@ class ClientDetailPage extends StatelessWidget {
     );
   }
 }
+
 class _BesinCard extends StatelessWidget {
   final DateTime? tarih;
   final List<dynamic> takviyeler;
   final double kalori;
   final String docId;
   final List<dynamic> missingNutrients;
-
 
   const _BesinCard({
     required this.tarih,
@@ -509,21 +574,22 @@ class _BesinCard extends StatelessWidget {
 
       child: Container(
         width: double.infinity,
-          margin: const EdgeInsets.symmetric(vertical: 8),
+        margin: const EdgeInsets.symmetric(vertical: 8),
         padding: const EdgeInsets.all(16),
+
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).shadowColor.withOpacity(0.2),
+              color: Theme.of(context).shadowColor.withOpacity(0.15),
               blurRadius: 6,
             )
           ],
         ),
 
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
             Text(
@@ -539,83 +605,88 @@ class _BesinCard extends StatelessWidget {
             const SizedBox(height: 10),
 
             Text(
-              "Toplam Kalori: ${kalori.toInt()} kcal",
+              "Toplam Kalori: ${kalori.toStringAsFixed(0)} kcal",
               style: const TextStyle(fontWeight: FontWeight.w500),
             ),
 
             const SizedBox(height: 10),
 
-            ...missingNutrients.take(3).map((m) {
-              return Row(
-                children: [
-                  const Icon(Icons.close, color: Colors.red, size: 16),
-                  const SizedBox(width: 6),
-                  Text(
-                    m,
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.w500,
+            if (missingNutrients.isNotEmpty)
+              ...missingNutrients.take(3).map((m) {
+                return Row(
+                  children: [
+                    const Icon(Icons.close, color: Colors.red, size: 16),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        m.toString(),
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              );
-            }).toList(),
+                  ],
+                );
+              }),
 
-            ...takviyeler.take(3).map((t) {
-              final name = t["ad"] ?? "";
+            if (takviyeler.isNotEmpty)
+              ...takviyeler.take(3).map((t) {
 
-              return Row(
-                children: [
-                  Icon(Icons.check, color: Theme.of(context).colorScheme.primary, size: 16),
-                  const SizedBox(width: 6),
-                  Text(
-                    name,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  )
-                ],
-              );
-            }).toList(),
+                final name = t is Map ? t["ad"] ?? "" : t.toString();
 
-
-            if (takviyeler.length > 3)
-              const Text("..."),
-
-            const SizedBox(height: 10),
-
-            Align(
-              alignment: Alignment.centerRight,
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BesinAnalizDetayPage(docId: docId),
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        "Detaylı İncele",
+                return Row(
+                  children: [
+                    Icon(Icons.check,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 16),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        name,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      SizedBox(width: 5),
-                      Icon(Icons.arrow_forward_ios, size: 14),
-                    ],
-                  ),
+                    ),
+                  ],
+                );
+              }),
+
+            if (takviyeler.length > 3)
+              const Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Text("..."),
+              ),
+
+            const SizedBox(height: 12),
+
+            Align(
+              alignment: Alignment.centerRight,
+              child: Container(
+                padding:
+                const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Detaylı İncele",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    const Icon(Icons.arrow_forward_ios, size: 14),
+                  ],
                 ),
               ),
             ),

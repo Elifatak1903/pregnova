@@ -20,6 +20,7 @@ const app = initializeApp({
 
 const auth = getAuth(app);
 const db = getFirestore(app);
+export{ db };
 
 /* NAV */
 window.go = function(page) {
