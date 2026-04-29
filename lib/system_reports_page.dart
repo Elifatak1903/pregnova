@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class SystemReportsPage extends StatefulWidget {
   const SystemReportsPage({super.key});
@@ -91,6 +92,70 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
     }
   }
 
+  /// 🔥 CHART
+  Widget riskChart() {
+    final total = high + medium + low;
+
+    if (total == 0) {
+      return const Center(child: Text("Veri yok"));
+    }
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 220,
+          child: PieChart(
+            PieChartData(
+              sectionsSpace: 2,
+              centerSpaceRadius: 50,
+              sections: [
+                PieChartSectionData(
+                  value: high.toDouble(),
+                  color: Colors.red,
+                  title: "${percent(high)}%",
+                  radius: 50,
+                  titleStyle: const TextStyle(color: Colors.white),
+                ),
+                PieChartSectionData(
+                  value: medium.toDouble(),
+                  color: Colors.orange,
+                  title: "${percent(medium)}%",
+                  radius: 50,
+                  titleStyle: const TextStyle(color: Colors.white),
+                ),
+                PieChartSectionData(
+                  value: low.toDouble(),
+                  color: Colors.green,
+                  title: "${percent(low)}%",
+                  radius: 50,
+                  titleStyle: const TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 10),
+
+        /// 🔥 LEGEND
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: const [
+            Text("🔴 High"),
+            Text("🟠 Medium"),
+            Text("🟢 Low"),
+          ],
+        )
+      ],
+    );
+  }
+
+  String percent(int val) {
+    final total = high + medium + low;
+    if (total == 0) return "0";
+    return ((val / total) * 100).toStringAsFixed(0);
+  }
+
   Widget bigCard(String title, String value, BuildContext context) {
     final color = Theme.of(context).colorScheme.primary;
 
@@ -112,12 +177,7 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
               ),
             ),
             const SizedBox(height: 6),
-            Text(
-              title,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
+            Text(title),
           ],
         ),
       ),
@@ -137,12 +197,7 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
+          Text(title),
           Text(
             value,
             style: TextStyle(
@@ -183,6 +238,7 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
+            /// HEADER
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -197,30 +253,18 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("System Overview",
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold)),
+                  const Text("System Overview",
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
                   Text(getSystemComment(),
-                      style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
+                      style: const TextStyle(color: Colors.white)),
                 ],
               ),
             ),
 
             const SizedBox(height: 20),
 
-            Text(
-              "Users",
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
+            /// USER STATS
             Row(
               children: [
                 bigCard("Total", totalUsers.toString(), context),
@@ -241,17 +285,24 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
 
             const SizedBox(height: 20),
 
-            const Text("Risk Analysis",
+            /// 🔥 CHART EKLENDİ
+            const Text("Risk Distribution",
                 style: TextStyle(fontWeight: FontWeight.bold)),
 
             const SizedBox(height: 10),
 
+            riskChart(),
+
+            const SizedBox(height: 20),
+
+            /// RISK LIST
             infoCard("High Risk", high.toString(), context),
             infoCard("Medium Risk", medium.toString(), context),
             infoCard("Low Risk", low.toString(), context),
 
             const SizedBox(height: 20),
 
+            /// INSIGHT
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -263,14 +314,9 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
                 children: [
                   const Text("System Insight",
                       style: TextStyle(fontWeight: FontWeight.bold)),
-
                   const SizedBox(height: 8),
-
-                  Text(
-                      "High risk oranı: ${highPercent.toStringAsFixed(1)}%"),
-
+                  Text("High risk oranı: ${highPercent.toStringAsFixed(1)}%"),
                   const SizedBox(height: 6),
-
                   Text(getSystemComment()),
                 ],
               ),

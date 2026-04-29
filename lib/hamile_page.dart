@@ -12,6 +12,7 @@ import 'uzman_ara_page.dart';
 import 'hamile_info_page.dart';
 import 'hamile_olcum_gecmisi_page.dart';
 import 'hamile_besin_gecmisi_page.dart';
+import 'hamile_diet_page.dart';
 
 class HamileAnaSayfa extends StatefulWidget {
   const HamileAnaSayfa({super.key});
@@ -35,6 +36,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
       const MessagePage(),
       const UzmanAraPage(),
       Container(),
+      const DiyetPage(),
       isLoggedIn ? HesabimPage() : const LoginPage(),
     ];
 
@@ -222,7 +224,8 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
         children: [
           const MessagePage(),
           const UzmanAraPage(),
-          _buildHomeContent(), // ✅ ARTIK BURADA
+          _buildHomeContent(),
+          const DiyetPage(), //
           isLoggedIn ? HesabimPage() : const LoginPage(),
         ],
       ),
@@ -237,65 +240,32 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
           });
         },
         items: [
+
+          /// MESAJ
           BottomNavigationBarItem(
-            icon: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection("messages")
-                  .snapshots(),
-              builder: (context, snapshot) {
-
-                int unreadCount = 0;
-
-                if (snapshot.hasData) {
-                  final uid = FirebaseAuth.instance.currentUser!.uid;
-
-                  unreadCount = snapshot.data!.docs.where((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    return data["isRead"] == false &&
-                        data["senderId"] != uid;
-                  }).length;
-                }
-
-                return Stack(
-                  children: [
-                    const Icon(Icons.chat_bubble_outline),
-
-                    if (unreadCount > 0)
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Text(
-                            unreadCount > 99 ? "99+" : unreadCount.toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                );
-              },
-            ),
-            label: "Mesajlar",
+            icon: Icon(Icons.chat_bubble_outline),
+            label: "Mesaj",
           ),
 
+          /// UZMAN ARA
           const BottomNavigationBarItem(
             icon: Icon(Icons.search),
-            label: "Ara",
+            label: "Uzman Ara",
           ),
 
+          /// ANA SAYFA (ORTA)
           const BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: "Ana Sayfa",
           ),
 
+          /// 🔥 DİYET
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.restaurant_menu),
+            label: "Diyet",
+          ),
+
+          /// HESABIM
           const BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: "Hesabım",

@@ -30,24 +30,25 @@ class _AdminHomePageState extends State<AdminHomePage> {
   }
 
   Future<void> fetchStats() async {
+
     final usersSnapshot =
     await FirebaseFirestore.instance.collection("users").get();
 
-    final users = usersSnapshot.docs;
+    totalUsers = usersSnapshot.docs.length;
 
-    totalUsers = users.length;
+    final expertSnapshot = await FirebaseFirestore.instance
+        .collection("expert_applications")
+        .get();
 
-    pendingRequests = users.where((u) =>
-    (u.data()['role'] == "gynecologist" ||
-        u.data()['role'] == "dietitian") &&
-        (u.data()['isApproved'] == false)).length;
+    final experts = expertSnapshot.docs;
 
-    activeExperts = users.where((u) =>
-    (u.data()['role'] == "gynecologist" ||
-        u.data()['role'] == "dietitian") &&
-        (u.data()['isApproved'] == true)).length;
+    activeExperts = experts.where((e) =>
+    e.data()["status"] == "approved"
+    ).length;
 
-    reports = 0;
+    pendingRequests = experts.where((e) =>
+    e.data()["status"] == "pending"
+    ).length;
 
     setState(() {
       loading = false;

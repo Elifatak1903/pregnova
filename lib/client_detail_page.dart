@@ -38,54 +38,63 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
         .where("uid", isEqualTo: widget.clientId)
         .get();
 
-    final docs = query.docs;
+    final now = DateTime.now();
+    final startDate = DateTime(now.year, now.month, now.day)
+        .subtract(const Duration(days: 6));
 
-    if (docs.isEmpty) return ChartData([], []);
-
-    docs.sort((a, b) {
-      final ta = a["tarih"];
-      final tb = b["tarih"];
-
-      if (ta == null && tb == null) return 0;
-      if (ta == null) return -1;
-      if (tb == null) return 1;
-
-      return (ta as Timestamp).compareTo(tb as Timestamp);
-    });
-
-    List<FlSpot> spots = [];
     List<DateTime> dates = [];
+    for (int i = 0; i < 7; i++) {
+      dates.add(startDate.add(Duration(days: i)));
+    }
 
-    for (var doc in docs) {
+    Map<String, double> weightMap = {};
 
+    for (var doc in query.docs) {
       final data = doc.data() as Map<String, dynamic>;
 
-      final rawKilo = data["kilo"];
+      if (!data.containsKey("tarih") || !data.containsKey("kilo")) continue;
+
       final ts = data["tarih"];
+      final rawKilo = data["kilo"];
 
-      if (rawKilo == null || ts == null) continue;
+      if (ts == null || rawKilo == null) continue;
 
-      double kilo;
-      if (rawKilo is int) {
-        kilo = rawKilo.toDouble();
-      } else if (rawKilo is double) {
-        kilo = rawKilo;
-      } else if (rawKilo is String) {
-        kilo = double.tryParse(rawKilo) ?? 0;
+      DateTime date;
+
+      if (ts is Timestamp) {
+        date = ts.toDate();
       } else {
-        kilo = 0;
+        continue;
       }
 
+      if (date.isBefore(startDate)) continue;
+
+      double kilo = (rawKilo is int)
+          ? rawKilo.toDouble()
+          : (rawKilo is double)
+          ? rawKilo
+          : double.tryParse(rawKilo.toString()) ?? 0;
       if (kilo <= 0) continue;
+      String key = "${date.year}-${date.month}-${date.day}";
 
-      final date = ts is Timestamp
-          ? ts.toDate()
-          : ts as DateTime;
+      weightMap[key] = kilo;
+    }
 
-      double x = spots.length.toDouble();
+    List<FlSpot> spots = [];
 
-      spots.add(FlSpot(x, kilo));
-      dates.add(date);
+    for (int i = 0; i < dates.length; i++) {
+      final d = dates[i];
+      String key = "${d.year}-${d.month}-${d.day}";
+
+      double kilo;
+
+      if (weightMap.containsKey(key)) {
+        kilo = weightMap[key]!;
+      } else {
+        kilo = i > 0 ? spots[i - 1].y : 0;
+      }
+
+      spots.add(FlSpot(i.toDouble(), kilo));
     }
 
     return ChartData(spots, dates);
@@ -98,55 +107,65 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
         .where("uid", isEqualTo: widget.clientId)
         .get();
 
-    final docs = query.docs;
+    final now = DateTime.now();
+    final startDate = DateTime(now.year, now.month, now.day)
+        .subtract(const Duration(days: 6));
 
-    if (docs.isEmpty) return ChartData([], []);
-
-    // 🔥 createdAt'e göre sırala
-    docs.sort((a, b) {
-      final ta = a["createdAt"];
-      final tb = b["createdAt"];
-
-      if (ta == null && tb == null) return 0;
-      if (ta == null) return -1;
-      if (tb == null) return 1;
-
-      return (ta as Timestamp).compareTo(tb as Timestamp);
-    });
-
-    List<FlSpot> spots = [];
     List<DateTime> dates = [];
+    for (int i = 0; i < 7; i++) {
+      dates.add(startDate.add(Duration(days: i)));
+    }
 
-    for (var doc in docs) {
+    Map<String, double> calorieMap = {};
 
+    for (var doc in query.docs) {
       final data = doc.data() as Map<String, dynamic>;
 
+      if (!data.containsKey("createdAt") || !data.containsKey("kalori")) continue;
+
+      final ts = data["createdAt"];
       final raw = data["kalori"];
 
-      double kalori;
-      if (raw is int) {
-        kalori = raw.toDouble();
-      } else if (raw is double) {
-        kalori = raw;
-      } else if (raw is String) {
-        kalori = double.tryParse(raw) ?? 0;
+      if (ts == null || raw == null) continue;
+
+      DateTime date;
+
+      if (ts is Timestamp) {
+        date = ts.toDate();
       } else {
-        kalori = 0;
+        continue;
       }
+
+      if (date.isBefore(startDate)) continue;
+
+      double kalori = (raw is int)
+          ? raw.toDouble()
+          : (raw is double)
+          ? raw
+          : double.tryParse(raw.toString()) ?? 0;
 
       if (kalori <= 0) continue;
 
-      final ts = data["createdAt"];
-      if (ts == null) continue;
+      String key = "${date.year}-${date.month}-${date.day}";
 
-      final date = ts is Timestamp
-          ? ts.toDate()
-          : ts as DateTime;
+      calorieMap[key] = kalori;
+    }
 
-      double x = spots.length.toDouble();
+    List<FlSpot> spots = [];
 
-      spots.add(FlSpot(x, kalori));
-      dates.add(date);
+    for (int i = 0; i < dates.length; i++) {
+      final d = dates[i];
+      String key = "${d.year}-${d.month}-${d.day}";
+
+      double kalori;
+
+      if (calorieMap.containsKey(key)) {
+        kalori = calorieMap[key]!;
+      } else {
+        kalori = i > 0 ? spots[i - 1].y : 0;
+      }
+
+      spots.add(FlSpot(i.toDouble(), kalori));
     }
 
     return ChartData(spots, dates);
@@ -231,10 +250,27 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                   future: weightFuture,
                   builder: (context, snapshot) {
 
-                    if (!snapshot.hasData) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
                       return const SizedBox(
                         height: 220,
                         child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+
+                    if (snapshot.hasError) {
+                      print("❌ WEIGHT ERROR: ${snapshot.error}");
+                      return SizedBox(
+                        height: 220,
+                        child: Center(
+                          child: Text("Hata: ${snapshot.error}"),
+                        ),
+                      );
+                    }
+
+                    if (!snapshot.hasData) {
+                      return const SizedBox(
+                        height: 220,
+                        child: Center(child: Text("Veri alınamadı")),
                       );
                     }
 
@@ -243,15 +279,34 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
 
                     return Container(
                       height: 220,
-                      padding: const EdgeInsets.all(10),
+
+                      /// 🔥 SOLA ALDIK (İNCE AYAR)
+                      padding: const EdgeInsets.fromLTRB(4, 10, 10, 10),
+
                       child: spots.isEmpty
                           ? const Center(child: Text("Veri yok"))
                           : LineChart(
                         LineChartData(
+
+                          /// 🔥 SABİT 7 GÜN
+                          minX: 0,
+                          maxX: 6,
+
+                          /// 📊 Y SCALE (CRASH ÖNLEMİ)
+                          minY: spots.isEmpty
+                              ? 0
+                              : spots.map((e) => e.y).reduce((a, b) => a < b ? a : b) - 2,
+
+                          maxY: spots.isEmpty
+                              ? 10
+                              : spots.map((e) => e.y).reduce((a, b) => a > b ? a : b) + 2,
+
+                          /// 📈 LINE
                           lineBarsData: [
                             LineChartBarData(
                               spots: spots,
                               isCurved: true,
+                              curveSmoothness: 0.3,
                               barWidth: 3,
                               dotData: FlDotData(show: true),
                               color: Theme.of(context).colorScheme.primary,
@@ -259,45 +314,97 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                           ],
 
                           titlesData: FlTitlesData(
+
+                            /// 🔽 ALT (7 GÜN SABİT)
                             bottomTitles: AxisTitles(
                               sideTitles: SideTitles(
                                 showTitles: true,
-                                getTitlesWidget: (value, meta) {
+                                interval: 1,
+                                reservedSize: 30,
 
+                                getTitlesWidget: (value, meta) {
                                   int index = value.toInt();
 
-                                  if (index < 0 || index >= dates.length) {
+                                  if (index < 0 || index > 6 || index >= dates.length) {
                                     return const SizedBox();
                                   }
 
                                   final d = dates[index];
 
-                                  return Text(
-                                    "${d.day}/${d.month}",
-                                    style: const TextStyle(fontSize: 10),
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: 6),
+                                    child: Text(
+                                      "${d.day}/${d.month}",
+                                      style: const TextStyle(fontSize: 10),
+                                    ),
                                   );
                                 },
                               ),
                             ),
+
+                            /// 🔥 SOL SAYILAR (5'İN KATLARI)
                             leftTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: true),
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                interval: 5,
+                                reservedSize: 38,
+
+                                getTitlesWidget: (value, meta) {
+                                  if (value % 5 != 0) return const SizedBox();
+
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: Text(
+                                      value.toInt().toString(),
+                                      textAlign: TextAlign.right,
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
+
                             rightTitles: AxisTitles(
                               sideTitles: SideTitles(showTitles: false),
                             ),
+
                             topTitles: AxisTitles(
                               sideTitles: SideTitles(showTitles: false),
                             ),
                           ),
 
+                          /// 🔥 GRID (7 PARÇA)
+                          gridData: FlGridData(
+                            show: true,
+                            horizontalInterval: 5,
+                            verticalInterval: 1,
+
+                            getDrawingHorizontalLine: (value) {
+                              return FlLine(
+                                color: Colors.grey.withOpacity(0.2),
+                                strokeWidth: 1,
+                              );
+                            },
+
+                            getDrawingVerticalLine: (value) {
+                              return FlLine(
+                                color: Colors.grey.withOpacity(0.15),
+                                strokeWidth: 1,
+                              );
+                            },
+                          ),
+
+                          /// 🎯 TOOLTIP
                           lineTouchData: LineTouchData(
                             touchTooltipData: LineTouchTooltipData(
                               getTooltipItems: (touchedSpots) {
                                 return touchedSpots.map((spot) {
-
                                   int index = spot.x.toInt();
 
-                                  if (index >= dates.length) {
+                                  if (index < 0 || index > 6 || index >= dates.length) {
                                     return null;
                                   }
 
@@ -307,7 +414,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                     "${d.day}/${d.month}\n${spot.y.toStringAsFixed(1)} kg",
                                     const TextStyle(color: Colors.white),
                                   );
-
                                 }).toList();
                               },
                             ),
@@ -378,67 +484,101 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
 
                     return Container(
                       height: 220,
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.fromLTRB(4, 10, 10, 10),
 
                       child: LineChart(
                         LineChartData(
 
-                          /// 📈 ÇİZGİ
+                          minX: 0,
+                          maxX: 6,
+
+                          minY: spots.isEmpty
+                              ? 0
+                              : spots.map((e) => e.y).reduce((a, b) => a < b ? a : b) - 100,
+
+                          maxY: spots.isEmpty
+                              ? 100
+                              : spots.map((e) => e.y).reduce((a, b) => a > b ? a : b) + 100,
+
                           lineBarsData: [
                             LineChartBarData(
                               spots: spots,
                               isCurved: true,
                               barWidth: 3,
-                              color: Theme.of(context).colorScheme.primary,
                               dotData: FlDotData(show: true),
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ],
 
-                          /// 🧭 AXIS
                           titlesData: FlTitlesData(
+
                             bottomTitles: AxisTitles(
                               sideTitles: SideTitles(
                                 showTitles: true,
-
+                                interval: 1,
+                                reservedSize: 30,
                                 getTitlesWidget: (value, meta) {
 
                                   int index = value.toInt();
-
                                   if (index < 0 || index >= dates.length) {
                                     return const SizedBox();
                                   }
 
                                   final d = dates[index];
 
-                                  return Text(
-                                    "${d.day}/${d.month}",
-                                    style: const TextStyle(fontSize: 10),
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: 6),
+                                    child: Text(
+                                      "${d.day}/${d.month}",
+                                      style: const TextStyle(fontSize: 10),
+                                    ),
                                   );
                                 },
                               ),
                             ),
 
+                            /// 🔥 SOL SAYILAR (100 kcal aralık)
                             leftTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: true),
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                interval: 100,
+                                reservedSize: 38,
+                                getTitlesWidget: (value, meta) {
+
+                                  if (value % 100 != 0) return const SizedBox();
+
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: Text(
+                                      value.toInt().toString(),
+                                      textAlign: TextAlign.right,
+                                      style: const TextStyle(fontSize: 10),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
 
                             rightTitles: AxisTitles(
                               sideTitles: SideTitles(showTitles: false),
                             ),
-
                             topTitles: AxisTitles(
                               sideTitles: SideTitles(showTitles: false),
                             ),
                           ),
 
-                          /// 🎯 TOOLTIP
+                          gridData: FlGridData(
+                            show: true,
+                            horizontalInterval: 100,
+                            verticalInterval: 1,
+                          ),
+
                           lineTouchData: LineTouchData(
                             touchTooltipData: LineTouchTooltipData(
                               getTooltipItems: (touchedSpots) {
                                 return touchedSpots.map((spot) {
 
                                   int index = spot.x.toInt();
-
                                   if (index >= dates.length) return null;
 
                                   final d = dates[index];
