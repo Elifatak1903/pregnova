@@ -15,10 +15,6 @@ class DiyetPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: const Text("Diyet Planım"),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-      ),
 
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -27,15 +23,25 @@ class DiyetPage extends StatelessWidget {
             .orderBy("createdAt", descending: true)
             .limit(1)
             .snapshots(),
+
         builder: (context, snapshot) {
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            );
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(
-              child: Text("Henüz diyet planın yok 🥲"),
+            return Center(
+              child: Text(
+                "Henüz diyet planın yok 🥲",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
             );
           }
 
@@ -52,15 +58,51 @@ class DiyetPage extends StatelessWidget {
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
 
-                /// 🔥 SADECE TARİH BUTONU KALDI
+                Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.restaurant_menu,
+                          color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Diyet Planım",
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 6),
+
+                Center(
+                  child: Text(
+                    "Güncel diyet planını görüntüle",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.6),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
                 GestureDetector(
                   onTap: () => showDietDetail(context, data, date),
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
+                        horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(20),

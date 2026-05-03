@@ -18,6 +18,7 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
   final yasController = TextEditingController();
   final kiloController = TextEditingController();
   final haftaController = TextEditingController();
+  final alerjiController = TextEditingController();
 
   bool isLoading = true;
   bool isSaving = false;
@@ -40,6 +41,7 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
     yasController.dispose();
     kiloController.dispose();
     haftaController.dispose();
+    alerjiController.dispose();
     super.dispose();
   }
 
@@ -56,6 +58,7 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
         yasController.text = data['yas']?.toString() ?? '';
         kiloController.text = data['kilo']?.toString() ?? '';
         haftaController.text = data['hafta']?.toString() ?? '';
+        alerjiController.text = data['alerjiler'] ?? '';
 
         chronicHypertension = data['chronicHypertension'] ?? false;
         diabetes = data['diabetes'] ?? false;
@@ -83,6 +86,7 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
         'yas': int.tryParse(yasController.text.trim()) ?? 0,
         'kilo': double.tryParse(kiloController.text.trim()) ?? 0,
         'hafta': int.tryParse(haftaController.text.trim()) ?? 0,
+        'alerjiler': alerjiController.text.trim(),
 
         'chronicHypertension': chronicHypertension,
         'diabetes': diabetes,
@@ -220,6 +224,12 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
                   label: "Hamilelik Haftası",
                   icon: Icons.calendar_today,
                   type: TextInputType.number,
+                ),
+
+                buildInputField(
+                  controller: alerjiController,
+                  label: "Alerjiler",
+                  icon: Icons.warning_amber_rounded,
                 ),
 
                 const SizedBox(height: 10),

@@ -241,31 +241,26 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
         },
         items: [
 
-          /// MESAJ
           BottomNavigationBarItem(
             icon: Icon(Icons.chat_bubble_outline),
             label: "Mesaj",
           ),
 
-          /// UZMAN ARA
           const BottomNavigationBarItem(
             icon: Icon(Icons.search),
             label: "Uzman Ara",
           ),
 
-          /// ANA SAYFA (ORTA)
           const BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: "Ana Sayfa",
           ),
 
-          /// 🔥 DİYET
           const BottomNavigationBarItem(
             icon: Icon(Icons.restaurant_menu),
             label: "Diyet",
           ),
 
-          /// HESABIM
           const BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: "Hesabım",
@@ -316,20 +311,31 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
 
-          Text(
-            "Hoş geldin anne 💕",
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,
+          Center(
+            child: Text(
+              "Hoş geldin anne 💕",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
           ),
 
           const SizedBox(height: 8),
 
-          Text(
-            "Sağlık ve beslenme takibini kolayca yapabilirsin.",
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+          Center(
+            child: Text(
+              "Sağlık ve beslenme takibini kolayca yapabilirsin.",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withOpacity(0.7),
+              ),
+            ),
           ),
 
           const SizedBox(height: 25),

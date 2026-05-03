@@ -7,6 +7,8 @@ import 'login_page.dart';
 import 'notification_page.dart';
 import 'expert_chat_list_page.dart';
 import 'son_olcumler_page.dart';
+import 'hasta_klinik_detay_page.dart';
+import 'edit_gynecologist_profile_page.dart';
 
 class GynecologistHomePage extends StatefulWidget {
   const GynecologistHomePage({super.key});
@@ -143,9 +145,11 @@ class _GynecologistHomePageState
       builder: (context, snapshot) {
 
         if (!snapshot.hasData) {
-          return Center(child: CircularProgressIndicator(
-            color: Theme.of(context).colorScheme.primary,
-          ));
+          return Center(
+            child: CircularProgressIndicator(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          );
         }
 
         final docs = snapshot.data!.docs;
@@ -156,9 +160,11 @@ class _GynecologistHomePageState
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: docs.map((doc) {
+          children: List.generate(docs.length, (index) {
 
+            final doc = docs[index];
             final data = doc.data() as Map<String, dynamic>;
+
             final tarih = data["tarih"];
             final uid = data["uid"];
 
@@ -179,88 +185,181 @@ class _GynecologistHomePageState
                 final name = userData?["name"] ?? "";
                 final surname = userData?["surname"] ?? "";
 
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
                     borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(context).shadowColor.withOpacity(0.2),
-                      )
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.timeline, color: Theme.of(context).colorScheme.primary),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SonOlcumlerPage(
+                            selectedTarih: tarih,
+                            selectedUid: uid,
+                          ),
+                        ),
+                      );
+                    },
+
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Theme.of(context)
+                                  .shadowColor
+                                  .withOpacity(0.2),
+                              blurRadius: 6,
+                            )
+                          ],
+                        ),
+                        child: Row(
                           children: [
-                            Text(
-                              "$name $surname yeni ölçüm gönderdi",
-                              style: const TextStyle(fontSize: 14),
+                            Icon(
+                              Icons.timeline,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              timeAgo(tarih),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                            const SizedBox(width: 10),
+
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "$name $surname yeni ölçüm gönderdi",
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+
+                                  const SizedBox(height: 4),
+
+                                  Text(
+                                    timeAgo(tarih),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withOpacity(0.6),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 );
               },
             );
-          }).toList(),
+          }),
         );
       },
     );
   }
+
   Widget _buildHighRiskBanner() {
-    return FutureBuilder<int>(
-      future: getHighRiskCount(),
+    return FutureBuilder<QuerySnapshot>(
+      future: FirebaseFirestore.instance
+          .collection("risk_olcumleri")
+          .orderBy("tarih", descending: true)
+          .limit(20)
+          .get(),
       builder: (context, snapshot) {
 
-        if (!snapshot.hasData) {
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const SizedBox();
         }
 
-        final count = snapshot.data!;
+        DocumentSnapshot? highRiskDoc;
 
-        if (count == 0) {
+        for (var doc in snapshot.data!.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+
+          if (data["preeklampsiRisk"] == "HIGH" ||
+              data["diyabetRisk"] == "HIGH" ||
+              data["pretermRisk"] == "HIGH") {
+            highRiskDoc = doc;
+            break;
+          }
+        }
+
+        if (highRiskDoc == null) {
           return const SizedBox();
         }
 
-        return Container(
-          margin: const EdgeInsets.only(bottom: 20),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.red.shade100,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.red),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.warning, color: Colors.red),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  "$count Yüksek Riskli Hasta Var",
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red),
+        final data = highRiskDoc.data() as Map<String, dynamic>;
+        final clientId = data["uid"];
+
+        return FutureBuilder<DocumentSnapshot>(
+          future: FirebaseFirestore.instance
+              .collection("users")
+              .doc(clientId)
+              .get(),
+          builder: (context, userSnap) {
+
+            if (!userSnap.hasData) {
+              return const SizedBox();
+            }
+
+            final userData =
+            userSnap.data!.data() as Map<String, dynamic>?;
+
+            final name = userData?["name"] ?? "";
+            final surname = userData?["surname"] ?? "";
+
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => HastaKlinikDetayPage(
+                      clientId: clientId,
+                      name: name,
+                      surname: surname,
+                      initialIndex: 0,
+                    ),
+                  ),
+                );
+              },
+
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade100,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.red),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.warning, color: Colors.red),
+                      const SizedBox(width: 10),
+
+                      Expanded(
+                        child: Text(
+                          "$name $surname yüksek riskli (detaya git)",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -429,6 +528,7 @@ class _GynecologistHomePageState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 20),
+
           _buildHighRiskBanner(),
 
           Text(
@@ -513,7 +613,7 @@ class _GynecologistHomePageState
                     text,
                     Colors.green,
                     Icons.timeline,
-                    (){
+                        () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -526,23 +626,41 @@ class _GynecologistHomePageState
               ),
             ],
           ),
+
           const SizedBox(height: 30),
+
           _buildRiskChart(),
 
           const SizedBox(height: 30),
 
-          Text(
-            "Danışma İstekleri",
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,
+          GestureDetector(
+            behavior: HitTestBehavior.opaque, // 🔥 boşluklara da tıklanır
+            onTap: () {
+              if (_selectedIndex != 2) {
+                setState(() {
+                  _selectedIndex = 2;
+                });
+              }
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                Text(
+                  "Danışma İstekleri",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                _buildPatientRequests(),
+              ],
             ),
           ),
-
-          const SizedBox(height: 10),
-
-          _buildPatientRequests(),
 
           const SizedBox(height: 30),
 
@@ -554,7 +672,9 @@ class _GynecologistHomePageState
               color: Theme.of(context).colorScheme.primary,
             ),
           ),
+
           const SizedBox(height: 15),
+
           _buildRecentActivity(),
         ],
       ),
@@ -572,9 +692,10 @@ class _GynecologistHomePageState
 
         if (!snapshot.hasData) {
           return Center(
-              child: CircularProgressIndicator(
-                color: Theme.of(context).colorScheme.primary,
-              ));
+            child: CircularProgressIndicator(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          );
         }
 
         final docs = snapshot.data!.docs;
@@ -586,7 +707,7 @@ class _GynecologistHomePageState
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurface,
               ),
-            )
+            ),
           );
         }
 
@@ -609,8 +730,7 @@ class _GynecologistHomePageState
                 }
 
                 final data =
-                userSnapshot.data!.data()
-                as Map<String, dynamic>?;
+                userSnapshot.data!.data() as Map<String, dynamic>?;
 
                 final name = data?["name"] ?? "";
                 final surname = data?["surname"] ?? "";
@@ -631,65 +751,76 @@ class _GynecologistHomePageState
                   riskText = "Normal";
                 }
 
-                return Card(
-                  color: Theme.of(context).colorScheme.surface,
-                  elevation: 0,
-                  margin: const EdgeInsets.only(bottom: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(16),
-
-                    leading: CircleAvatar(
-                      radius: 26,
-                      backgroundColor: riskColor,
-                      child: const Icon(
-                        Icons.person,
-                        color: Colors.white,
-                      ),
-                    ),
-
-                    title: Text(
-                      "$name $surname",
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16),
-                    ),
-
-                    subtitle: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 6),
-                        Text("Gebelik Haftası: $hafta"),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Risk Durumu: $riskText",
-                          style: TextStyle(
-                              color: riskColor,
-                              fontWeight: FontWeight.w600),
-                        ),
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 14),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context)
+                              .shadowColor
+                              .withOpacity(0.2),
+                          blurRadius: 6,
+                        )
                       ],
                     ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16),
 
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios,
-                      size: 18,
-                    ),
-
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => HastaDetayPage(
-                            clientId: clientId,
-                            name: name,
-                            surname: surname,
-                          ),
+                      leading: CircleAvatar(
+                        radius: 26,
+                        backgroundColor: riskColor,
+                        child: const Icon(
+                          Icons.person,
+                          color: Colors.white,
                         ),
-                      );
-                    },
+                      ),
+
+                      title: Text(
+                        "$name $surname",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 6),
+                          Text("Gebelik Haftası: $hafta"),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Risk Durumu: $riskText",
+                            style: TextStyle(
+                              color: riskColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      trailing: const Icon(
+                        Icons.arrow_forward_ios,
+                        size: 18,
+                      ),
+
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => HastaDetayPage(
+                              clientId: clientId,
+                              name: name,
+                              surname: surname,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 );
               },
@@ -707,11 +838,11 @@ class _GynecologistHomePageState
   Widget _buildAccountPage() {
     final user = FirebaseAuth.instance.currentUser;
 
-    return FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
           .collection("users")
           .doc(user!.uid)
-          .get(),
+          .snapshots(),
       builder: (context, snapshot) {
 
         if (!snapshot.hasData) {
@@ -773,6 +904,26 @@ class _GynecologistHomePageState
               ),
 
               const SizedBox(height: 25),
+
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const EditGynecologistProfilePage(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text("Bilgileri Düzenle"),
+              ),
+
+              const SizedBox(height: 20),
 
               const Text(
                 "Uzmanlık Bilgileri",
@@ -891,34 +1042,39 @@ class _GynecologistHomePageState
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(18),
+        margin: const EdgeInsets.all(4), // 🔥 SHADOW ALANI
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
               color: Theme.of(context).shadowColor.withOpacity(0.2),
-            )
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: color, size: 26),
-            const SizedBox(height: 10),
-            Text(
-              value,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: color,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: color, size: 26),
+              const SizedBox(height: 10),
+              Text(
+                value,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(title),
-          ],
+              const SizedBox(height: 6),
+              Text(title),
+            ],
+          ),
         ),
       ),
     );
@@ -991,11 +1147,15 @@ class _GynecologistHomePageState
 
         final docs = snapshot.data!.docs;
 
+        /// 🔥 EMPTY STATE FIX
         if (docs.isEmpty) {
-          return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: _cardDecoration(),
-            child: const Text("Bekleyen istek yok."),
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: _cardDecoration(),
+              child: const Text("Bekleyen istek yok."),
+            ),
           );
         }
 
@@ -1011,71 +1171,84 @@ class _GynecologistHomePageState
                   .get(),
               builder: (context, userSnapshot) {
 
-                if (!userSnapshot.hasData) return const SizedBox();
+                if (!userSnapshot.hasData) {
+                  return const SizedBox();
+                }
 
-                final data = userSnapshot.data!.data() as Map<String, dynamic>?;
+                final data =
+                userSnapshot.data!.data() as Map<String, dynamic>?;
 
                 final name = data?["name"] ?? "";
                 final surname = data?["surname"] ?? "";
                 final hafta = data?["hafta"] ?? "-";
 
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(14),
-                  decoration: _cardDecoration(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                return ClipRRect( // 🔥 ANA FIX
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(14),
+                    decoration: _cardDecoration(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
 
-                      Text("$name $surname - Hafta $hafta"),
+                        Text(
+                          "$name $surname - Hafta $hafta",
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
 
-                      const SizedBox(height: 10),
+                        const SizedBox(height: 10),
 
-                      Row(
-                        children: [
+                        Row(
+                          children: [
 
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green),
-                            onPressed: () async {
+                            /// ✅ KABUL
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                              ),
+                              onPressed: () async {
 
-                              final doctorUid =
-                                  FirebaseAuth.instance.currentUser!.uid;
+                                final doctorUid =
+                                    FirebaseAuth.instance.currentUser!.uid;
 
-                              await FirebaseFirestore.instance
-                                  .collection("expert_requests")
-                                  .doc(doc.id)
-                                  .update({"status": "approved"});
+                                await FirebaseFirestore.instance
+                                    .collection("expert_requests")
+                                    .doc(doc.id)
+                                    .update({"status": "approved"});
 
-                              await FirebaseFirestore.instance
-                                  .collection("users")
-                                  .doc(clientId)
-                                  .update({
-                                "assignedDoctor": doctorUid,
-                              });
+                                await FirebaseFirestore.instance
+                                    .collection("users")
+                                    .doc(clientId)
+                                    .update({
+                                  "assignedDoctor": doctorUid,
+                                });
 
-                              print("ASSIGNED DOCTOR: $doctorUid to $clientId");
-                            },
-                            child: const Text("Kabul"),
-                          ),
+                                print("ASSIGNED DOCTOR: $doctorUid to $clientId");
+                              },
+                              child: const Text("Kabul"),
+                            ),
 
-                          const SizedBox(width: 10),
+                            const SizedBox(width: 10),
 
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red),
-                            onPressed: () async {
+                            /// ❌ REDDET
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                              ),
+                              onPressed: () async {
 
-                              await FirebaseFirestore.instance
-                                  .collection("expert_requests")
-                                  .doc(doc.id)
-                                  .update({"status": "rejected"});
-                            },
-                            child: const Text("Reddet"),
-                          ),
-                        ],
-                      ),
-                    ],
+                                await FirebaseFirestore.instance
+                                    .collection("expert_requests")
+                                    .doc(doc.id)
+                                    .update({"status": "rejected"});
+                              },
+                              child: const Text("Reddet"),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

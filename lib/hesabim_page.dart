@@ -31,25 +31,38 @@ class _HesabimPageState extends State<HesabimPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Hesabım",
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+              Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.person,
+                        color: Theme.of(context).colorScheme.primary),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Hesabım",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 6),
+
+              Center(
+                child: Text(
+                  "Hesap ayarlarını buradan yönetebilirsin",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.7),
                   ),
-                  const SizedBox(height: 5),
-                  Text(
-                    "Hesap ayarlarını buradan yönetebilirsin",
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                  ),
-                ],
+                ),
               ),
 
               const SizedBox(height: 25),

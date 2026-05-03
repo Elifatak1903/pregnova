@@ -43,7 +43,7 @@ class HamileBesinGecmisiPage extends StatelessWidget {
                   stream: FirebaseFirestore.instance
                       .collection('besin_analizleri')
                       .where('uid', isEqualTo: uid)
-                      .orderBy('tarih', descending: true)
+                      .orderBy('createdAt', descending: true)
                       .snapshots(),
                   builder: (context, snapshot) {
 
@@ -76,7 +76,7 @@ class HamileBesinGecmisiPage extends StatelessWidget {
                         docs[index].data() as Map<String, dynamic>;
 
                         final tarih =
-                        (data['tarih'] as Timestamp).toDate();
+                        (data['createdAt'] as Timestamp).toDate();
 
                         final formattedDate =
                         DateFormat("dd MMMM yyyy - HH:mm", "tr_TR")

@@ -72,82 +72,96 @@ class KisiselBilgilerGoruntulePage extends StatelessWidget {
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        children: [
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
 
-                          bilgiKart(context,
-                            "Kronik Hipertansiyon",
-                            (data['chronicHypertension'] ?? false) ? "Var" : "Yok",
-                            Icons.monitor_heart,
-                          ),
+                            bilgiKart(
+                              context,
+                              "Kronik Hipertansiyon",
+                              (data['chronicHypertension'] ?? false) ? "Var" : "Yok",
+                              Icons.monitor_heart,
+                            ),
 
-                          bilgiKart(context,
-                            "Diyabet",
-                            (data['diabetes'] ?? false) ? "Var" : "Yok",
-                            Icons.bloodtype,
-                          ),
+                            bilgiKart(
+                              context,
+                              "Diyabet",
+                              (data['diabetes'] ?? false) ? "Var" : "Yok",
+                              Icons.bloodtype,
+                            ),
 
-                          bilgiKart(context,
-                            "Tiroid Hastalığı",
-                            (data['thyroidDisease'] ?? false) ? "Var" : "Yok",
-                            Icons.health_and_safety,
-                          ),
+                            bilgiKart(
+                              context,
+                              "Tiroid Hastalığı",
+                              (data['thyroidDisease'] ?? false) ? "Var" : "Yok",
+                              Icons.health_and_safety,
+                            ),
 
-                          bilgiKart(context,
-                            "Önceki Preterm",
-                            (data['previousPreterm'] ?? false) ? "Var" : "Yok",
-                            Icons.warning,
-                          ),
+                            bilgiKart(
+                              context,
+                              "Önceki Preterm",
+                              (data['previousPreterm'] ?? false) ? "Var" : "Yok",
+                              Icons.warning,
+                            ),
 
-                          bilgiKart(context,
-                            "Çoğul Gebelik",
-                            (data['multiplePregnancy'] ?? false) ? "Var" : "Yok",
-                            Icons.groups,
-                          ),
+                            bilgiKart(
+                              context,
+                              "Çoğul Gebelik",
+                              (data['multiplePregnancy'] ?? false) ? "Var" : "Yok",
+                              Icons.groups,
+                            ),
 
-                          bilgiKart(context,
-                            "Sigara",
-                            (data['smoker'] ?? false) ? "Var" : "Yok",
-                            Icons.smoking_rooms,
-                          ),
+                            bilgiKart(
+                              context,
+                              "Sigara",
+                              (data['smoker'] ?? false) ? "Var" : "Yok",
+                              Icons.smoking_rooms,
+                            ),
 
-                          const Spacer(),
+                            bilgiKart(
+                              context,
+                              "Alerjiler",
+                              data['alerjiler'] ?? "",
+                              Icons.warning_amber_rounded,
+                            ),
 
-                          SizedBox(
-                            width: double.infinity,
-                            height: 55,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                    const KisiselBilgilerPage(),
+                            const SizedBox(height: 20),
+
+                            /// 🔥 BUTON
+                            SizedBox(
+                              width: double.infinity,
+                              height: 55,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const KisiselBilgilerPage(),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Theme.of(context).colorScheme.primary,
+                                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
                                   ),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context).colorScheme.primary,
-                                foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                  BorderRadius.circular(16),
+                                  elevation: 4,
                                 ),
-                                elevation: 4,
-                              ),
-                              child: const Text(
-                                "Bilgileri Düzenle",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                child: const Text(
+                                  "Bilgileri Düzenle",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
 
-                          const SizedBox(height: 20),
-                        ],
+                            const SizedBox(height: 20),
+                          ],
+                        ),
                       ),
                     );
                   },

@@ -10,7 +10,10 @@ class UzmanAraPage extends StatefulWidget {
 }
 
 class _UzmanAraPageState extends State<UzmanAraPage> {
+
   String selectedRole = 'all';
+  String searchText = "";
+
   late Stream<QuerySnapshot> expertsStream;
 
   @override
@@ -32,7 +35,6 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
 
     return ref
         .where('role', whereIn: ['dietitian', 'gynecologist'])
-        //.where('isApproved', isEqualTo: true)
         .snapshots();
   }
 
@@ -43,229 +45,252 @@ class _UzmanAraPageState extends State<UzmanAraPage> {
     });
   }
 
+  void showSnack(String text) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(text)));
+  }
+
   @override
   Widget build(BuildContext context) {
+
     final currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: Container(
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Uzman Ara 🔍",
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurface
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      "Size uygun uzmanı seçin",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
 
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _filterChip("Tümü", "all"),
-                    _filterChip("Diyetisyen", "dietitian"),
-                    _filterChip("Jinekolog", "gynecologist"),
-                  ],
-                ),
-              ),
+      body: SafeArea(
+        child: Column(
+          children: [
 
-              const SizedBox(height: 10),
-
-              Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: expertsStream,
-                  builder: (context, snapshot) {
-
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator(
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// 🔥 BAŞLIK
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.search,
                         color: Theme.of(context).colorScheme.primary,
-                      ));
-                    }
-
-                    if (snapshot.hasError) {
-                      return Center(child: Text(
-                        "Bir hata oluştu 😢",
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Uzman Ara",
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
-                      ));
-                    }
+                      ),
+                    ],
+                  ),
 
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return Center(
-                        child: Text(
-                          "Uygun uzman bulunamadı 😔",
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                      );
-                    }
+                  const SizedBox(height: 6),
 
-                    final experts = snapshot.data!.docs;
+                  /// 🔥 ALT YAZI
+                  Text(
+                    "Size uygun uzmanı seçin",
+                    textAlign: TextAlign.center, // 🔥 BU DA ÖNEMLİ
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: experts.length,
-                      itemBuilder: (context, index) {
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TextField(
+                onChanged: (val) {
+                  setState(() {
+                    searchText = val.toLowerCase();
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: "İsim ara...",
+                  prefixIcon: const Icon(Icons.search),
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+            ),
 
-                        final doc = experts[index];
+            const SizedBox(height: 10),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _filterChip("Tümü", "all"),
+                  _filterChip("Diyetisyen", "dietitian"),
+                  _filterChip("Jinekolog", "gynecologist"),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            Expanded(
+              child: StreamBuilder<DocumentSnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection("users")
+                    .doc(currentUserId)
+                    .snapshots(),
+
+                builder: (context, userSnap) {
+
+                  if (!userSnap.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final userData =
+                  userSnap.data!.data() as Map<String, dynamic>;
+
+                  final assignedDoctor = userData['assignedDoctor'];
+                  final assignedDietitian = userData['assignedDietitian'];
+
+                  return StreamBuilder<QuerySnapshot>(
+                    stream: expertsStream,
+                    builder: (context, snapshot) {
+
+                      if (!snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      final experts = snapshot.data!.docs;
+
+                      final filteredExperts = experts.where((doc) {
                         final data = doc.data() as Map<String, dynamic>;
+                        final name = (data['name'] ?? "").toString().toLowerCase();
 
-                        final role = data['role'] ?? '';
-                        final email = data['email'] ?? "Uzman";
+                        if (searchText.isNotEmpty && !name.contains(searchText)) {
+                          return false;
+                        }
 
-                        final name = data['name'] ?? "Uzman";
-                        final hospital = data['hospital'] ?? "Kurum bilgisi yok";
+                        return true;
+                      }).toList();
 
-                        final isClient = data['clients'] != null &&
-                            (data['clients'] as List).contains(currentUserId);
+                      return ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: filteredExperts.length,
+                        itemBuilder: (context, index) {
 
-                        return Card(
-                          elevation: 0,
-                          color: Theme.of(context).colorScheme.surface,
-                          margin: const EdgeInsets.symmetric(vertical: 6),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.all(16),
+                          final doc = filteredExperts[index];
+                          final data = doc.data() as Map<String, dynamic>;
 
-                            leading: CircleAvatar(
-                              radius: 22,
-                              backgroundColor: Theme.of(context).colorScheme.primary,
-                              child: const Icon(
-                                Icons.medical_services,
-                                color: Colors.white,
+                          final role = data['role'] ?? '';
+                          final name = data['name'] ?? "Uzman";
+                          final hospital = data['hospital'] ?? "Kurum bilgisi yok";
+
+                          return Card(
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(16),
+
+                              leading: CircleAvatar(
+                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                child: const Icon(Icons.medical_services, color: Colors.white),
                               ),
-                            ),
 
-                            title: Text(
-                              name,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                              title: Text(
+                                name,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
                               ),
-                            ),
 
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  role == 'dietitian'
-                                      ? "Diyetisyen"
-                                      : "Jinekolog",
-                                  style: const TextStyle(fontWeight: FontWeight.w500),
-                                ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  hospital,
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                                    fontSize: 13,
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(role == 'dietitian' ? "Diyetisyen" : "Jinekolog"),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    hospital,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withOpacity(0.6),
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
 
-                            trailing: SizedBox(
-                              width: 100,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Theme.of(context).colorScheme.primary,
-                                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  minimumSize: Size.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                                onPressed: isClient
-                                    ? null
-                                    : () async {
+                              trailing: StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection("expert_requests")
+                                    .where("clientId", isEqualTo: currentUserId)
+                                    .where("expertId", isEqualTo: doc.id)
+                                    .snapshots(),
 
-                                  final requestId = "${currentUserId}_${doc.id}";
-                                  final docRef = FirebaseFirestore.instance
-                                      .collection("expert_requests")
-                                      .doc(requestId);
+                                builder: (context, snap) {
 
-                                  final existingDoc = await docRef.get();
+                                  bool isAssigned =
+                                      assignedDoctor == doc.id ||
+                                          assignedDietitian == doc.id;
 
-                                  if (!mounted) return;
-
-                                  if (existingDoc.exists) {
-                                    final status = existingDoc['status'];
-
-                                    if (status == "pending") {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content: Text("Zaten istek gönderdiniz ⏳")),
-                                      );
-                                      return;
-                                    }
-
-                                    if (status == "approved") {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content: Text("Zaten danışansınız ✅")),
-                                      );
-                                      return;
-                                    }
+                                  if (isAssigned) {
+                                    return ElevatedButton(
+                                      onPressed: null,
+                                      child: const Text("Danışan"),
+                                    );
                                   }
 
-                                  await docRef.set({
-                                    "clientId": currentUserId,
-                                    "expertId": doc.id,
-                                    "status": "pending",
-                                    "createdAt": FieldValue.serverTimestamp(),
-                                  });
+                                  String status = "none";
 
-                                  if (!mounted) return;
+                                  if (snap.hasData && snap.data!.docs.isNotEmpty) {
+                                    final reqData = snap.data!.docs.first.data() as Map<String, dynamic>;
+                                    status = reqData['status'].toString().toLowerCase();
+                                  }
 
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: const Text("İstek gönderildi ✅"),
-                                      backgroundColor: Theme.of(context).colorScheme.primary,
-                                    ),
+                                  if (status == "pending") {
+                                    return ElevatedButton(
+                                      onPressed: null,
+                                      child: const Text("Beklemede"),
+                                    );
+                                  }
+
+                                  return ElevatedButton(
+                                    onPressed: () async {
+                                      await FirebaseFirestore.instance
+                                          .collection("expert_requests")
+                                          .add({
+                                        "clientId": currentUserId,
+                                        "expertId": doc.id,
+                                        "status": "pending",
+                                        "createdAt": FieldValue.serverTimestamp(),
+                                      });
+
+                                      showSnack("İstek gönderildi ✅");
+                                    },
+                                    child: const Text("İstek"),
                                   );
                                 },
-                                child: Text(
-                                  isClient ? "Danışan" : "İstek",
-                                  style: const TextStyle(fontSize: 12),
-                                ),
                               ),
                             ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

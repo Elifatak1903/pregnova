@@ -12,7 +12,6 @@ import {
   doc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
-/* FIREBASE */
 const app = initializeApp({
   apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
   authDomain: "pregnova-38391.firebaseapp.com",
@@ -24,40 +23,82 @@ const db = getFirestore(app);
 document.addEventListener("DOMContentLoaded", () => {
 
   const list = document.getElementById("measurementsList");
+  const filter = document.getElementById("dateFilter");
 
-  if (!list) {
-    console.error("❌ measurementsList bulunamadı");
+  if (!list || !filter) {
+    console.error("❌ elements bulunamadı");
     return;
   }
 
-  /* SON 7 GÜN */
-  const sevenDaysAgo = Timestamp.fromDate(
-    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-  );
+  const params = new URLSearchParams(window.location.search);
+  const selectedUid = params.get("uid");
+  const selectedTarih = params.get("tarih");
+  const selectedDateFromUrl = selectedTarih
+    ? new Date(Number(selectedTarih) * 1000).toLocaleDateString()
+    : null;
 
-  /* QUERY */
+  let allDocs = [];
+  let selectedDate = null;
+
   const q = query(
     collection(db, "risk_olcumleri"),
-    where("tarih", ">", sevenDaysAgo),
     orderBy("tarih", "desc")
   );
 
-  /* REALTIME */
-  onSnapshot(q, (snapshot) => {
-
-    list.innerHTML = "";
+  onSnapshot(q, async (snapshot) => {
 
     if (snapshot.empty) {
-      list.innerHTML = "<p>Son 7 günde ölçüm yok</p>";
+      list.innerHTML = "<p>Ölçüm yok</p>";
       return;
     }
 
-    snapshot.forEach(async (docSnap) => {
+    allDocs = snapshot.docs;
 
+    const dates = [...new Set(allDocs.map(d =>
+      d.data().tarih.toDate().toLocaleDateString()
+    ))];
+
+    if (!selectedDate) {
+      selectedDate = selectedDateFromUrl || dates[0];
+    }
+
+    filter.innerHTML = "";
+
+    dates.forEach(d => {
+      const opt = document.createElement("option");
+      opt.value = d;
+      opt.innerText = d;
+      filter.appendChild(opt);
+    });
+
+    filter.value = selectedDate;
+
+    renderList();
+
+    filter.onchange = () => {
+      selectedDate = filter.value;
+      renderList();
+    };
+
+  }, (error) => {
+    console.error("Firestore hata:", error);
+  });
+
+  async function renderList() {
+
+    list.innerHTML = "";
+
+    const filtered = allDocs.filter(doc => {
+      const d = doc.data().tarih.toDate().toLocaleDateString();
+      return d === selectedDate;
+    });
+
+    for (let index = 0; index < filtered.length; index++) {
+
+      const docSnap = filtered[index];
       const data = docSnap.data();
       const uid = data.uid;
 
-      /* USER ÇEK */
       let name = "Hasta";
       let surname = "";
 
@@ -72,30 +113,68 @@ document.addEventListener("DOMContentLoaded", () => {
       const div = document.createElement("div");
       div.className = "measurement-card";
 
+      div.id = `item-${data.tarih.seconds}`;
+
       div.innerHTML = `
-        <div class="left">
-          <div class="avatar">❤️</div>
-          <div>
+        <div class="measurement-full-card">
+
+          <div class="top">
             <b>${name} ${surname}</b>
-            <div class="time">${formatDate(data.tarih)}</div>
+            <span class="time">${formatDate(data.tarih)}</span>
           </div>
+
+          <div class="info">
+            <div>Tansiyon: ${data.sistolik || "-"} / ${data.diastolik || "-"}</div>
+            <div>Açlık: ${data.aclikSeker || "-"}</div>
+            <div>Tokluk: ${data.toklukSeker || "-"}</div>
+            <div>Stres: ${data.stresSeviyesi || "-"}</div>
+          </div>
+
+          <div class="risk">
+            Preeklampsi: ${formatRiskText(data.preeklampsiRisk ?? "-")} <br>
+            Diyabet: ${formatRiskText(data.diyabetRisk ?? "-")} <br>
+            Preterm: ${formatRiskText(data.pretermRisk ?? "-")}
+          </div>
+
+          <div class="action">
+            <button onclick="goDetail('${uid}', '${name}', '${surname}', ${index})">
+              Detaylı İncele ➜
+            </button>
+          </div>
+
         </div>
-        <div>➡️</div>
       `;
 
-      /* POPUP */
-      div.onclick = () => openPopup(data, name, surname);
-
       list.appendChild(div);
-    });
 
-  }, (error) => {
-    console.error("Firestore hata:", error);
-  });
+      if (
+        selectedUid &&
+        selectedTarih &&
+        selectedUid == uid &&
+        Number(selectedTarih) === data.tarih.seconds
+      ) {
+        setTimeout(() => {
+          div.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+
+          div.style.border = "2px solid #7C4DFF";
+          div.style.background = "rgba(124,77,255,0.1)";
+
+          div.animate([
+            { transform: "scale(1)" },
+            { transform: "scale(1.03)" },
+            { transform: "scale(1)" }
+          ], { duration: 400 });
+
+        }, 400);
+      }
+    }
+  }
 
 });
 
-/* TIME FORMAT */
 function timeAgo(timestamp) {
 
   if (!timestamp) return "";
@@ -250,3 +329,8 @@ function formatRiskText(risk) {
 
   return risk;
 }
+
+window.goDetail = function(uid, name, surname, index) {
+  window.location.href =
+    `patient_detail.html?uid=${uid}&name=${name} ${surname}&index=${index}`;
+};

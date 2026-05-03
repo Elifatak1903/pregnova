@@ -32,14 +32,13 @@ class MessagePage extends StatelessWidget {
     return newChat.id;
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
+
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection("users")
@@ -48,9 +47,11 @@ class MessagePage extends StatelessWidget {
         builder: (context, snapshot) {
 
           if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator(
-              color: Theme.of(context).colorScheme.primary,
-            ));
+            return Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            );
           }
 
           final data = snapshot.data!.data() as Map<String, dynamic>?;
@@ -58,21 +59,43 @@ class MessagePage extends StatelessWidget {
           final doctorId = data?["assignedDoctor"];
           final dietitianId = data?["assignedDietitian"];
 
-          print("UID: $uid");
-          print("Doctor: $doctorId");
-
           if (doctorId == null && dietitianId == null) {
-            return Center(child: Text(
-              "Henüz uzman yok 😔",
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
+            return Center(
+              child: Text(
+                "Henüz uzman yok 😔",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
-            ));
+            );
           }
 
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
+
+              /// 🔥 ORTALI BAŞLIK
+              Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.chat_bubble_outline,
+                        color: Theme.of(context).colorScheme.primary),
+                    const SizedBox(width: 8),
+                    Text(
+                      "MESAJLAR",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
               if (doctorId != null && doctorId.toString().isNotEmpty)
                 _card(context, doctorId, "Doktor"),
 
@@ -126,14 +149,7 @@ class MessagePage extends StatelessWidget {
               builder: (context, userSnap) {
 
                 if (!userSnap.hasData) {
-                  return ListTile(
-                    title: Text(
-                      "Yükleniyor...",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                  );
+                  return const SizedBox();
                 }
 
                 final userData =
@@ -146,48 +162,36 @@ class MessagePage extends StatelessWidget {
                 if (role == "Diyetisyen") prefix = "Dyt.";
 
                 return Card(
-                  color: Theme.of(context).colorScheme.surface,
                   margin: const EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      child: const Icon(Icons.person, color: Colors.white),
+                      backgroundColor:
+                      Theme.of(context).colorScheme.primary,
+                      child: const Icon(Icons.person,
+                          color: Colors.white),
                     ),
+
                     title: Text(
                       "$prefix $name",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+
                     subtitle: Text(
                       lastMessage,
-                      style: TextStyle(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withOpacity(0.7),
-                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          timeText,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withOpacity(0.6),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        // unread kısmı aynen kalıyor
-                      ],
+
+                    trailing: Text(
+                      timeText,
+                      style: const TextStyle(fontSize: 12),
                     ),
+
                     onTap: () {
                       Navigator.push(
                         context,

@@ -112,22 +112,39 @@ async function loadActivity() {
     const uid = data.uid;
 
     let name = "Hasta";
+    let surname = "";
 
     if (uid) {
-      const userRef = doc(db, "users", uid);
-      const userDoc = await getDoc(userRef);
-
+      const userDoc = await getDoc(doc(db, "users", uid));
       const user = userDoc.data();
+
       name = user?.name || "Hasta";
+      surname = user?.surname || "";
     }
 
     const div = document.createElement("div");
-    div.className = "activity-item";
+    div.className = "activity-item clickable";
+
+    div.onclick = () => {
+
+      document.querySelectorAll(".measurement-card")
+        .forEach(el => el.classList.remove("selected"));
+
+      div.classList.add("selected");
+
+      setTimeout(() => {
+        window.location.href =
+          `son_olcumler.html?uid=${uid}&tarih=${data.tarih.seconds}`;
+      }, 150);
+
+    };
 
     div.innerHTML = `
-      <b>${name}</b> yeni ölçüm gönderdi
-      <br>
-      <span class="time">${timeAgo(data.tarih)}</span>
+      <div class="activity-content">
+        <b>${name} ${surname}</b> yeni ölçüm gönderdi
+        <br>
+        <span class="time">${timeAgo(data.tarih)}</span>
+      </div>
     `;
 
     container.appendChild(div);

@@ -200,6 +200,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
           final surname = data["surname"] ?? "";
           final hafta = data["hafta"] ?? "-";
           final kilo = data["kilo"] ?? "-";
+          final alerji = data["alerjiler"] ?? "";
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
@@ -228,6 +229,15 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                         Text("Gebelik Haftası: $hafta"),
                         const SizedBox(height: 10),
                         Text("Güncel Kilo: $kilo kg"),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Icon(Icons.warning_amber_rounded,
+                                color: Colors.red, size: 18),
+                            const SizedBox(width: 6),
+                            Text("Alerjiler: $alerji"),
+                          ],
+                        )
                       ],
                     ),
                   ),
@@ -280,7 +290,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                     return Container(
                       height: 220,
 
-                      /// 🔥 SOLA ALDIK (İNCE AYAR)
                       padding: const EdgeInsets.fromLTRB(4, 10, 10, 10),
 
                       child: spots.isEmpty
@@ -288,11 +297,10 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                           : LineChart(
                         LineChartData(
 
-                          /// 🔥 SABİT 7 GÜN
                           minX: 0,
                           maxX: 6,
 
-                          /// 📊 Y SCALE (CRASH ÖNLEMİ)
+
                           minY: spots.isEmpty
                               ? 0
                               : spots.map((e) => e.y).reduce((a, b) => a < b ? a : b) - 2,
@@ -301,7 +309,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                               ? 10
                               : spots.map((e) => e.y).reduce((a, b) => a > b ? a : b) + 2,
 
-                          /// 📈 LINE
                           lineBarsData: [
                             LineChartBarData(
                               spots: spots,
@@ -315,7 +322,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
 
                           titlesData: FlTitlesData(
 
-                            /// 🔽 ALT (7 GÜN SABİT)
                             bottomTitles: AxisTitles(
                               sideTitles: SideTitles(
                                 showTitles: true,
@@ -342,7 +348,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                               ),
                             ),
 
-                            /// 🔥 SOL SAYILAR (5'İN KATLARI)
                             leftTitles: AxisTitles(
                               sideTitles: SideTitles(
                                 showTitles: true,
@@ -376,7 +381,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                             ),
                           ),
 
-                          /// 🔥 GRID (7 PARÇA)
                           gridData: FlGridData(
                             show: true,
                             horizontalInterval: 5,
@@ -397,7 +401,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                             },
                           ),
 
-                          /// 🎯 TOOLTIP
                           lineTouchData: LineTouchData(
                             touchTooltipData: LineTouchTooltipData(
                               getTooltipItems: (touchedSpots) {
@@ -441,7 +444,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                   future: calorieFuture,
                   builder: (context, snapshot) {
 
-                    /// ❌ HATA
                     if (snapshot.hasError) {
                       print("❌ CALORIE ERROR: ${snapshot.error}");
                       return const SizedBox(
@@ -450,7 +452,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                       );
                     }
 
-                    /// ⏳ LOADING
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       print("⏳ CALORIE LOADING...");
                       return const SizedBox(
@@ -459,7 +460,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                       );
                     }
 
-                    /// 🚨 DATA YOK
                     if (!snapshot.hasData) {
                       print("❌ CALORIE DATA YOK");
                       return const SizedBox(
@@ -473,7 +473,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
 
                     print("📊 CALORIE SPOTS: ${spots.length}");
 
-                    /// 📭 BOŞ VERİ
                     if (spots.isEmpty) {
                       print("⚠️ CALORIE BOŞ");
                       return const SizedBox(
@@ -537,7 +536,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                               ),
                             ),
 
-                            /// 🔥 SOL SAYILAR (100 kcal aralık)
                             leftTitles: AxisTitles(
                               sideTitles: SideTitles(
                                 showTitles: true,

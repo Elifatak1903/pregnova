@@ -127,10 +127,20 @@ body {
 }
 
 .activity-item {
-  background: rgba(124,77,255,0.08);
+  background: var(--card);
   padding: 12px;
-  border-radius: 10px;
+  border-radius: 12px;
   margin-bottom: 10px;
+  transition: 0.2s;
+}
+
+.activity-item.clickable {
+  cursor: pointer;
+}
+
+.activity-item.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 /* CHART */
@@ -252,4 +262,9 @@ body {
   font-size: 10px;
   padding: 3px 6px;
   border-radius: 50%;
+}
+
+.measurement-card.selected {
+  border: 2px solid #7C4DFF;
+  background: rgba(124,77,255,0.1);
 }

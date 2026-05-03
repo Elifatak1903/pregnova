@@ -17,6 +17,7 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
   final kiloController = TextEditingController();
   final haftaController = TextEditingController();
   final boyController = TextEditingController();
+  final alerjiController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   bool chronicHypertension = false;
@@ -32,6 +33,7 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
     kiloController.dispose();
     haftaController.dispose();
     boyController.dispose();
+    alerjiController.dispose();
     super.dispose();
   }
 
@@ -59,6 +61,7 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
         'boy': boyCm,
         'bmi': bmi,
         'hafta': int.tryParse(haftaController.text.trim()) ?? 0,
+        'alerjiler': alerjiController.text.trim(),
 
         'chronicHypertension': chronicHypertension,
         'diabetes': diabetes,
@@ -66,6 +69,7 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
         'previousPreterm': previousPreterm,
         'multiplePregnancy': multiplePregnancy,
         'smoker': smoker,
+
 
         'profilTamamlandi': true,
         'updatedAt': FieldValue.serverTimestamp(),
@@ -215,6 +219,12 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
                     label: "Hamilelik Haftası",
                     icon: Icons.calendar_today,
                     type: TextInputType.number,
+                  ),
+
+                  buildInputField(
+                    controller: alerjiController,
+                    label: "Alerjiler (örn: fıstık, süt)",
+                    icon: Icons.warning_amber_rounded,
                   ),
 
                   const SizedBox(height: 20),
