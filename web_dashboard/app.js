@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { renderSidebar } from "./sidebar.js";
 import {
   getFirestore,
   doc,
@@ -20,7 +21,9 @@ const app = initializeApp({
 
 const auth = getAuth(app);
 const db = getFirestore(app);
-export{ db };
+export { app, auth, db };
+
+ensureSidebarCssLast();
 
 /* NAV */
 window.go = function(page) {
@@ -49,6 +52,7 @@ onAuthStateChanged(auth, async (user) => {
 
   document.body.className = role;
   document.body.classList.add("ready");
+  renderSidebar(role);
 });
 
 /* NOTIFICATION */
@@ -83,17 +87,19 @@ function loadNotifications(uid) {
     let unread = 0;
 
     snapshot.forEach(docSnap => {
+      if (!docSnap.data().isRead) unread++;
+    });
+
+    snapshot.docs.slice(0, 7).forEach(docSnap => {
 
       const data = docSnap.data();
-
-      if (!data.isRead) unread++;
 
       const div = document.createElement("div");
       div.className = "notif-item";
 
       div.innerHTML = `
-        <b>${data.title}</b><br>
-        <small>${data.message}</small>
+        <b>${data.title || "Bildirim"}</b><br>
+        <small>${data.message || ""}</small>
       `;
 
       list.appendChild(div);
@@ -107,4 +113,15 @@ function loadNotifications(uid) {
     }
 
   });
+}
+
+function ensureSidebarCssLast() {
+  const href = "css/sidebar.css";
+  const existing = [...document.querySelectorAll("link[rel='stylesheet']")]
+    .find(link => link.getAttribute("href") === href);
+
+  if (!existing) return;
+
+  existing.remove();
+  document.head.appendChild(existing);
 }
