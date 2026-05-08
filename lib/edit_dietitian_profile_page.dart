@@ -46,7 +46,7 @@ class _EditDietitianProfilePageState
       expertiseController.text = data["expertise"] ?? "";
       experienceController.text = data["experience"] ?? "";
       institutionController.text = data["institution"] ?? "";
-      diplomaUrl = data["diploma"];
+      diplomaUrl = data["diplomaUrl"] ?? data["diploma"];
     }
   }
 
@@ -62,6 +62,7 @@ class _EditDietitianProfilePageState
       "expertise": expertiseController.text,
       "experience": experienceController.text,
       "institution": institutionController.text,
+      "diplomaUrl": diplomaUrl,
       "diploma": diplomaUrl,
     });
 

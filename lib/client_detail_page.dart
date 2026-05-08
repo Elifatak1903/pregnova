@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'besin_analiz_detay_page.dart';
+import 'food_units.dart';
+import 'nutrition_engine.dart';
 
 class ChartData {
   final List<FlSpot> spots;
@@ -148,7 +150,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
 
       String key = "${date.year}-${date.month}-${date.day}";
 
-      calorieMap[key] = kalori;
+      calorieMap[key] = (calorieMap[key] ?? 0) + kalori;
     }
 
     List<FlSpot> spots = [];
@@ -159,11 +161,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
 
       double kalori;
 
-      if (calorieMap.containsKey(key)) {
-        kalori = calorieMap[key]!;
-      } else {
-        kalori = i > 0 ? spots[i - 1].y : 0;
-      }
+      kalori = calorieMap[key] ?? 0;
 
       spots.add(FlSpot(i.toDouble(), kalori));
     }
@@ -630,45 +628,14 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                       );
                     }
 
-                    final docs = snapshot.data!.docs;
+                    final groups = groupBesinDocsByDay(snapshot.data!.docs);
 
                     return ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      itemCount: docs.length,
+                      itemCount: groups.length,
                       itemBuilder: (context, index) {
-
-                        final doc = docs[index];
-                        final data = doc.data() as Map<String, dynamic>;
-
-                        final ts = data["createdAt"];
-                        final tarih = ts is Timestamp
-                            ? ts.toDate()
-                            : null;
-
-                        final rawKalori = data["kalori"];
-                        double kalori;
-
-                        if (rawKalori is int) {
-                          kalori = rawKalori.toDouble();
-                        } else if (rawKalori is double) {
-                          kalori = rawKalori;
-                        } else if (rawKalori is String) {
-                          kalori = double.tryParse(rawKalori) ?? 0;
-                        } else {
-                          kalori = 0;
-                        }
-
-                        final takviyeler = (data["takviyeler"] as List?) ?? [];
-                        final eksikler = (data["missingNutrients"] as List?) ?? [];
-
-                        return _BesinCard(
-                          tarih: tarih,
-                          takviyeler: takviyeler,
-                          kalori: kalori,
-                          docId: doc.id,
-                          missingNutrients: eksikler,
-                        );
+                        return _BesinDayCard(group: groups[index]);
                       },
                     );
                   },
@@ -833,4 +800,205 @@ class _BesinCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _BesinDayCard extends StatelessWidget {
+  final _BesinDayGroup group;
+
+  const _BesinDayCard({required this.group});
+
+  @override
+  Widget build(BuildContext context) {
+    final summary = summarizeBesinDay(group.items);
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).shadowColor.withOpacity(0.15),
+            blurRadius: 6,
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            group.dayLabel,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ...group.items.asMap().entries.map((entry) {
+            final index = entry.key;
+            final item = entry.value;
+            final takviyeler = (item.data["takviyeler"] as List?) ?? [];
+            final time =
+                "${item.date.hour.toString().padLeft(2, '0')}:${item.date.minute.toString().padLeft(2, '0')}";
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BesinAnalizDetayPage(docId: item.id),
+                    ),
+                  );
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "${index + 1}. Analiz - $time",
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text("Kalori: ${item.calorie.toStringAsFixed(0)} kcal"),
+                    if (takviyeler.isNotEmpty)
+                      Text(
+                        "Takviyeler: ${takviyeler.map((t) => t is Map ? t["ad"] ?? "" : t.toString()).take(3).join(", ")}",
+                      ),
+                  ],
+                ),
+              ),
+            );
+          }),
+          const Divider(),
+          Text(
+            "Günlük Toplam: ${summary.calorie.toStringAsFixed(0)} kcal",
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          if (summary.missing.isNotEmpty)
+            ...summary.missing.take(4).map((m) => Row(
+                  children: [
+                    const Icon(Icons.close, color: Colors.red, size: 16),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        m,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                )),
+          if (summary.consumed.isNotEmpty)
+            Text(
+              "Alınanlar: ${summary.consumed.take(4).join(", ")}",
+              style: const TextStyle(color: Colors.green),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BesinDayGroup {
+  final String dayLabel;
+  final List<_BesinAnalysisItem> items;
+
+  const _BesinDayGroup({required this.dayLabel, required this.items});
+}
+
+class _BesinAnalysisItem {
+  final String id;
+  final DateTime date;
+  final Map<String, dynamic> data;
+
+  const _BesinAnalysisItem({
+    required this.id,
+    required this.date,
+    required this.data,
+  });
+
+  double get calorie {
+    final raw = data["kalori"];
+    if (raw is num) return raw.toDouble();
+    return double.tryParse(raw?.toString() ?? "") ?? 0;
+  }
+}
+
+class _BesinSummary {
+  final double calorie;
+  final List<String> consumed;
+  final List<String> missing;
+
+  const _BesinSummary({
+    required this.calorie,
+    required this.consumed,
+    required this.missing,
+  });
+}
+
+List<_BesinDayGroup> groupBesinDocsByDay(List<QueryDocumentSnapshot> docs) {
+  final groups = <String, List<_BesinAnalysisItem>>{};
+
+  for (final doc in docs) {
+    final data = doc.data() as Map<String, dynamic>;
+    final date = readBesinAnalysisDate(data);
+    if (date == null) continue;
+
+    final key = "${date.day}/${date.month}/${date.year}";
+    groups.putIfAbsent(key, () => []).add(
+          _BesinAnalysisItem(id: doc.id, date: date, data: data),
+        );
+  }
+
+  return groups.entries.map((entry) {
+    entry.value.sort((a, b) => a.date.compareTo(b.date));
+    return _BesinDayGroup(dayLabel: entry.key, items: entry.value);
+  }).toList();
+}
+
+DateTime? readBesinAnalysisDate(Map<String, dynamic> data) {
+  final raw = data["createdAt"] ?? data["tarih"];
+  if (raw is Timestamp) return raw.toDate();
+  if (raw != null) return DateTime.tryParse(raw.toString());
+  return null;
+}
+
+_BesinSummary summarizeBesinDay(List<_BesinAnalysisItem> items) {
+  final foods = <Map<String, dynamic>>[];
+  final supplements = <Map<String, dynamic>>[];
+
+  for (final item in items) {
+    for (final raw in (item.data["besinler"] as List? ?? [])) {
+      final data = Map<String, dynamic>.from(raw as Map);
+      final unitGram = FoodUnits.units[data["format"]] ?? 1;
+      final amount = double.tryParse(data["miktar"].toString()) ?? 0;
+
+      foods.add({
+        "name": data["ad"],
+        "amount": unitGram * amount,
+      });
+    }
+
+    for (final raw in (item.data["takviyeler"] as List? ?? [])) {
+      final data = Map<String, dynamic>.from(raw as Map);
+
+      supplements.add({
+        "name": data["ad"],
+        "amount": data["miktar"],
+      });
+    }
+  }
+
+  final result = NutritionEngine.analyzeFoods(foods, supplements);
+
+  return _BesinSummary(
+    calorie: (result["totalCalories"] as num?)?.toDouble() ?? 0,
+    consumed: List<String>.from(result["consumedNutrients"] ?? []),
+    missing: List<String>.from(result["missingNutrients"] ?? []),
+  );
 }

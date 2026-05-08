@@ -5,13 +5,13 @@ import {
   getDocs,
   doc,
   updateDoc,
-  getDoc
+  getDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const db = window.db;
 const auth = window.auth;
 
-/* AUTH */
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
     window.location.href = "login.html";
@@ -21,13 +21,10 @@ auth.onAuthStateChanged(async (user) => {
   loadRequests(user.uid);
 });
 
-/* LOAD REQUESTS */
 async function loadRequests(uid) {
-
   const container = document.getElementById("requestList");
 
   try {
-
     const q = query(
       collection(db, "expert_requests"),
       where("expertId", "==", uid),
@@ -44,25 +41,31 @@ async function loadRequests(uid) {
     container.innerHTML = "";
 
     for (const docSnap of snapshot.docs) {
-
-      const data = docSnap.data();
+      const request = docSnap.data();
       const requestId = docSnap.id;
-      const clientId = data.clientId;
+      const clientId = request.clientId;
 
-      /* USER GET */
       const userSnap = await getDoc(doc(db, "users", clientId));
-      const u = userSnap.data();
+      const user = userSnap.data() || {};
 
       const div = document.createElement("div");
       div.className = "request-card";
 
       div.innerHTML = `
         <div class="req-info">
-          <div class="req-name">
-            ${u.name || ""} ${u.surname || ""}
-          </div>
-          <div class="req-meta">
-            Hafta: ${u.hafta || "-"}
+          <div class="req-name">${fullName(user)}</div>
+          <div class="req-id">Hasta ID: ${clientId}</div>
+          <div class="req-id">İstek ID: ${requestId}</div>
+
+          <div class="req-grid">
+            ${detail("E-posta", user.email)}
+            ${detail("Telefon", user.phone)}
+            ${detail("Gebelik haftası", user.hafta)}
+            ${detail("Boy", formatUnit(user.boy, "cm"))}
+            ${detail("Kilo", formatUnit(user.kilo, "kg"))}
+            ${detail("BMI", user.bmi || user.BMI)}
+            ${detail("Risk", riskText(user.riskLevel))}
+            ${detail("Alerji", user.allergy || user.alerji)}
           </div>
         </div>
 
@@ -72,58 +75,71 @@ async function loadRequests(uid) {
         </div>
       `;
 
-      /* BUTTON EVENTS */
-      const approveBtn = div.querySelector(".btn-approve");
-      const rejectBtn = div.querySelector(".btn-reject");
-
-      approveBtn.onclick = () => approveRequest(requestId, clientId, uid);
-      rejectBtn.onclick = () => rejectRequest(requestId);
+      div.querySelector(".btn-approve").onclick = () =>
+        approveRequest(requestId, clientId, uid);
+      div.querySelector(".btn-reject").onclick = () => rejectRequest(requestId);
 
       container.appendChild(div);
     }
-
   } catch (err) {
     console.error(err);
     container.innerHTML = "Hata oluştu";
   }
 }
 
-/* APPROVE */
 async function approveRequest(requestId, clientId, expertId) {
-
   try {
-
-    // request update
     await updateDoc(doc(db, "expert_requests", requestId), {
-      status: "approved"
+      status: "approved",
+      approvedAt: serverTimestamp()
     });
 
-    // kullanıcıya diyetisyen ata
     await updateDoc(doc(db, "users", clientId), {
       assignedDietitian: expertId
     });
 
     alert("Kabul edildi");
     location.reload();
-
   } catch (err) {
     console.error(err);
   }
 }
 
-/* REJECT */
 async function rejectRequest(requestId) {
-
   try {
-
     await updateDoc(doc(db, "expert_requests", requestId), {
-      status: "rejected"
+      status: "rejected",
+      rejectedAt: serverTimestamp()
     });
 
     alert("Reddedildi");
     location.reload();
-
   } catch (err) {
     console.error(err);
   }
+}
+
+function fullName(user) {
+  const name = `${user.name || ""} ${user.surname || ""}`.trim();
+  return name || "İsimsiz hasta";
+}
+
+function detail(label, value) {
+  return `
+    <div class="req-detail">
+      <span>${label}</span>
+      <strong>${value || "-"}</strong>
+    </div>
+  `;
+}
+
+function formatUnit(value, unit) {
+  return value ? `${value} ${unit}` : "-";
+}
+
+function riskText(value) {
+  if (value === "high") return "Yüksek";
+  if (value === "medium") return "Orta";
+  if (value === "normal") return "Normal";
+  return value || "-";
 }

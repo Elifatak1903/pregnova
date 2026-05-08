@@ -8,6 +8,10 @@ import {
   orderBy
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
+import { FoodUnits } from "./foodUnits.js";
+import { NutritionEngine } from "./nutritionEngine.js";
+import { SupplementUnits } from "./supplementUnits.js";
+
 const db = window.db;
 
 /* URL'den id al */
@@ -97,8 +101,7 @@ async function loadCalorieChart() {
 
     const snap = await getDocs(q);
 
-    const labels = [];
-    const values = [];
+    const dailyCalories = new Map();
 
     snap.forEach(docSnap => {
       const d = docSnap.data();
@@ -109,9 +112,17 @@ async function loadCalorieChart() {
         ? d.createdAt.toDate()
         : new Date(d.createdAt);
 
-      labels.push(date.toLocaleDateString("tr-TR"));
-      values.push(d.kalori || 0);
+      const key = date.toLocaleDateString("tr-TR");
+      const kalori = Number(d.kalori) || 0;
+
+      dailyCalories.set(
+        key,
+        (dailyCalories.get(key) || 0) + kalori
+      );
     });
+
+    const labels = Array.from(dailyCalories.keys());
+    const values = Array.from(dailyCalories.values());
 
     if (calorieChart) calorieChart.destroy();
 
@@ -120,7 +131,7 @@ async function loadCalorieChart() {
       data: {
         labels,
         datasets: [{
-          label: "Kalori",
+          label: "Günlük Toplam Kalori",
           data: values,
           tension: 0.3
         }]
@@ -140,8 +151,7 @@ async function loadAnalysis() {
 
     const q = query(
       collection(db, "besin_analizleri"),
-      where("uid", "==", clientId),
-      orderBy("createdAt", "desc")
+      where("uid", "==", clientId)
     );
 
     const snap = await getDocs(q);
@@ -152,29 +162,36 @@ async function loadAnalysis() {
     }
 
     container.innerHTML = "";
+    const groups = new Map();
 
     snap.forEach(docSnap => {
-
       const data = docSnap.data();
+      const date = getAnalysisDate(data);
+      if (!date) return;
 
-      const date = data.createdAt?.toDate
-        ? data.createdAt.toDate()
-        : new Date(data.createdAt);
+      const key = date.toLocaleDateString("tr-TR");
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push({ data, date });
+    });
+
+    Array.from(groups.entries())
+      .sort((a, b) => b[1][0].date - a[1][0].date)
+      .forEach(([day, items]) => {
+      items.sort((a, b) => a.date - b.date);
+      const total = summarizeAnalysisDay(items);
 
       const div = document.createElement("div");
       div.className = "analysis-item";
-
       div.innerHTML = `
-        <b>${date.toLocaleString("tr-TR")}</b>
-
-        <div>Kalori: ${data.kalori || 0} kcal</div>
-
+        <b>${day}</b>
+        ${items.map((item, index) => renderAnalysisLine(item, index)).join("")}
+        <hr>
+        <div><b>Günlük Toplam:</b> ${total.calorie.toFixed(0)} kcal</div>
         <div style="color:#EF5350">
-          Eksikler: ${(data.missingNutrients || []).slice(0,2).join(", ") || "-"}
+          Eksikler: ${total.missing.slice(0,4).join(", ") || "-"}
         </div>
-
         <div style="color:#00B894">
-          Takviyeler: ${(data.takviyeler || []).map(t => t.ad).slice(0,2).join(", ") || "-"}
+          Alınanlar: ${total.consumed.slice(0,4).join(", ") || "-"}
         </div>
       `;
 
@@ -185,6 +202,64 @@ async function loadAnalysis() {
     console.error("ANALYSIS ERROR:", err);
     container.innerHTML = "Hata oluştu";
   }
+}
+
+function renderAnalysisLine(item, index) {
+  const data = item.data;
+  const time = item.date.toLocaleTimeString("tr-TR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+  const takviyeler = (data.takviyeler || []).map(t => t.ad).slice(0, 2).join(", ") || "-";
+
+  return `
+    <div style="margin-top:10px">
+      <b>${index + 1}. Analiz - ${time}</b>
+      <div>Kalori: ${data.kalori || 0} kcal</div>
+      <div>Takviyeler: ${takviyeler}</div>
+    </div>
+  `;
+}
+
+function getAnalysisDate(data) {
+  const raw = data.createdAt || data.tarih;
+  if (raw?.toDate) return raw.toDate();
+  if (raw?.seconds) return new Date(raw.seconds * 1000);
+  return raw ? new Date(raw) : null;
+}
+
+function summarizeAnalysisDay(items) {
+  const foods = [];
+  const supplements = [];
+
+  items.forEach(({ data }) => {
+    (data.besinler || []).forEach(item => {
+      const gram = (FoodUnits.units[item.format] || 1) * Number(item.miktar || 0);
+
+      foods.push({
+        name: String(item.ad || "").toLowerCase(),
+        amount: gram
+      });
+    });
+
+    (data.takviyeler || []).forEach(item => {
+      const info = SupplementUnits[item.ad];
+
+      supplements.push({
+        name: item.ad,
+        amount: info ? Number(item.miktar || 0) * info.value : Number(item.miktar || 0),
+        unit: info ? info.unit : ""
+      });
+    });
+  });
+
+  const result = NutritionEngine.analyzeFoods(foods, supplements);
+
+  return {
+    calorie: result.totalCalories || 0,
+    consumed: result.consumedNutrients || [],
+    missing: result.missingNutrients || []
+  };
 }
 
 /* INIT */

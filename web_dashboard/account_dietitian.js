@@ -39,9 +39,11 @@ async function loadUser(uid) {
   document.getElementById("institution").innerText =
     data.institution || "-";
 
-  if (data.diplomaUrl) {
+  const diplomaUrl = data.diplomaUrl || data.diploma || null;
+
+  if (diplomaUrl) {
     document.getElementById("diplomaStatus").classList.remove("hidden");
-    window.diplomaUrl = data.diplomaUrl;
+    window.diplomaUrl = diplomaUrl;
   }
 }
 

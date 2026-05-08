@@ -14,13 +14,10 @@ class DietitianHomePage extends StatefulWidget {
   const DietitianHomePage({super.key});
 
   @override
-  State<DietitianHomePage> createState() =>
-      _DietitianHomePageState();
+  State<DietitianHomePage> createState() => _DietitianHomePageState();
 }
 
-class _DietitianHomePageState
-    extends State<DietitianHomePage> {
-
+class _DietitianHomePageState extends State<DietitianHomePage> {
   int _selectedIndex = 0;
   late final String uid;
 
@@ -37,7 +34,6 @@ class _DietitianHomePageState
         .where("status", isEqualTo: "approved")
         .get();
     return query.docs.length;
-
   }
 
   Future<int> getPendingCount() async {
@@ -50,9 +46,8 @@ class _DietitianHomePageState
   }
 
   Future<int> getActiveThisWeek() async {
-
     final sevenDaysAgo = Timestamp.fromDate(
-        DateTime.now().subtract(const Duration(days: 7))
+      DateTime.now().subtract(const Duration(days: 7)),
     );
 
     final query = await FirebaseFirestore.instance
@@ -88,7 +83,6 @@ class _DietitianHomePageState
           .where("status", isEqualTo: "pending")
           .snapshots(includeMetadataChanges: true),
       builder: (context, snapshot) {
-
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -98,22 +92,19 @@ class _DietitianHomePageState
         }
 
         if (snapshot.data!.metadata.isFromCache) {
-          return const SizedBox(); // 🔥 cache ignore
+          return const SizedBox();
         }
 
         final docs = snapshot.data!.docs;
 
         if (docs.isEmpty) {
-          return const Center(
-            child: Text("Bekleyen istek yok"),
-          );
+          return const Center(child: Text("Bekleyen istek yok"));
         }
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: docs.length,
           itemBuilder: (context, index) {
-
             final doc = docs[index];
             final clientId = doc["clientId"];
 
@@ -123,7 +114,6 @@ class _DietitianHomePageState
                   .doc(clientId)
                   .get(),
               builder: (context, userSnapshot) {
-
                 if (userSnapshot.connectionState == ConnectionState.waiting) {
                   return const Padding(
                     padding: EdgeInsets.all(10),
@@ -137,6 +127,14 @@ class _DietitianHomePageState
                 final name = userData["name"] ?? "";
                 final surname = userData["surname"] ?? "";
                 final hafta = userData["hafta"] ?? "-";
+                final email = userData["email"] ?? "-";
+                final phone = userData["phone"] ?? "-";
+                final boy = userData["boy"] ?? "-";
+                final kilo = userData["kilo"] ?? "-";
+                final bmi = userData["bmi"] ?? userData["BMI"] ?? "-";
+                final allergy =
+                    userData["allergy"] ?? userData["alerji"] ?? "-";
+                final risk = userData["riskLevel"] ?? "-";
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 14),
@@ -148,8 +146,10 @@ class _DietitianHomePageState
 
                     leading: CircleAvatar(
                       backgroundColor: Theme.of(context).colorScheme.primary,
-                      child: Icon(Icons.person,
-                          color: Theme.of(context).colorScheme.surface),
+                      child: Icon(
+                        Icons.person,
+                        color: Theme.of(context).colorScheme.surface,
+                      ),
                     ),
 
                     title: Text(
@@ -157,29 +157,55 @@ class _DietitianHomePageState
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
 
-                    subtitle: Text("Gebelik Haftası: $hafta"),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Hasta ID: $clientId"),
+                          Text("İstek ID: ${doc.id}"),
+                          const SizedBox(height: 6),
+                          Text("E-posta: $email"),
+                          Text("Telefon: $phone"),
+                          Text("Gebelik haftası: $hafta"),
+                          Text("Boy/Kilo: $boy cm / $kilo kg"),
+                          Text("BMI: $bmi"),
+                          Text("Risk: ${_riskText(risk)}"),
+                          Text("Alerji: $allergy"),
+                        ],
+                      ),
+                    ),
 
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-
                         IconButton(
                           icon: const Icon(Icons.close, color: Colors.red),
                           onPressed: () {
-                            doc.reference.update({'status': 'rejected'});
+                            doc.reference.update({
+                              'status': 'rejected',
+                              'rejectedAt': FieldValue.serverTimestamp(),
+                            });
                           },
                         ),
 
                         IconButton(
-                          icon: Icon(Icons.check,
-                              color: Theme.of(context).colorScheme.primary),
+                          icon: Icon(
+                            Icons.check,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                           onPressed: () async {
-
-                            setState(() {
-                              docs.removeAt(index); // 🔥 smooth
+                            await doc.reference.update({
+                              'status': 'approved',
+                              'approvedAt': FieldValue.serverTimestamp(),
                             });
 
-                            await doc.reference.update({'status': 'approved'});
+                            await FirebaseFirestore.instance
+                                .collection("users")
+                                .doc(clientId)
+                                .set({
+                                  'assignedDietitian': uid,
+                                }, SetOptions(merge: true));
                           },
                         ),
                       ],
@@ -203,7 +229,6 @@ class _DietitianHomePageState
           .limit(5)
           .snapshots(),
       builder: (context, snapshot) {
-
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -219,7 +244,6 @@ class _DietitianHomePageState
           physics: const NeverScrollableScrollPhysics(),
           itemCount: docs.length,
           itemBuilder: (context, index) {
-
             final doc = docs[index];
             final data = doc.data() as Map<String, dynamic>;
 
@@ -232,7 +256,6 @@ class _DietitianHomePageState
                   .doc(patientId)
                   .get(),
               builder: (context, userSnap) {
-
                 if (userSnap.connectionState == ConnectionState.waiting) {
                   return const SizedBox();
                 }
@@ -248,9 +271,7 @@ class _DietitianHomePageState
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ClientDetailPage(
-                          clientId: patientId,
-                        ),
+                        builder: (_) => ClientDetailPage(clientId: patientId),
                       ),
                     );
                   },
@@ -263,9 +284,11 @@ class _DietitianHomePageState
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
-                          color: Theme.of(context).shadowColor.withOpacity(0.2),
+                          color: Theme.of(
+                            context,
+                          ).shadowColor.withValues(alpha: 0.2),
                           blurRadius: 6,
-                        )
+                        ),
                       ],
                     ),
                     child: Row(
@@ -314,13 +337,9 @@ class _DietitianHomePageState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           const Text(
-            "Diyetisyen Paneli 🥗",
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
+            "Diyetisyen Paneli",
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
 
           const SizedBox(height: 25),
@@ -333,7 +352,6 @@ class _DietitianHomePageState
             mainAxisSpacing: 15,
             childAspectRatio: 0.9,
             children: [
-
               FutureBuilder<int>(
                 future: getApprovedCount(),
                 builder: (context, snapshot) {
@@ -341,7 +359,7 @@ class _DietitianHomePageState
                     "Danışan",
                     snapshot.data?.toString() ?? "...",
                     Icons.people,
-                        () {
+                    () {
                       setState(() {
                         _selectedIndex = 1;
                       });
@@ -357,7 +375,7 @@ class _DietitianHomePageState
                     "Bekleyen İstek",
                     snapshot.data?.toString() ?? "...",
                     Icons.pending,
-                        () {
+                    () {
                       setState(() {
                         _selectedIndex = 2;
                       });
@@ -373,7 +391,7 @@ class _DietitianHomePageState
                     "Son 7 Gün Aktif",
                     snapshot.data?.toString() ?? "...",
                     Icons.timeline,
-                        () {
+                    () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -384,19 +402,14 @@ class _DietitianHomePageState
                   );
                 },
               ),
-              _statCard(
-                "Beslenme Modülü",
-                "Aç",
-                Icons.restaurant,
-                    () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const SelectClientForDietPage(),
-                    ),
-                  );
-                },
-              ),
+              _statCard("Beslenme Modülü", "Aç", Icons.restaurant, () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SelectClientForDietPage(),
+                  ),
+                );
+              }),
             ],
           ),
           const SizedBox(height: 30),
@@ -426,7 +439,6 @@ class _DietitianHomePageState
           .where("status", isEqualTo: "approved")
           .snapshots(),
       builder: (context, snapshot) {
-
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -434,16 +446,13 @@ class _DietitianHomePageState
         final docs = snapshot.data!.docs;
 
         if (docs.isEmpty) {
-          return const Center(
-            child: Text("Henüz danışan bulunmuyor"),
-          );
+          return const Center(child: Text("Henüz danışan bulunmuyor"));
         }
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: docs.length,
           itemBuilder: (context, index) {
-
             final clientId = docs[index]["clientId"];
 
             return FutureBuilder<DocumentSnapshot>(
@@ -452,13 +461,11 @@ class _DietitianHomePageState
                   .doc(clientId)
                   .get(),
               builder: (context, userSnapshot) {
-
                 if (!userSnapshot.hasData) {
                   return const SizedBox();
                 }
 
-                final data =
-                userSnapshot.data!.data() as Map<String, dynamic>?;
+                final data = userSnapshot.data!.data() as Map<String, dynamic>?;
 
                 final name = data?["name"] ?? "";
                 final surname = data?["surname"] ?? "";
@@ -475,7 +482,10 @@ class _DietitianHomePageState
 
                     leading: CircleAvatar(
                       backgroundColor: Theme.of(context).colorScheme.primary,
-                      child: Icon(Icons.person, color: Theme.of(context).colorScheme.surface),
+                      child: Icon(
+                        Icons.person,
+                        color: Theme.of(context).colorScheme.surface,
+                      ),
                     ),
 
                     title: Text(
@@ -486,22 +496,15 @@ class _DietitianHomePageState
                       ),
                     ),
 
-                    subtitle: Text(
-                      "Gebelik Haftası: $hafta",
-                    ),
+                    subtitle: Text("Gebelik Haftası: $hafta"),
 
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios,
-                      size: 18,
-                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 18),
 
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => ClientDetailPage(
-                            clientId: clientId,
-                          ),
+                          builder: (_) => ClientDetailPage(clientId: clientId),
                         ),
                       );
                     },
@@ -528,14 +531,12 @@ class _DietitianHomePageState
           .doc(user!.uid)
           .get(),
       builder: (context, snapshot) {
-
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final data =
-        snapshot.data!.data() as Map<String, dynamic>?;
-        final diplomaUrl = data?["diplomaUrl"];
+        final data = snapshot.data!.data() as Map<String, dynamic>?;
+        final diplomaUrl = data?["diplomaUrl"] ?? data?["diploma"];
 
         final name = data?["name"] ?? "";
         final email = user.email ?? "";
@@ -549,7 +550,6 @@ class _DietitianHomePageState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -557,9 +557,11 @@ class _DietitianHomePageState
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).shadowColor.withOpacity(0.2),
+                      color: Theme.of(
+                        context,
+                      ).shadowColor.withValues(alpha: 0.2),
                       blurRadius: 6,
-                    )
+                    ),
                   ],
                 ),
                 child: Row(
@@ -567,13 +569,15 @@ class _DietitianHomePageState
                     CircleAvatar(
                       radius: 35,
                       backgroundColor: Theme.of(context).colorScheme.primary,
-                      child: Icon(Icons.person,
-                          color: Theme.of(context).colorScheme.surface, size: 30),
+                      child: Icon(
+                        Icons.person,
+                        color: Theme.of(context).colorScheme.surface,
+                        size: 30,
+                      ),
                     ),
                     const SizedBox(width: 15),
                     Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           name,
@@ -585,10 +589,12 @@ class _DietitianHomePageState
                         Text(email),
                         Text(
                           "Diyetisyen",
-                          style: TextStyle(color: Theme.of(context).colorScheme.primary),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -632,45 +638,44 @@ class _DietitianHomePageState
 
               const SizedBox(height: 25),
 
-              _accountTile(
-                Icons.description,
-                "Diploma / Belgeler",
-                    () {
-                  if (diplomaUrl != null) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => Scaffold(
-                          appBar: AppBar(
-                            title: const Text("Diploma"),
-                            backgroundColor: Theme.of(context).colorScheme.primary,
-                          ),
-                          body: Center(
-                            child: Image.network(diplomaUrl),
-                          ),
+              _accountTile(Icons.description, "Diploma / Belgeler", () {
+                if (diplomaUrl != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => Scaffold(
+                        appBar: AppBar(
+                          title: const Text("Diploma"),
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
                         ),
+                        body: Center(child: Image.network(diplomaUrl)),
                       ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Henüz diploma eklenmemiş"),
-                      ),
-                    );
-                  }
-                },
-              ),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Henüz diploma eklenmemiş")),
+                  );
+                }
+              }),
               if (diplomaUrl != null)
                 Container(
                   margin: const EdgeInsets.only(top: 10),
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.verified, color: Theme.of(context).colorScheme.primary),
+                      Icon(
+                        Icons.verified,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                       SizedBox(width: 8),
                       Text("Diploma yüklendi"),
                     ],
@@ -690,59 +695,45 @@ class _DietitianHomePageState
 
               const SizedBox(height: 10),
 
-              _accountTile(
-                Icons.lock,
-                "Şifre Değiştir",
-                    () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const SifreDegistirPage(),
-                    ),
-                  );
-                },
-              ),
+              _accountTile(Icons.lock, "?ifre De?i?tir", () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SifreDegistirPage()),
+                );
+              }),
 
-              _accountTile(
-                Icons.logout,
-                "Çıkış Yap",
-                    () async {
-                  await FirebaseAuth.instance.signOut();
+              _accountTile(Icons.logout, "Çıkış Yap", () async {
+                await FirebaseAuth.instance.signOut();
 
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const LoginPage(),
-                    ),
-                        (route) => false,
-                  );
-                },
-                color: Colors.red,
-              ),
+                if (!context.mounted) return;
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                  (route) => false,
+                );
+              }, color: Colors.red),
             ],
           ),
         );
       },
     );
   }
+
   Widget _infoCard(String title, String value) {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: ListTile(
-        title: Text(title),
-        subtitle: Text(value),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: ListTile(title: Text(title), subtitle: Text(value)),
     );
   }
 
   Widget _accountTile(
-      IconData icon,
-      String title,
-      VoidCallback onTap,
-      {Color color = Colors.black}) {
+    IconData icon,
+    String title,
+    VoidCallback onTap, {
+    Color color = Colors.black,
+  }) {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
@@ -759,11 +750,11 @@ class _DietitianHomePageState
   }
 
   Widget _statCard(
-      String title,
-      String value,
-      IconData icon,
-      VoidCallback? onTap,
-      ) {
+    String title,
+    String value,
+    IconData icon,
+    VoidCallback? onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -773,9 +764,9 @@ class _DietitianHomePageState
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).shadowColor.withOpacity(0.2),
+              color: Theme.of(context).shadowColor.withValues(alpha: 0.2),
               blurRadius: 6,
-            )
+            ),
           ],
         ),
         child: Column(
@@ -799,6 +790,7 @@ class _DietitianHomePageState
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -816,7 +808,6 @@ class _DietitianHomePageState
                 .where("isRead", isEqualTo: false)
                 .snapshots(),
             builder: (context, snapshot) {
-
               bool hasNotif =
                   snapshot.hasData && snapshot.data!.docs.isNotEmpty;
 
@@ -867,13 +858,19 @@ class _DietitianHomePageState
         },
         items: [
           const BottomNavigationBarItem(
-              icon: Icon(Icons.home), label: "Ana Sayfa"),
+            icon: Icon(Icons.home),
+            label: "Ana Sayfa",
+          ),
 
           const BottomNavigationBarItem(
-              icon: Icon(Icons.people), label: "Danışanlar"),
+            icon: Icon(Icons.people),
+            label: "Danışanlar",
+          ),
 
           const BottomNavigationBarItem(
-              icon: Icon(Icons.pending), label: "İstekler"),
+            icon: Icon(Icons.pending),
+            label: "İstekler",
+          ),
 
           BottomNavigationBarItem(
             icon: StreamBuilder<QuerySnapshot>(
@@ -881,14 +878,12 @@ class _DietitianHomePageState
                   .collection("messages")
                   .snapshots(),
               builder: (context, snapshot) {
-
                 int unreadCount = 0;
 
                 if (snapshot.hasData) {
                   unreadCount = snapshot.data!.docs.where((doc) {
                     final data = doc.data() as Map<String, dynamic>;
-                    return data["isRead"] == false &&
-                        data["receiverId"] == uid;
+                    return data["isRead"] == false && data["receiverId"] == uid;
                   }).length;
                 }
 
@@ -923,7 +918,9 @@ class _DietitianHomePageState
           ),
 
           const BottomNavigationBarItem(
-              icon: Icon(Icons.person), label: "Hesap"),
+            icon: Icon(Icons.person),
+            label: "Hesap",
+          ),
         ],
       ),
     );
@@ -940,4 +937,11 @@ String formatDate(dynamic timestamp) {
       "${date.year} "
       "${date.hour.toString().padLeft(2, '0')}:"
       "${date.minute.toString().padLeft(2, '0')}";
+}
+
+String _riskText(dynamic risk) {
+  if (risk == "high") return "Yüksek";
+  if (risk == "medium") return "Orta";
+  if (risk == "normal") return "Normal";
+  return risk?.toString() ?? "-";
 }
