@@ -51,22 +51,13 @@
 
 </div>
 
-<script src="app.js"></script>
+<script type="module" src="app.js"></script>
 
 <script type="module">
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-
-    const app = initializeApp({
-      apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
-      authDomain: "pregnova-38391.firebaseapp.com",
-      projectId: "pregnova-38391"
-    });
-
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    import { auth, db } from "./app.js";
+    import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+    import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
     window.register = async function () {
 

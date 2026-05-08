@@ -1,5 +1,4 @@
 import {
-  getFirestore,
   doc,
   getDoc,
   setDoc,
@@ -7,10 +6,6 @@ import {
   addDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-
-import {
-  getAuth
-} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 import {
   getStorage,
@@ -107,6 +102,7 @@ form.addEventListener("submit", async (e) => {
 
     await addDoc(collection(db, "notification"), {
       uid: user.uid,
+      type: "expert_application",
       title: "Uzman Başvurusu Alındı",
       message: "Başvurunuz alındı. Onay bekleniyor.",
       isRead: false,
