@@ -1,22 +1,12 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import { db } from "./app.js";
 
 import {
-  getFirestore,
   collection,
   query,
   where,
   orderBy,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-
-/* FIREBASE */
-const app = initializeApp({
-  apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
-  authDomain: "pregnova-38391.firebaseapp.com",
-  projectId: "pregnova-38391"
-});
-
-const db = getFirestore(app);
 
 const params = new URLSearchParams(window.location.search);
 const uid = params.get("uid");

@@ -1,7 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import { auth, db } from "./app.js";
 
 import {
-  getFirestore,
   collection,
   getDocs,
   query,
@@ -14,18 +13,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 import {
-  getAuth,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-
-const app = initializeApp({
-  apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
-  authDomain: "pregnova-38391.firebaseapp.com",
-  projectId: "pregnova-38391"
-});
-
-const db = getFirestore(app);
-const auth = getAuth(app);
 
 onAuthStateChanged(auth, (user) => {
   if (!user) {
@@ -33,33 +22,28 @@ onAuthStateChanged(auth, (user) => {
     return;
   }
 
-  console.log("✅ Expert giriş yaptı:", user.uid);
-
   loadRequests(user.uid);
 });
 
 async function createNotification(targetUid, title, message) {
-
   await addDoc(collection(db, "notification"), {
     uid: targetUid,
-    title: title,
-    message: message,
+    type: "expert_request",
+    title: title || "Bildirim",
+    message: message || "",
     isRead: false,
     createdAt: serverTimestamp()
   });
-
 }
 
 async function loadRequests(uid) {
-
   const container = document.getElementById("requestsList");
   if (!container) return;
 
-  container.innerHTML = "Yükleniyor... ⏳";
+  container.innerHTML = "Yükleniyor...";
   container.className = "requests-container";
 
   try {
-
     const q = query(
       collection(db, "expert_requests"),
       where("expertId", "==", uid),
@@ -67,33 +51,39 @@ async function loadRequests(uid) {
     );
 
     const snap = await getDocs(q);
-
     container.innerHTML = "";
 
     if (snap.empty) {
-      container.innerHTML = "Bekleyen istek yok 👍";
+      container.innerHTML = "Bekleyen istek yok";
       return;
     }
 
     for (const item of snap.docs) {
-
-      const req = item.data();
-      const clientId = req.clientId;
+      const request = item.data();
+      const clientId = request.clientId;
 
       const userDoc = await getDoc(doc(db, "users", clientId));
-      const data = userDoc.data() || {};
-
-      const name = data.name || "İsimsiz";
-      const surname = data.surname || "";
-      const hafta = data.hafta || "-";
+      const user = userDoc.data() || {};
 
       const div = document.createElement("div");
       div.className = "request-card";
 
       div.innerHTML = `
         <div class="request-info">
-          <b>${name} ${surname}</b>
-          <span>Gebelik Haftası: ${hafta}</span>
+          <b>${fullName(user)}</b>
+          <span>Hasta ID: ${clientId}</span>
+          <span>İstek ID: ${item.id}</span>
+
+          <div class="request-grid">
+            ${detail("E-posta", user.email)}
+            ${detail("Telefon", user.phone)}
+            ${detail("Gebelik haftası", user.hafta)}
+            ${detail("Boy", formatUnit(user.boy, "cm"))}
+            ${detail("Kilo", formatUnit(user.kilo, "kg"))}
+            ${detail("BMI", user.bmi || user.BMI)}
+            ${detail("Risk", riskText(user.riskLevel))}
+            ${detail("Alerji", user.allergy || user.alerji)}
+          </div>
         </div>
 
         <div class="request-actions">
@@ -103,13 +93,9 @@ async function loadRequests(uid) {
       `;
 
       div.querySelector(".accept").onclick = async () => {
-
         if (!confirm("Danışanı kabul etmek istiyor musunuz?")) return;
 
         try {
-
-          console.log("✔️ Kabul ediliyor:", item.id);
-
           await updateDoc(doc(db, "expert_requests", item.id), {
             status: "approved",
             approvedAt: serverTimestamp()
@@ -121,28 +107,22 @@ async function loadRequests(uid) {
 
           await createNotification(
             clientId,
-            "👩‍⚕️ Doktor Onayı",
-            "Doktorunuz sizi danışan olarak kabul etti 🎉"
+            "Doktor Onayı",
+            "Doktorunuz sizi danışan olarak kabul etti."
           );
 
-          alert("Danışan kabul edildi ✅");
-
+          alert("Danışan kabul edildi");
           loadRequests(uid);
-
         } catch (e) {
-          console.error("❌ Kabul hatası:", e);
+          console.error("Kabul hatası:", e);
           alert("Hata: " + e.message);
         }
       };
 
       div.querySelector(".reject").onclick = async () => {
-
         if (!confirm("İsteği reddetmek istiyor musunuz?")) return;
 
         try {
-
-          console.log("❌ Reddediliyor:", item.id);
-
           await updateDoc(doc(db, "expert_requests", item.id), {
             status: "rejected",
             rejectedAt: serverTimestamp()
@@ -150,27 +130,47 @@ async function loadRequests(uid) {
 
           await createNotification(
             clientId,
-            "❌ İstek Reddedildi",
+            "İstek Reddedildi",
             "Gönderdiğiniz danışan isteği reddedildi."
           );
 
-          alert("İstek reddedildi ❌");
-
+          alert("İstek reddedildi");
           loadRequests(uid);
-
         } catch (e) {
-          console.error("❌ Red hatası:", e);
+          console.error("Red hatası:", e);
           alert("Hata: " + e.message);
         }
       };
 
       container.appendChild(div);
     }
-
   } catch (e) {
-
-    console.error(" LOAD ERROR:", e);
-    container.innerHTML = "Hata oluştu ❌";
-
+    console.error("LOAD ERROR:", e);
+    container.innerHTML = "Hata oluştu";
   }
+}
+
+function fullName(user) {
+  const name = `${user.name || ""} ${user.surname || ""}`.trim();
+  return name || "İsimsiz hasta";
+}
+
+function detail(label, value) {
+  return `
+    <div class="request-detail">
+      <span>${label}</span>
+      <strong>${value || "-"}</strong>
+    </div>
+  `;
+}
+
+function formatUnit(value, unit) {
+  return value ? `${value} ${unit}` : "-";
+}
+
+function riskText(value) {
+  if (value === "high") return "Yüksek";
+  if (value === "medium") return "Orta";
+  if (value === "normal") return "Normal";
+  return value || "-";
 }

@@ -7,13 +7,14 @@
 /* CARD */
 .request-card {
   background: var(--card);
-  padding: 16px;
+  padding: 18px;
   border-radius: 14px;
   box-shadow: 0 6px 20px rgba(0,0,0,0.08);
 
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 16px;
   transition: 0.2s;
 }
 
@@ -26,6 +27,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex: 1;
 }
 
 .request-info b {
@@ -36,12 +38,40 @@
 .request-info span {
   font-size: 13px;
   color: var(--text-light);
+  word-break: break-all;
+}
+
+.request-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.request-detail {
+  background: var(--background);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.request-detail span {
+  display: block;
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.request-detail strong {
+  display: block;
+  font-size: 13px;
+  color: var(--text);
+  margin-top: 2px;
 }
 
 /* BUTTONS */
 .request-actions {
   display: flex;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 /* ACCEPT BUTTON */
@@ -72,4 +102,14 @@
 
 .reject:hover {
   opacity: 0.9;
+}
+
+@media (max-width: 800px) {
+  .request-card {
+    flex-direction: column;
+  }
+
+  .request-grid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -26,16 +26,20 @@ window.closeModal = function () {
 
 async function createNotification(targetUid, type, message) {
 
+  const notificationType = type === "risk" ? "risk_alert" : type || "general";
   let title = "Bildirim";
 
   if (type === "risk") title = "⚠️ Risk Uyarısı";
   if (type === "chat") title = "💬 Yeni Mesaj";
 
+  if (notificationType === "risk_alert") title = "Risk Uyarısı";
+  if (notificationType === "message") title = "Yeni Mesaj";
+
   await addDoc(collection(db, "notification"), {
     uid: targetUid,
-    type,
+    type: notificationType,
     title,
-    message,
+    message: message || "",
     isRead: false,
     createdAt: serverTimestamp()
   });

@@ -1,7 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import { db } from "./app.js";
 
 import {
-  getFirestore,
   collection,
   query,
   where,
@@ -11,14 +10,6 @@ import {
   getDoc,
   doc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-
-const app = initializeApp({
-  apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
-  authDomain: "pregnova-38391.firebaseapp.com",
-  projectId: "pregnova-38391"
-});
-
-const db = getFirestore(app);
 
 document.addEventListener("DOMContentLoaded", () => {
 

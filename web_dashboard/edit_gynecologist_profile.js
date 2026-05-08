@@ -7,6 +7,8 @@ import {
 const db = window.db;
 const auth = window.auth;
 
+let diplomaUrl = null;
+
 /* LOAD */
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
@@ -31,7 +33,40 @@ auth.onAuthStateChanged(async (user) => {
 
   document.getElementById("hospital").value =
     data?.hospital || "";
+
+  diplomaUrl = data?.diplomaUrl || data?.diploma || null;
+
+  if (diplomaUrl) {
+    document.getElementById("uploadStatus").innerText =
+      "Diploma yüklendi ✅";
+  }
 });
+
+/* UPLOAD */
+document.getElementById("uploadBtn").onclick = async () => {
+
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*,.pdf";
+
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      diplomaUrl = reader.result;
+
+      document.getElementById("uploadStatus").innerText =
+        "Diploma yüklendi ✅";
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  input.click();
+};
 
 /* SAVE */
 window.saveData = async () => {
@@ -44,6 +79,8 @@ window.saveData = async () => {
     licenseNumber: document.getElementById("license").value,
     experience: document.getElementById("experience").value,
     hospital: document.getElementById("hospital").value,
+    diploma: diplomaUrl,
+    diplomaUrl: diplomaUrl,
 
   });
 

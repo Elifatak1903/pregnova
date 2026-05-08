@@ -1,7 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import { auth, db } from "./app.js";
 
 import {
-  getFirestore,
   collection,
   getDocs,
   query,
@@ -14,19 +13,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 import {
-  getAuth,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-
-/* FIREBASE */
-const app = initializeApp({
-  apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
-  authDomain: "pregnova-38391.firebaseapp.com",
-  projectId: "pregnova-38391"
-});
-
-const db = getFirestore(app);
-const auth = getAuth(app);
 
 /* AUTH */
 onAuthStateChanged(auth, async (user) => {
@@ -74,6 +62,7 @@ async function loadDashboard(uid) {
   });
 
   document.getElementById("highRisk").innerText = unique.size;
+  updateHighRiskBanner(unique.size);
 
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -85,6 +74,16 @@ async function loadDashboard(uid) {
 
   document.getElementById("weekly").innerText =
     weeklySnap.size + " ölçüm";
+}
+
+function updateHighRiskBanner(count) {
+  const banner = document.getElementById("highRiskBanner");
+  const countEl = document.getElementById("highRiskBannerCount");
+
+  if (!banner || !countEl) return;
+
+  countEl.innerText = count;
+  banner.classList.toggle("hidden", count <= 0);
 }
 
 async function loadActivity() {

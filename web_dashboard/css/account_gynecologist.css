@@ -73,6 +73,11 @@ h3 {
   transform: translateY(-2px);
 }
 
+.status-text {
+  color: var(--primary);
+  font-weight: 700;
+}
+
 /* LOGOUT */
 .logout {
   color: var(--danger);

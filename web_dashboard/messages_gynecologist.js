@@ -1,7 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import { auth, db } from "./app.js";
 
 import {
-  getFirestore,
   collection,
   query,
   where,
@@ -16,23 +15,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 import {
-  getAuth,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-
-/* FIREBASE */
-const app = initializeApp({
-  apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
-  authDomain: "pregnova-38391.firebaseapp.com",
-  projectId: "pregnova-38391"
-});
 
 let currentChatId = null;
 let currentUserId = null;
 let unsubscribeMessages = null;
-
-const db = getFirestore(app);
-const auth = getAuth(app);
 
 /* AUTH */
 onAuthStateChanged(auth, (user) => {

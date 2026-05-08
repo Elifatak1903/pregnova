@@ -67,12 +67,9 @@
             <!-- NOTIFICATION -->
             <div class="notification-btn" onclick="toggleNotifications(event)">
                 🔔
-                <span class="badge">3</span>
+                <span class="badge"></span>
                 <div id="notifDropdown" class="notif-dropdown hidden">
-                    <div id="notifList" class="notif-list">
-                        <div class="notif-item">Yeni ölçüm geldi</div>
-                        <div class="notif-item">Mesaj aldınız</div>
-                    </div>
+                    <div id="notifList" class="notif-list"></div>
 
                     <div class="notif-footer" onclick="go('notifications.html')">
                         Tümünü Gör →
@@ -117,6 +114,15 @@
                 <span id="weekly">0</span>
             </div>
 
+        </div>
+
+        <div id="highRiskBanner" class="high-risk-banner hidden" onclick="go('son_olcumler.html')">
+            <div class="risk-icon">⚠️</div>
+            <div class="risk-copy">
+                <h3>Yüksek riskli hasta uyarısı</h3>
+                <p><span id="highRiskBannerCount">0</span> hastada yüksek risk tespit edildi.</p>
+            </div>
+            <button type="button">İncele</button>
         </div>
 
         <div class="dashboard-row">
