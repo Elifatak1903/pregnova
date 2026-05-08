@@ -7,7 +7,10 @@ import {
   addDoc,
   doc,
   getDoc,
-  serverTimestamp
+  serverTimestamp,
+  getDocs,
+  query,
+  where,
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const db = window.db;
@@ -151,6 +154,11 @@ window.saveAnalysis = async function () {
   });
 
   const result = NutritionEngine.analyzeFoods(foods, sups);
+  const dailyInputs = await getTodayNutritionInputs(user.uid);
+  const dailyResult = NutritionEngine.analyzeFoods(
+    [...dailyInputs.foods, ...foods],
+    [...dailyInputs.supplements, ...sups]
+  );
 
   const userDoc = await getDoc(doc(db, "users", user.uid));
   const userData = userDoc.data() || {};
@@ -162,11 +170,56 @@ window.saveAnalysis = async function () {
     besinler: besinListesi,
     takviyeler: takviyeListesi,
     kalori: result.totalCalories,
-    consumedNutrients: result.consumedNutrients,
-    missingNutrients: result.missingNutrients,
-    excessNutrients: result.excessNutrients,
-    tarih: Timestamp.now()
+    consumedNutrients: dailyResult.consumedNutrients,
+    missingNutrients: dailyResult.missingNutrients,
+    excessNutrients: dailyResult.excessNutrients,
+    totalNutrients: dailyResult.totalNutrients,
+    createdAt: serverTimestamp(),
+    tarih: serverTimestamp()
   });
 
-  showResult(result);
+  showResult(dailyResult);
 };
+
+async function getTodayNutritionInputs(uid) {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+
+  const q = query(
+    collection(db, "besin_analizleri"),
+    where("uid", "==", uid)
+  );
+
+  const snap = await getDocs(q);
+  const foods = [];
+  const supplements = [];
+
+  snap.forEach(docSnap => {
+    const data = docSnap.data();
+    const rawDate = data.createdAt || data.tarih;
+    const date = rawDate?.toDate ? rawDate.toDate() : rawDate ? new Date(rawDate) : null;
+
+    if (!date || date < start) return;
+
+    (data.besinler || []).forEach(item => {
+      const gram = (FoodUnits.units[item.format] || 1) * Number(item.miktar || 0);
+
+      foods.push({
+        name: String(item.ad || "").toLowerCase(),
+        amount: gram
+      });
+    });
+
+    (data.takviyeler || []).forEach(item => {
+      const info = SupplementUnits[item.ad];
+
+      supplements.push({
+        name: item.ad,
+        amount: info ? Number(item.miktar || 0) * info.value : Number(item.miktar || 0),
+        unit: info ? info.unit : ""
+      });
+    });
+  });
+
+  return { foods, supplements };
+}

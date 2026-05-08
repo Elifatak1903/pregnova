@@ -182,7 +182,11 @@ export const NutritionEngine = {
 
     supplements.forEach(sup => {
 
-      const name = sup.name
+      const rawName = sup.name || sup.ad;
+      if (!rawName) return;
+
+      const name = rawName
+        .toString()
         .toLowerCase()
         .replace("-", " ")
         .trim();
@@ -216,6 +220,7 @@ export const NutritionEngine = {
       consumedNutrients: [...consumed],
       missingNutrients: missing,
       excessNutrients: excess,
+      totalNutrients,
       totalCalories: Math.round(totalCalories)
     };
   }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'food_units.dart';
+import 'nutrition_engine.dart';
 
 class HamileBesinGecmisiPage extends StatelessWidget {
   const HamileBesinGecmisiPage({super.key});
@@ -25,9 +27,8 @@ class HamileBesinGecmisiPage extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-
               Padding(
-                padding: EdgeInsets.all(20),
+                padding: const EdgeInsets.all(20),
                 child: Text(
                   "Besin & Takviye Geçmişi",
                   style: TextStyle(
@@ -37,7 +38,6 @@ class HamileBesinGecmisiPage extends StatelessWidget {
                   ),
                 ),
               ),
-
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
@@ -46,18 +46,14 @@ class HamileBesinGecmisiPage extends StatelessWidget {
                       .orderBy('createdAt', descending: true)
                       .snapshots(),
                   builder: (context, snapshot) {
-
-                    if (snapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return const Center(
-                          child: CircularProgressIndicator());
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
                     }
 
-                    if (!snapshot.hasData ||
-                        snapshot.data!.docs.isEmpty) {
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                       return Center(
                         child: Text(
-                          "Henüz kayıt yok 💗",
+                          "Henüz kayıt yok",
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.onSurface,
                           ),
@@ -65,212 +61,14 @@ class HamileBesinGecmisiPage extends StatelessWidget {
                       );
                     }
 
-                    final docs = snapshot.data!.docs;
+                    final groups = groupDocsByDay(snapshot.data!.docs);
 
                     return ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: docs.length,
+                      itemCount: groups.length,
                       itemBuilder: (context, index) {
-
-                        final data =
-                        docs[index].data() as Map<String, dynamic>;
-
-                        final tarih =
-                        (data['createdAt'] as Timestamp).toDate();
-
-                        final formattedDate =
-                        DateFormat("dd MMMM yyyy - HH:mm", "tr_TR")
-                            .format(tarih);
-
-                        final List besinler =
-                            data['besinler'] ?? [];
-
-                        final List takviyeler =
-                            data['takviyeler'] ?? [];
-
-                        final List consumed = data['consumedNutrients'] ?? [];
-
-                        final List missing = data['missingNutrients'] ?? [];
-
-                        final List excess =
-                            data['excessNutrients'] ?? [];
-
-                        return Card(
-                          color: Theme.of(context).colorScheme.surface,
-                          elevation: 6,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-
-                                Text(
-                                  formattedDate,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
-                                ),
-
-                                const Divider(),
-
-                                if (besinler.isNotEmpty) ...[
-                                  Text(
-                                    "Besinler",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).colorScheme.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-
-                                  ...besinler.map((b) {
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 3),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            b['ad'],
-                                            style: TextStyle(
-                                              color: Theme.of(context).colorScheme.onSurface,
-                                            ),
-                                          ),
-                                          Text(
-                                            "${b['miktar']} ${b['format']}",
-                                            style: const TextStyle(fontWeight: FontWeight.bold),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }).toList(),
-
-                                  const SizedBox(height: 10),
-                                ],
-
-                                if (takviyeler.isNotEmpty) ...[
-                                  Text(
-                                    "Takviyeler",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).colorScheme.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-
-                                  ...takviyeler.map((t) {
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 3),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            t['ad'],
-                                            style: TextStyle(
-                                              color: Theme.of(context).colorScheme.onSurface,
-                                            ),
-                                          ),
-                                          Text(
-                                            "${t['miktar']} ${t['format']}",
-                                            style: const TextStyle(fontWeight: FontWeight.bold),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }).toList(),
-                                ],
-
-                                const SizedBox(height: 10),
-
-                                if (consumed.isNotEmpty) ...[
-                                  Text(
-                                    "Alınan Besin Öğeleri",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).colorScheme.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-
-                                  ...consumed.map((n) {
-                                    return Row(
-                                      children: [
-                                        const Icon(Icons.check_circle,
-                                            color: Colors.green, size: 18),
-                                        const SizedBox(width: 6),
-                                        Text(n),
-                                      ],
-                                    );
-                                  }).toList(),
-
-                                  const SizedBox(height: 10),
-                                ],
-
-                                if (missing.isNotEmpty) ...[
-                                  Text(
-                                    "Eksik Besin Öğeleri",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).colorScheme.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-
-                                  ...missing.map((n) {
-                                    return Row(
-                                      children: [
-                                        const Icon(Icons.warning,
-                                            color: Colors.orange, size: 18),
-                                        const SizedBox(width: 6),
-                                        Text(n),
-                                      ],
-                                    );
-                                  }).toList(),
-                                ],
-
-                                if (excess.isNotEmpty) ...[
-                                  Text(
-                                    "Fazla Besin Öğeleri",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).colorScheme.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-
-                                  ...excess.map((n) {
-                                    return Row(
-                                      children: [
-                                        const Icon(Icons.arrow_upward,
-                                            color: Colors.red, size: 18),
-                                        const SizedBox(width: 6),
-                                        Text(n),
-                                      ],
-                                    );
-                                  }).toList(),
-                                ],
-
-                                const SizedBox(height: 10),
-
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: IconButton(
-                                    icon: const Icon(Icons.delete, color: Colors.red),
-                                    onPressed: () {
-                                      FirebaseFirestore.instance
-                                          .collection('besin_analizleri')
-                                          .doc(docs[index].id)
-                                          .delete();
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
+                        final group = groups[index];
+                        return _DayCard(group: group);
                       },
                     );
                   },
@@ -282,4 +80,273 @@ class HamileBesinGecmisiPage extends StatelessWidget {
       ),
     );
   }
+}
+
+class _DayCard extends StatelessWidget {
+  final _DayGroup group;
+
+  const _DayCard({required this.group});
+
+  @override
+  Widget build(BuildContext context) {
+    final summary = summarizeDay(group.items);
+
+    return Card(
+      color: Theme.of(context).colorScheme.surface,
+      elevation: 6,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              group.dayLabel,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const Divider(),
+            ...group.items.asMap().entries.map((entry) {
+              final index = entry.key;
+              final item = entry.value;
+              return _AnalysisSection(index: index, item: item);
+            }),
+            const Divider(),
+            Text(
+              "Günlük Toplam Analiz Sonucu",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text("Toplam Kalori: ${summary.calorie.toStringAsFixed(0)} kcal"),
+            const SizedBox(height: 8),
+            _NutrientList(
+              title: "Alınan Besin Öğeleri",
+              values: summary.consumed,
+              icon: Icons.check_circle,
+              color: Colors.green,
+            ),
+            _NutrientList(
+              title: "Eksik Besin Öğeleri",
+              values: summary.missing,
+              icon: Icons.warning,
+              color: Colors.orange,
+            ),
+            _NutrientList(
+              title: "Fazla Besin Öğeleri",
+              values: summary.excess,
+              icon: Icons.arrow_upward,
+              color: Colors.red,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AnalysisSection extends StatelessWidget {
+  final int index;
+  final _AnalysisItem item;
+
+  const _AnalysisSection({required this.index, required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final time = DateFormat("HH:mm", "tr_TR").format(item.date);
+    final besinler = item.data['besinler'] as List? ?? [];
+    final takviyeler = item.data['takviyeler'] as List? ?? [];
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "${index + 1}. Analiz - $time",
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 6),
+          ...besinler.map((b) => _FoodLine(item: b)),
+          ...takviyeler.map((t) => _FoodLine(item: t)),
+          Text("Kalori: ${NumberFormat.decimalPattern('tr_TR').format(item.calorie)} kcal"),
+        ],
+      ),
+    );
+  }
+}
+
+class _FoodLine extends StatelessWidget {
+  final dynamic item;
+
+  const _FoodLine({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final data = Map<String, dynamic>.from(item as Map);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(child: Text(data['ad']?.toString() ?? "-")),
+          Text(
+            "${data['miktar'] ?? ''} ${data['format'] ?? data['birim'] ?? ''}",
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NutrientList extends StatelessWidget {
+  final String title;
+  final List<String> values;
+  final IconData icon;
+  final Color color;
+
+  const _NutrientList({
+    required this.title,
+    required this.values,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (values.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          ...values.map((value) => Row(
+                children: [
+                  Icon(icon, color: color, size: 18),
+                  const SizedBox(width: 6),
+                  Expanded(child: Text(value)),
+                ],
+              )),
+        ],
+      ),
+    );
+  }
+}
+
+class _DayGroup {
+  final String dayLabel;
+  final List<_AnalysisItem> items;
+
+  const _DayGroup({required this.dayLabel, required this.items});
+}
+
+class _AnalysisItem {
+  final String id;
+  final DateTime date;
+  final Map<String, dynamic> data;
+
+  const _AnalysisItem({
+    required this.id,
+    required this.date,
+    required this.data,
+  });
+
+  double get calorie {
+    final raw = data['kalori'];
+    if (raw is num) return raw.toDouble();
+    return double.tryParse(raw?.toString() ?? '') ?? 0;
+  }
+}
+
+class _DaySummary {
+  final double calorie;
+  final List<String> consumed;
+  final List<String> missing;
+  final List<String> excess;
+
+  const _DaySummary({
+    required this.calorie,
+    required this.consumed,
+    required this.missing,
+    required this.excess,
+  });
+}
+
+List<_DayGroup> groupDocsByDay(List<QueryDocumentSnapshot> docs) {
+  final groups = <String, List<_AnalysisItem>>{};
+
+  for (final doc in docs) {
+    final data = doc.data() as Map<String, dynamic>;
+    final date = readAnalysisDate(data);
+    if (date == null) continue;
+
+    final key = DateFormat("dd MMMM yyyy", "tr_TR").format(date);
+    groups.putIfAbsent(key, () => []).add(
+          _AnalysisItem(id: doc.id, date: date, data: data),
+        );
+  }
+
+  return groups.entries.map((entry) {
+    entry.value.sort((a, b) => a.date.compareTo(b.date));
+    return _DayGroup(dayLabel: entry.key, items: entry.value);
+  }).toList();
+}
+
+DateTime? readAnalysisDate(Map<String, dynamic> data) {
+  final raw = data['createdAt'] ?? data['tarih'];
+  if (raw is Timestamp) return raw.toDate();
+  if (raw != null) return DateTime.tryParse(raw.toString());
+  return null;
+}
+
+_DaySummary summarizeDay(List<_AnalysisItem> items) {
+  final foods = <Map<String, dynamic>>[];
+  final supplements = <Map<String, dynamic>>[];
+
+  for (final item in items) {
+    for (final raw in (item.data['besinler'] as List? ?? [])) {
+      final data = Map<String, dynamic>.from(raw as Map);
+      final unitGram = FoodUnits.units[data['format']] ?? 1;
+      final amount = double.tryParse(data['miktar'].toString()) ?? 0;
+
+      foods.add({
+        'name': data['ad'],
+        'amount': unitGram * amount,
+      });
+    }
+
+    for (final raw in (item.data['takviyeler'] as List? ?? [])) {
+      final data = Map<String, dynamic>.from(raw as Map);
+
+      supplements.add({
+        'name': data['ad'],
+        'amount': data['miktar'],
+      });
+    }
+  }
+
+  final result = NutritionEngine.analyzeFoods(foods, supplements);
+
+  return _DaySummary(
+    calorie: (result['totalCalories'] as num?)?.toDouble() ?? 0,
+    consumed: List<String>.from(result['consumedNutrients'] ?? []),
+    missing: List<String>.from(result['missingNutrients'] ?? []),
+    excess: List<String>.from(result['excessNutrients'] ?? []),
+  );
 }

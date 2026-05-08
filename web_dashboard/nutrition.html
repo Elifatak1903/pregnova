@@ -132,26 +132,36 @@
 <script>
     window.showResult = function(result){
 
-      document.getElementById("calorieResult").innerText =
-        result.totalCalories ?? 0;
+      const totalCalories = result.totalCalories ?? 0;
+      const calorieText = document.getElementById("calorieText");
+      const calorieBar = document.getElementById("calorieBar");
+      const missingList = document.getElementById("missingList");
+      const excessList = document.getElementById("excessList");
 
-      document.getElementById("missingList").innerText =
-        result.missingNutrients?.length
+      if (calorieText) {
+        calorieText.innerText = `${totalCalories} kcal`;
+      }
+
+      if (calorieBar) {
+        calorieBar.style.width = `${Math.min((totalCalories / 2500) * 100, 100)}%`;
+      }
+
+      if (missingList) {
+        missingList.innerText = result.missingNutrients?.length
           ? result.missingNutrients.join(", ")
           : "Yok";
+      }
 
-      document.getElementById("excessList").innerText =
-        result.excessNutrients?.length
+      if (excessList) {
+        excessList.innerText = result.excessNutrients?.length
           ? result.excessNutrients.join(", ")
           : "Yok";
-
-      document.getElementById("resultModal")
-        .classList.remove("hidden");
+      }
     };
 
     window.closeModal = function(){
-      document.getElementById("resultModal")
-        .classList.add("hidden");
+      const resultModal = document.getElementById("resultModal");
+      if (resultModal) resultModal.classList.add("hidden");
     };
 </script>
 

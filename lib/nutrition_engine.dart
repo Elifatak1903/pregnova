@@ -225,7 +225,10 @@ class NutritionEngine {
 
     for (var sup in supplements) {
 
-      String name = sup["name"]
+      final rawName = sup["name"] ?? sup["ad"];
+      if (rawName == null) continue;
+
+      String name = rawName
           .toString()
           .toLowerCase()
           .trim();

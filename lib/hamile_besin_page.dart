@@ -122,6 +122,18 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
           supplementsForAnalysis,
       );
 
+      final dailyInputs = await getTodayNutritionInputs(user.uid);
+      final dailyAnaliz = NutritionEngine.analyzeFoods(
+        [
+          ...dailyInputs["foods"]!,
+          ...foodsForAnalysis,
+        ],
+        [
+          ...dailyInputs["supplements"]!,
+          ...supplementsForAnalysis,
+        ],
+      );
+
       final userDoc = await FirebaseFirestore.instance
           .collection("users")
           .doc(user.uid)
@@ -152,8 +164,10 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
         'kalori': analiz["totalCalories"] ?? 0,
 
         'foodDetails': analiz["foodDetails"],
-        'consumedNutrients': analiz["consumedNutrients"],
-        'missingNutrients': analiz["missingNutrients"]
+        'consumedNutrients': dailyAnaliz["consumedNutrients"],
+        'missingNutrients': dailyAnaliz["missingNutrients"],
+        'excessNutrients': dailyAnaliz["excessNutrients"],
+        'totalNutrients': dailyAnaliz["totalNutrients"]
 
       });
 
@@ -174,7 +188,7 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
 
               const SizedBox(height: 8),
 
-              ...analiz["consumedNutrients"]
+              ...dailyAnaliz["consumedNutrients"]
                   .map<Widget>((n) => Row(
                 children: [
                   const Icon(Icons.check_circle, color: Colors.green, size: 18),
@@ -190,7 +204,7 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
 
               const SizedBox(height: 10),
 
-              ...analiz["missingNutrients"]
+              ...dailyAnaliz["missingNutrients"]
                   .map<Widget>((n) => Row(
                 children: [
                   const Icon(Icons.warning, color: Colors.orange, size: 18),
@@ -204,7 +218,7 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
 
               const SizedBox(height: 10),
 
-              ...analiz["excessNutrients"]
+              ...dailyAnaliz["excessNutrients"]
                   .map<Widget>((n) => Text("⬆ $n"))
                   .toList(),
             ],
@@ -441,5 +455,58 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
         ],
       ),
     );
+  }
+
+  Future<Map<String, List<Map<String, dynamic>>>> getTodayNutritionInputs(
+      String uid) async {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day);
+
+    final snap = await FirebaseFirestore.instance
+        .collection('besin_analizleri')
+        .where('uid', isEqualTo: uid)
+        .get();
+
+    final foods = <Map<String, dynamic>>[];
+    final supplements = <Map<String, dynamic>>[];
+
+    for (final doc in snap.docs) {
+      final data = doc.data();
+      final rawDate = data['createdAt'] ?? data['tarih'];
+      DateTime? date;
+
+      if (rawDate is Timestamp) {
+        date = rawDate.toDate();
+      } else if (rawDate != null) {
+        date = DateTime.tryParse(rawDate.toString());
+      }
+
+      if (date == null || date.isBefore(start)) continue;
+
+      for (final item in (data['besinler'] ?? [])) {
+        final map = Map<String, dynamic>.from(item);
+        final unitGram = FoodUnits.units[map['format']] ?? 1;
+        final amount = double.tryParse(map['miktar'].toString()) ?? 0;
+
+        foods.add({
+          'name': map['ad'],
+          'amount': unitGram * amount,
+        });
+      }
+
+      for (final item in (data['takviyeler'] ?? [])) {
+        final map = Map<String, dynamic>.from(item);
+
+        supplements.add({
+          'name': map['ad'],
+          'amount': map['miktar'],
+        });
+      }
+    }
+
+    return {
+      'foods': foods,
+      'supplements': supplements,
+    };
   }
 }
