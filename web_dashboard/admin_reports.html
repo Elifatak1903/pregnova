@@ -2,15 +2,13 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>System Reports</title>
+    <title>Sistem Raporları</title>
 
-    <!-- CSS -->
     <link rel="stylesheet" href="css/theme.css">
     <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/admin_reports.css">
 
-    <!-- Chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -18,7 +16,6 @@
 
 <div class="container">
 
-    <!-- SIDEBAR -->
     <div class="sidebar">
         <h2 style="display:flex; align-items:center; gap:10px;">
             <img src="assets/icon/app_icon.jpeg" width="30">
@@ -27,69 +24,83 @@
 
         <ul>
             <li onclick="go('admin.html')">📊 Dashboard</li>
-            <li onclick="go('admin_requests.html')">📩 Expert Requests</li>
-            <li onclick="go('admin_users.html')">👥 User Management</li>
-            <li class="active">📄 System Reports</li>
+            <li onclick="go('admin_requests.html')">📩 Uzman Başvuruları</li>
+            <li onclick="go('admin_users.html')">👥 Kullanıcı Yönetimi</li>
+            <li class="active">📄 Sistem Raporları</li>
             <li onclick="logout()">🚪 Çıkış</li>
         </ul>
     </div>
 
-    <!-- MAIN -->
     <div class="main">
 
         <div class="top-bar">
-            <h1>System Reports 📊</h1>
+            <h1>Sistem Raporları 📊</h1>
         </div>
 
-        <!-- TOP STATS -->
         <div class="top-stats">
             <div class="stat-card">
-                <span>Total Users</span>
+                <span>Toplam Kullanıcı</span>
                 <strong id="totalUsers">0</strong>
             </div>
 
             <div class="stat-card">
-                <span>Pregnant</span>
+                <span>Hamile</span>
                 <strong id="pregnantUsers">0</strong>
             </div>
 
             <div class="stat-card">
-                <span>Doctors</span>
+                <span>Jinekolog</span>
                 <strong id="doctorUsers">0</strong>
             </div>
 
             <div class="stat-card">
-                <span>Dietitians</span>
+                <span>Diyetisyen</span>
                 <strong id="dietitianUsers">0</strong>
             </div>
         </div>
 
-        <!-- GRID -->
+        <div class="top-stats secondary-stats">
+            <div class="stat-card">
+                <span>Risk Ölçümü</span>
+                <strong id="riskMeasurements">0</strong>
+            </div>
+
+            <div class="stat-card">
+                <span>Besin Analizi</span>
+                <strong id="nutritionAnalyses">0</strong>
+            </div>
+
+            <div class="stat-card">
+                <span>Bekleyen Başvuru</span>
+                <strong id="pendingApplications">0</strong>
+            </div>
+
+            <div class="stat-card">
+                <span>Onay / Ret</span>
+                <strong><span id="approvedApplications">0</span> / <span id="rejectedApplications">0</span></strong>
+            </div>
+        </div>
+
         <div class="report-grid">
 
-            <!-- LEFT -->
             <div class="chart-card">
-                <h3>Health Risk Distribution</h3>
+                <h3>Risk Dağılımı</h3>
                 <canvas id="riskChart"></canvas>
             </div>
 
-            <!-- RIGHT -->
             <div>
-
                 <div id="insightCard" class="insight-card">
                     Analiz ediliyor...
                 </div>
 
                 <div id="riskBars"></div>
-
             </div>
 
         </div>
+
         <div class="bottom-insight">
-            <h3>System Insight</h3>
-
+            <h3>Sistem İçgörüsü</h3>
             <p id="highPercentText"></p>
-
             <p id="systemComment"></p>
         </div>
 
@@ -97,7 +108,6 @@
 
 </div>
 
-<!-- JS -->
 <script type="module" src="app.js"></script>
 <script type="module" src="admin_reports.js"></script>
 

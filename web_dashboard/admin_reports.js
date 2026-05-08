@@ -2,72 +2,101 @@ import { db } from "./app.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 async function loadReports() {
-
     let totalUsers = 0;
     let pregnant = 0;
     let doctors = 0;
     let dietitians = 0;
-
-    let high = 0, medium = 0, low = 0;
+    let riskMeasurements = 0;
+    let nutritionAnalyses = 0;
+    let pendingApplications = 0;
+    let approvedApplications = 0;
+    let rejectedApplications = 0;
+    let high = 0;
+    let medium = 0;
+    let low = 0;
 
     const usersSnap = await getDocs(collection(db, "users"));
+    const risksSnap = await getDocs(collection(db, "risk_olcumleri"));
+    const nutritionSnap = await getDocs(collection(db, "besin_analizleri"));
+    const applicationsSnap = await getDocs(collection(db, "expert_applications"));
 
     totalUsers = usersSnap.size;
+    riskMeasurements = risksSnap.size;
+    nutritionAnalyses = nutritionSnap.size;
 
-    usersSnap.forEach(doc => {
-        const u = doc.data();
+    usersSnap.forEach(docSnap => {
+        const user = docSnap.data();
 
-        if (u.role === "pregnant") pregnant++;
-        if (u.role === "gynecologist") doctors++;
-        if (u.role === "dietitian") dietitians++;
+        if (user.role === "pregnant") pregnant++;
+        if (user.role === "gynecologist") doctors++;
+        if (user.role === "dietitian") dietitians++;
     });
 
-    const risksSnap = await getDocs(collection(db, "risk_olcumleri"));
+    applicationsSnap.forEach(docSnap => {
+        const status = docSnap.data().status || "pending";
 
-    risksSnap.forEach(doc => {
-        const r = doc.data();
+        if (status === "approved") {
+            approvedApplications++;
+        } else if (status === "rejected") {
+            rejectedApplications++;
+        } else {
+            pendingApplications++;
+        }
+    });
 
-        const list = [
-            r.preeklampsiRisk || "LOW",
-            r.diyabetRisk || "LOW",
-            r.pretermRisk || "LOW"
-        ];
+    risksSnap.forEach(docSnap => {
+        const risk = docSnap.data();
 
-        list.forEach(val => {
-            if (val === "HIGH") high++;
-            if (val === "MEDIUM") medium++;
-            if (val === "LOW") low++;
+        [
+            risk.preeklampsiRisk,
+            risk.diyabetRisk,
+            risk.pretermRisk
+        ].forEach(value => {
+            const normalized = String(value || "LOW").trim().toUpperCase();
+
+            if (normalized === "HIGH") high++;
+            else if (normalized === "MEDIUM") medium++;
+            else low++;
         });
     });
 
-    const total = high + medium + low;
+    const totalRisk = high + medium + low;
+    const highP = percent(high, totalRisk);
+    const medP = percent(medium, totalRisk);
+    const lowP = percent(low, totalRisk);
 
-    const highP = percent(high, total);
-    const medP = percent(medium, total);
-    const lowP = percent(low, total);
-
-    document.getElementById("totalUsers").innerText = totalUsers;
-    document.getElementById("pregnantUsers").innerText = pregnant;
-    document.getElementById("doctorUsers").innerText = doctors;
-    document.getElementById("dietitianUsers").innerText = dietitians;
+    setText("totalUsers", totalUsers);
+    setText("pregnantUsers", pregnant);
+    setText("doctorUsers", doctors);
+    setText("dietitianUsers", dietitians);
+    setText("riskMeasurements", riskMeasurements);
+    setText("nutritionAnalyses", nutritionAnalyses);
+    setText("pendingApplications", pendingApplications);
+    setText("approvedApplications", approvedApplications);
+    setText("rejectedApplications", rejectedApplications);
 
     renderChart(high, medium, low);
     renderBars(high, medium, low, highP, medP, lowP);
     renderInsight(highP);
 }
 
-function percent(val, total) {
-    return total ? ((val / total) * 100).toFixed(0) : 0;
+function setText(id, value) {
+    const element = document.getElementById(id);
+    if (element) element.innerText = value;
+}
+
+function percent(value, total) {
+    return total ? ((value / total) * 100).toFixed(0) : 0;
 }
 
 function renderChart(high, medium, low) {
-
     const ctx = document.getElementById("riskChart");
+    if (!ctx) return;
 
     new Chart(ctx, {
         type: "doughnut",
         data: {
-            labels: ["High", "Medium", "Low"],
+            labels: ["Yüksek", "Orta", "Düşük"],
             datasets: [{
                 data: [high, medium, low],
                 backgroundColor: ["#EF5350", "#FFA000", "#00B894"],
@@ -86,49 +115,53 @@ function renderChart(high, medium, low) {
 }
 
 function renderBars(high, medium, low, hp, mp, lp) {
+    const riskBars = document.getElementById("riskBars");
+    if (!riskBars) return;
 
-    document.getElementById("riskBars").innerHTML = `
-        ${bar("HIGH Risk", high, hp, "#EF5350")}
-        ${bar("MEDIUM Risk", medium, mp, "#FFA000")}
-        ${bar("LOW Risk", low, lp, "#00B894")}
+    riskBars.innerHTML = `
+        ${bar("Yüksek Risk", high, hp, "#EF5350")}
+        ${bar("Orta Risk", medium, mp, "#FFA000")}
+        ${bar("Düşük Risk", low, lp, "#00B894")}
     `;
 }
 
-function bar(title, value, percent, color) {
+function bar(title, value, percentValue, color) {
     return `
         <div class="risk-box">
             <div class="risk-header">
                 <span>${title}</span>
-                <strong>${value} (${percent}%)</strong>
+                <strong>${value} (${percentValue}%)</strong>
             </div>
             <div class="progress">
-                <div class="bar" style="width:${percent}%; background:${color}"></div>
+                <div class="bar" style="width:${percentValue}%; background:${color}"></div>
             </div>
         </div>
     `;
 }
 
 function renderInsight(highPercent) {
-
-    let text = "✅ Sistem stabil";
+    let text = "Sistem stabil durumda.";
     let color = "rgba(0,184,148,0.15)";
 
     if (highPercent > 30) {
-        text = "⚠️ Sistem yüksek risk!";
+        text = "Yüksek risk oranı dikkat gerektiriyor.";
         color = "rgba(239,83,80,0.15)";
     } else if (highPercent > 15) {
-        text = "⚠️ Risk artıyor";
+        text = "Risk oranında artış gözlemleniyor.";
         color = "rgba(255,160,0,0.15)";
     }
 
     const card = document.getElementById("insightCard");
-    card.style.background = color;
-    card.innerText = text;
+    if (card) {
+        card.style.background = color;
+        card.innerText = text;
+    }
 
-    document.getElementById("highPercentText").innerText =
-        `High risk oranı: ${highPercent}%`;
-
-    document.getElementById("systemComment").innerText = text;
+    setText("highPercentText", `Yüksek risk oranı: ${highPercent}%`);
+    setText("systemComment", text);
 }
 
-loadReports();
+loadReports().catch(error => {
+    console.error("Admin raporları yüklenemedi:", error);
+    setText("insightCard", "Raporlar yüklenirken hata oluştu.");
+});

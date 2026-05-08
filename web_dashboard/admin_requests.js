@@ -6,14 +6,18 @@ import {
     updateDoc,
     doc,
     writeBatch,
-    addDoc
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const list = document.getElementById("requestList");
+const detailModal = document.getElementById("detailModal");
+const detailContent = document.getElementById("detailContent");
+const closeDetailModal = document.getElementById("closeDetailModal");
 
 let roleFilter = "all";
 let statusFilter = "all";
 let searchText = "";
+let allData = [];
 
 window.setRoleFilter = (role) => {
     roleFilter = role;
@@ -25,12 +29,15 @@ window.setStatusFilter = (status) => {
     render();
 };
 
-document.getElementById("searchInput").addEventListener("input", (e) => {
-    searchText = e.target.value.toLowerCase();
+document.getElementById("searchInput").addEventListener("input", (event) => {
+    searchText = event.target.value.toLowerCase();
     render();
 });
 
-let allData = [];
+closeDetailModal.addEventListener("click", closeDetail);
+detailModal.addEventListener("click", (event) => {
+    if (event.target === detailModal) closeDetail();
+});
 
 onSnapshot(collection(db, "expert_applications"), (snapshot) => {
     allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -38,13 +45,13 @@ onSnapshot(collection(db, "expert_applications"), (snapshot) => {
 });
 
 function render() {
-
     list.innerHTML = "";
 
     const filtered = allData.filter(item => {
+        const status = item.status || "pending";
 
         if (roleFilter !== "all" && item.role !== roleFilter) return false;
-        if (statusFilter !== "all" && item.status !== statusFilter) return false;
+        if (statusFilter !== "all" && status !== statusFilter) return false;
 
         if (searchText) {
             return (
@@ -63,47 +70,46 @@ function render() {
     }
 
     filtered.forEach(item => {
-
+        const status = item.status || "pending";
         const div = document.createElement("div");
         div.className = "request-card";
-
-        const badgeClass = item.status || "pending";
 
         div.innerHTML = `
             <div class="request-left">
                 <div class="request-email">
-                    ${item.email}
-                    <span class="badge ${badgeClass}">
-                        ${item.status === "approved" ? "Onaylandı" :
-                          item.status === "rejected" ? "Reddedildi" : "Bekliyor"}
+                    ${item.email || "-"}
+                    <span class="badge ${status}">
+                        ${getStatusText(status)}
                     </span>
                 </div>
 
                 <div class="request-info">
-                    Rol: ${item.role} |
-                    Lisans: ${item.licenseNumber} |
+                    Rol: ${getRoleText(item.role)} |
+                    Lisans: ${item.licenseNumber || "-"} |
                     Deneyim: ${item.experience || "-"} |
-                    ${item.hospital || ""}
+                    ${item.hospital || "-"}
                 </div>
             </div>
 
             <div class="request-actions">
                 <button class="action-btn btn-detail">Detay</button>
-                ${item.status === "pending" ? `
-                    <button class="action-btn btn-reject">✖</button>
-                    <button class="action-btn btn-approve">✔</button>
+                ${status === "pending" ? `
+                    <button class="action-btn btn-reject">✕</button>
+                    <button class="action-btn btn-approve">✓</button>
                 ` : ""}
             </div>
         `;
 
-        // reject
+        div.querySelector(".btn-detail").addEventListener("click", () => {
+            showDetail(item);
+        });
+
         div.querySelector(".btn-reject")?.addEventListener("click", async () => {
             await updateDoc(doc(db, "expert_applications", item.id), {
                 status: "rejected"
             });
         });
 
-        // approve
         div.querySelector(".btn-approve")?.addEventListener("click", async () => {
             await approveExpert(item);
         });
@@ -112,26 +118,70 @@ function render() {
     });
 }
 
-async function approveExpert(data) {
+function showDetail(item) {
+    const diplomaUrl = item.documentUrl || item.diplomaUrl || "";
+    const status = item.status || "pending";
 
+    detailContent.innerHTML = `
+        <div class="detail-row"><span>E-posta</span><strong>${item.email || "-"}</strong></div>
+        <div class="detail-row"><span>Rol</span><strong>${getRoleText(item.role)}</strong></div>
+        <div class="detail-row"><span>Durum</span><strong>${getStatusText(status)}</strong></div>
+        <div class="detail-row"><span>Lisans No</span><strong>${item.licenseNumber || "-"}</strong></div>
+        <div class="detail-row"><span>Deneyim</span><strong>${item.experience || "-"}</strong></div>
+        <div class="detail-row"><span>Telefon</span><strong>${item.phone || "-"}</strong></div>
+        <div class="detail-row"><span>Kurum</span><strong>${item.hospital || "-"}</strong></div>
+        <div class="detail-row"><span>Şehir</span><strong>${item.city || "-"}</strong></div>
+        <div class="detail-actions">
+            ${diplomaUrl
+                ? `<a class="action-btn btn-open-document" href="${diplomaUrl}" target="_blank" rel="noopener">Diplomayı Gör</a>`
+                : `<span class="empty-document">Diploma/belge bulunamadı</span>`}
+        </div>
+    `;
+
+    detailModal.classList.remove("hidden");
+}
+
+function closeDetail() {
+    detailModal.classList.add("hidden");
+    detailContent.innerHTML = "";
+}
+
+async function approveExpert(data) {
+    const diplomaUrl = data.documentUrl || data.diplomaUrl || "";
     const batch = writeBatch(db);
 
     batch.update(doc(db, "users", data.uid), {
         role: data.role,
-        diplomaUrl: data.documentUrl
+        diplomaUrl,
+        isApproved: true
     });
 
     batch.update(doc(db, "expert_applications", data.id), {
-        status: "approved"
+        status: "approved",
+        diplomaUrl
     });
 
-    await addDoc(collection(db, "notification"), {
+    batch.set(doc(collection(db, "notification")), {
         uid: data.uid,
-        title: "Başvurun Onaylandı 🎉",
+        type: "expert_application",
+        title: "Başvurun Onaylandı",
         message: "Artık uzman olarak giriş yapabilirsin.",
         isRead: false,
-        createdAt: new Date()
+        createdAt: serverTimestamp()
     });
 
     await batch.commit();
+}
+
+function getRoleText(role) {
+    if (role === "gynecologist") return "Jinekolog";
+    if (role === "dietitian") return "Diyetisyen";
+    if (role === "pregnant") return "Hamile";
+    return role || "-";
+}
+
+function getStatusText(status) {
+    if (status === "approved") return "Onaylandı";
+    if (status === "rejected") return "Reddedildi";
+    return "Bekliyor";
 }

@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Expert Requests</title>
+    <title>Uzman Başvuruları</title>
 
     <link rel="stylesheet" href="css/theme.css">
     <link rel="stylesheet" href="css/sidebar.css">
@@ -14,7 +14,6 @@
 
 <div class="container">
 
-    <!-- SIDEBAR -->
     <div class="sidebar">
         <h2 style="display:flex; align-items:center; gap:10px;">
             <img src="assets/icon/app_icon.jpeg" width="30">
@@ -23,18 +22,17 @@
 
         <ul>
             <li onclick="go('admin.html')">📊 Dashboard</li>
-            <li class="active">📩 Expert Requests</li>
-            <li onclick="go('admin_users.html')">👥 User Management</li>
-            <li onclick="go('admin_reports.html')">📄 System Reports</li>
+            <li class="active">📩 Uzman Başvuruları</li>
+            <li onclick="go('admin_users.html')">👥 Kullanıcı Yönetimi</li>
+            <li onclick="go('admin_reports.html')">📄 Sistem Raporları</li>
             <li onclick="logout()">🚪 Çıkış</li>
         </ul>
     </div>
 
-    <!-- MAIN -->
     <div class="main">
 
         <div class="top-bar">
-            <h1 class="page-title">Expert Applications 📩</h1>
+            <h1 class="page-title">Uzman Başvuruları 📩</h1>
         </div>
 
         <div class="filters">
@@ -43,7 +41,7 @@
 
             <div class="filter-buttons">
                 <button onclick="setRoleFilter('all')">Tümü</button>
-                <button onclick="setRoleFilter('gynecologist')">Doktorlar</button>
+                <button onclick="setRoleFilter('gynecologist')">Jinekologlar</button>
                 <button onclick="setRoleFilter('dietitian')">Diyetisyenler</button>
             </div>
 
@@ -60,6 +58,14 @@
 
     </div>
 
+</div>
+
+<div id="detailModal" class="detail-modal hidden">
+    <div class="detail-panel">
+        <button id="closeDetailModal" class="modal-close">×</button>
+        <h2>Başvuru Detayı</h2>
+        <div id="detailContent"></div>
+    </div>
 </div>
 
 <script type="module" src="app.js"></script>

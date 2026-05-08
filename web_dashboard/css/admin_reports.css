@@ -5,6 +5,10 @@
     margin-bottom: 20px;
 }
 
+.secondary-stats {
+    margin-top: -5px;
+}
+
 .stat-card {
     background: var(--card);
     padding: 16px;

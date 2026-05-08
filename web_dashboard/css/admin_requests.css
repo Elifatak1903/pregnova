@@ -147,3 +147,74 @@
 .btn-reject:hover {
     background: rgba(239, 83, 80, 0.2);
 }
+
+.detail-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 20px;
+}
+
+.detail-modal.hidden {
+    display: none;
+}
+
+.detail-panel {
+    width: min(560px, 100%);
+    max-height: 90vh;
+    overflow: auto;
+    background: var(--card);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.18);
+    position: relative;
+}
+
+.modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: var(--background);
+    cursor: pointer;
+    font-size: 22px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 12px 0;
+}
+
+.detail-row span {
+    color: var(--text-light);
+}
+
+.detail-row strong {
+    text-align: right;
+}
+
+.detail-actions {
+    margin-top: 18px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-open-document {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    text-decoration: none;
+}
+
+.empty-document {
+    color: var(--text-light);
+}

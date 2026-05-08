@@ -3,7 +3,6 @@ import { db } from "./app.js";
 import {
     collection,
     onSnapshot,
-    updateDoc,
     deleteDoc,
     doc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
@@ -20,8 +19,8 @@ window.setRoleFilter = (role) => {
     render();
 };
 
-searchInput.addEventListener("input", (e) => {
-    searchText = e.target.value.toLowerCase();
+searchInput.addEventListener("input", (event) => {
+    searchText = event.target.value.toLowerCase();
     render();
 });
 
@@ -34,27 +33,31 @@ onSnapshot(collection(db, "users"), (snapshot) => {
 });
 
 function render() {
-
     list.innerHTML = "";
 
-    const filtered = allUsers.filter(u => {
+    const filtered = allUsers.filter(user => {
+        if (roleFilter !== "all" && user.role !== roleFilter) return false;
 
-        if (roleFilter !== "all" && u.role !== roleFilter) return false;
+        const email = (user.email || "").toLowerCase();
+        const name = (user.name || "").toLowerCase();
 
-        return u.email?.toLowerCase().includes(searchText);
+        return email.includes(searchText) || name.includes(searchText);
     });
 
+    if (filtered.length === 0) {
+        list.innerHTML = "<p>Kullanıcı bulunamadı</p>";
+        return;
+    }
+
     filtered.forEach(user => {
-
         const initials = getInitials(user.name, user.email);
-
         const div = document.createElement("div");
         div.className = "user-card";
 
         div.innerHTML = `
             <div class="user-header">
                 <div class="avatar">${initials}</div>
-                <span class="badge ${user.role}">
+                <span class="badge ${user.role || "unknown"}">
                     ${getRoleText(user.role)}
                 </span>
             </div>
@@ -62,7 +65,7 @@ function render() {
             <div class="user-name">${user.name || "Kullanıcı"}</div>
 
             <div class="user-info">
-                📧 ${user.email}
+                📧 ${user.email || "-"}
                 <span>📅 Katılma: ${formatDate(user.createdAt)}</span>
             </div>
 
@@ -83,9 +86,9 @@ function render() {
 function getRoleText(role) {
     if (role === "pregnant") return "Hamile";
     if (role === "dietitian") return "Diyetisyen";
-    if (role === "gynecologist") return "Doktor";
+    if (role === "gynecologist") return "Jinekolog";
     if (role === "admin") return "Admin";
-    return role;
+    return role || "-";
 }
 
 function formatDate(timestamp) {
@@ -95,7 +98,6 @@ function formatDate(timestamp) {
 }
 
 function getInitials(name, email) {
-
     if (name) {
         const parts = name.trim().split(" ");
 
@@ -109,5 +111,5 @@ function getInitials(name, email) {
         ).toUpperCase();
     }
 
-    return email ? email.substring(0,2).toUpperCase() : "U";
+    return email ? email.substring(0, 2).toUpperCase() : "U";
 }

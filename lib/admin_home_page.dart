@@ -15,7 +15,6 @@ class AdminHomePage extends StatefulWidget {
 }
 
 class _AdminHomePageState extends State<AdminHomePage> {
-
   int pendingRequests = 0;
   int totalUsers = 0;
   int activeExperts = 0;
@@ -30,9 +29,9 @@ class _AdminHomePageState extends State<AdminHomePage> {
   }
 
   Future<void> fetchStats() async {
-
-    final usersSnapshot =
-    await FirebaseFirestore.instance.collection("users").get();
+    final usersSnapshot = await FirebaseFirestore.instance
+        .collection("users")
+        .get();
 
     totalUsers = usersSnapshot.docs.length;
 
@@ -42,13 +41,13 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
     final experts = expertSnapshot.docs;
 
-    activeExperts = experts.where((e) =>
-    e.data()["status"] == "approved"
-    ).length;
+    activeExperts = experts
+        .where((e) => e.data()["status"] == "approved")
+        .length;
 
-    pendingRequests = experts.where((e) =>
-    e.data()["status"] == "pending"
-    ).length;
+    pendingRequests = experts
+        .where((e) => e.data()["status"] == "pending")
+        .length;
 
     setState(() {
       loading = false;
@@ -58,10 +57,12 @@ class _AdminHomePageState extends State<AdminHomePage> {
   void signOut(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
 
+    if (!context.mounted) return;
+
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const RoleLoaderPage()),
-          (_) => false,
+      (_) => false,
     );
   }
 
@@ -76,165 +77,184 @@ class _AdminHomePageState extends State<AdminHomePage> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => signOut(context),
-          )
+          ),
         ],
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-            Container(
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Theme.of(context).colorScheme.primary,
-                    Theme.of(context).colorScheme.primary.withOpacity(0.7),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.admin_panel_settings,
-                        color: Theme.of(context).colorScheme.primary, size: 30),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.primary,
+                          Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.7),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Row(
                       children: [
-                        Text("Welcome Admin 👑",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold)),
-                        SizedBox(height: 6),
-                        Text("System monitoring & approvals",
-                            style: TextStyle(color: Colors.white70)),
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.white,
+                          child: Icon(
+                            Icons.admin_panel_settings,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 30,
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Welcome Admin 👑",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                "Sistem takibi ve onay y?netimi",
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  Row(
+                    children: [
+                      _statCard(
+                        title: "Bekleyen\nBa?vuru",
+                        value: pendingRequests.toString(),
+                        icon: Icons.pending_actions,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.8),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const AdminExpertRequestsPage(),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 12),
+                      _statCard(
+                        title: "Toplam\nKullan?c?",
+                        value: totalUsers.toString(),
+                        icon: Icons.people,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.8),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const UserManagementPage(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  Row(
+                    children: [
+                      _statCard(
+                        title: "Aktif\nUzman",
+                        value: activeExperts.toString(),
+                        icon: Icons.medical_services,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.8),
+                      ),
+                      const SizedBox(width: 12),
+                      _statCard(
+                        title: "Sistem\nRaporlar?",
+                        value: reports.toString(),
+                        icon: Icons.bar_chart,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.8),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const SystemReportsPage(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  Text(
+                    "Admin Actions",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  _adminActionCard(
+                    title: "Uzman Ba?vurular?",
+                    subtitle: "Uzman ba?vurular?n? onayla veya reddet",
+                    icon: Icons.health_and_safety,
+                    color: Theme.of(context).colorScheme.primary,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AdminExpertRequestsPage(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  _adminActionCard(
+                    title: "Kullan?c? Y?netimi",
+                    subtitle: "T?m kullan?c?lar? g?r?nt?le",
+                    icon: Icons.people_outline,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.8),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const UserManagementPage(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
             ),
-
-            const SizedBox(height: 24),
-
-            Row(
-              children: [
-                _statCard(
-                  title: "Pending\nRequests",
-                  value: pendingRequests.toString(),
-                  icon: Icons.pending_actions,
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const AdminExpertRequestsPage(),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(width: 12),
-                _statCard(
-                  title: "Total\nUsers",
-                  value: totalUsers.toString(),
-                  icon: Icons.people,
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const UserManagementPage(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            Row(
-              children: [
-                _statCard(
-                  title: "Active\nExperts",
-                  value: activeExperts.toString(),
-                  icon: Icons.medical_services,
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
-                ),
-                const SizedBox(width: 12),
-                _statCard(
-                  title: "System\nReports",
-                  value: reports.toString(),
-                  icon: Icons.bar_chart,
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const SystemReportsPage(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 30),
-
-            Text(
-              "Admin Actions",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            _adminActionCard(
-              title: "Expert Applications",
-              subtitle: "Approve or reject expert requests",
-              icon: Icons.health_and_safety,
-              color: Theme.of(context).colorScheme.primary,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const AdminExpertRequestsPage(),
-                  ),
-                );
-              },
-            ),
-
-            _adminActionCard(
-              title: "User Management",
-              subtitle: "View all users",
-              icon: Icons.people_outline,
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const UserManagementPage(),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -253,9 +273,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: const [
-              BoxShadow(color: Colors.black12, blurRadius: 5)
-            ],
+            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5)],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -265,9 +283,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
               Text(
                 value,
                 style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: color),
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
               ),
               const SizedBox(height: 6),
               Text(title, style: const TextStyle(fontSize: 13)),
@@ -291,9 +310,9 @@ class _AdminHomePageState extends State<AdminHomePage> {
         margin: const EdgeInsets.symmetric(vertical: 10),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
@@ -306,14 +325,14 @@ class _AdminHomePageState extends State<AdminHomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: color)),
-                  Text(subtitle,
-                      style: TextStyle(color: Colors.grey.shade700)),
+                  Text(
+                    title,
+                    style: TextStyle(fontWeight: FontWeight.bold, color: color),
+                  ),
+                  Text(subtitle, style: TextStyle(color: Colors.grey.shade700)),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
