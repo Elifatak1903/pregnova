@@ -59,17 +59,45 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
     final data = doc.data();
     if (data == null) return;
 
-    final week = data['hafta'];
+    final parsedWeek = calculatePregnancyWeek(data);
 
-    final parsedWeek = (week is int)
-        ? week
-        : int.tryParse(week.toString()) ?? 1;
+    if (data['hafta'] != parsedWeek) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .set({'hafta': parsedWeek}, SetOptions(merge: true));
+    }
 
     setState(() {
       userWeek = parsedWeek;
     });
 
     await haftalikBildirimKontrol();
+  }
+
+  int calculatePregnancyWeek(Map<String, dynamic> data) {
+    final start = data['gebelikBaslangicTarihi'];
+
+    if (start == null) {
+      final week = data['hafta'];
+      return (week is int)
+          ? week
+          : int.tryParse(week.toString()) ?? 1;
+    }
+
+    DateTime startDate;
+    if (start is Timestamp) {
+      startDate = start.toDate();
+    } else if (start is DateTime) {
+      startDate = start;
+    } else {
+      startDate = DateTime.tryParse(start.toString()) ?? DateTime.now();
+    }
+
+    final days = DateTime.now().difference(startDate).inDays;
+    final week = days ~/ 7;
+
+    return week.clamp(1, 42);
   }
 
   Future<void> haftalikBildirimKontrol() async {

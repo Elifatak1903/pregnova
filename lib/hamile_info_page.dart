@@ -41,6 +41,9 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
     final kilo = double.tryParse(kiloController.text.trim()) ?? 0;
     final boyCm = double.tryParse(boyController.text.trim()) ?? 0;
     final boyMetre = boyCm /100;
+    final hafta = int.tryParse(haftaController.text.trim()) ?? 0;
+    final gebelikBaslangicTarihi =
+        DateTime.now().subtract(Duration(days: hafta * 7));
 
     double bmi = 0;
     if (boyMetre >0) {
@@ -60,7 +63,8 @@ class _HamileBilgiFormuPageState extends State<HamileBilgiFormuPage> {
         'kilo': double.tryParse(kiloController.text.trim()) ?? 0,
         'boy': boyCm,
         'bmi': bmi,
-        'hafta': int.tryParse(haftaController.text.trim()) ?? 0,
+        'hafta': hafta,
+        'gebelikBaslangicTarihi': Timestamp.fromDate(gebelikBaslangicTarihi),
         'alerjiler': alerjiController.text.trim(),
 
         'chronicHypertension': chronicHypertension,

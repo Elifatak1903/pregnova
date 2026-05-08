@@ -81,11 +81,15 @@ class _KisiselBilgilerPageState extends State<KisiselBilgilerPage> {
 
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
+      final hafta = int.tryParse(haftaController.text.trim()) ?? 0;
+      final gebelikBaslangicTarihi =
+          DateTime.now().subtract(Duration(days: hafta * 7));
 
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'yas': int.tryParse(yasController.text.trim()) ?? 0,
         'kilo': double.tryParse(kiloController.text.trim()) ?? 0,
-        'hafta': int.tryParse(haftaController.text.trim()) ?? 0,
+        'hafta': hafta,
+        'gebelikBaslangicTarihi': Timestamp.fromDate(gebelikBaslangicTarihi),
         'alerjiler': alerjiController.text.trim(),
 
         'chronicHypertension': chronicHypertension,

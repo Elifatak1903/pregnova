@@ -28,6 +28,26 @@
   font-size: 15px;
 }
 
+.bmi-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(103,58,183,0.08);
+  color: var(--primary);
+}
+
+.bmi-card span {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.bmi-card strong {
+  font-size: 18px;
+}
+
 /* SECTION */
 .section-title {
   margin: 15px 0 10px;
