@@ -38,3 +38,68 @@
   grid-template-columns: 1fr 1fr;
   gap: 15px;
 }
+
+.profile-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.profile-modal.hidden {
+  display: none;
+}
+
+.profile-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(26,26,26,0.35);
+}
+
+.profile-modal-card {
+  position: relative;
+  width: min(420px, 100%);
+  padding: 24px;
+  border-radius: 18px;
+  background: var(--card);
+  box-shadow: 0 18px 45px rgba(0,0,0,0.2);
+}
+
+.profile-modal-card h2 {
+  margin: 0 0 10px;
+  color: var(--primary);
+}
+
+.profile-modal-card p {
+  margin: 0;
+  color: var(--text-light);
+  line-height: 1.5;
+}
+
+.profile-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.profile-modal-actions button {
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.primary-btn {
+  color: white;
+  background: var(--primary);
+}
+
+.secondary-btn {
+  color: var(--primary);
+  background: rgba(103,58,183,0.1);
+}

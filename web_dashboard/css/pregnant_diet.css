@@ -1,0 +1,173 @@
+.diet-page {
+  max-width: 980px;
+  margin-top: 24px;
+}
+
+.diet-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding: 22px;
+  border-radius: 16px;
+  color: white;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.diet-hero h2 {
+  margin: 6px 0 0;
+  font-size: 22px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.date-pill {
+  flex: 0 0 auto;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.18);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.state-card {
+  margin-top: 18px;
+  padding: 22px;
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--text-light);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.06);
+}
+
+.diet-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: fit-content;
+  margin: 18px auto 0;
+  padding: 14px 18px;
+  border: 0;
+  border-radius: 16px;
+  color: white;
+  background: var(--primary);
+  box-shadow: 0 10px 24px rgba(103,58,183,0.24);
+  cursor: pointer;
+  font: inherit;
+}
+
+.diet-summary:hover {
+  transform: translateY(-2px);
+}
+
+.diet-summary span::before {
+  content: "📅 ";
+}
+
+.diet-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+}
+
+.diet-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(26,26,26,0.32);
+}
+
+.diet-modal-panel {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: min(760px, calc(100vw - 28px));
+  max-height: 78vh;
+  overflow: auto;
+  transform: translateX(-50%);
+  padding: 18px;
+  border-radius: 20px 20px 0 0;
+  background: var(--background);
+  box-shadow: 0 -16px 40px rgba(0,0,0,0.18);
+}
+
+.modal-handle {
+  width: 42px;
+  height: 4px;
+  margin: 0 auto 14px;
+  border-radius: 999px;
+  background: #c9c3d8;
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.modal-header h2 {
+  margin: 4px 0 0;
+  color: var(--primary);
+  font-size: 18px;
+}
+
+.close-btn {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  color: var(--primary);
+  background: white;
+  cursor: pointer;
+  font-size: 22px;
+}
+
+.meal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.meal-card {
+  min-height: 120px;
+  padding: 18px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid rgba(103,58,183,0.16);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.05);
+}
+
+.meal-card span {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.meal-card p {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.note-card {
+  grid-column: 1 / -1;
+  background: rgba(103,58,183,0.08);
+}
+
+@media (max-width: 760px) {
+  .diet-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .meal-grid {
+    grid-template-columns: 1fr;
+  }
+}

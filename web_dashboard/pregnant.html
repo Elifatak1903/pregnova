@@ -43,6 +43,10 @@
                 <span>🔍</span> Uzman Ara
             </li>
 
+            <li onclick="go('pregnant_diet.html')">
+                <span>🥗</span> Diyet Planım
+            </li>
+
             <li onclick="go('account_pregnant.html')">
                 <span>👤</span> Hesabım
             </li>
@@ -122,6 +126,20 @@
 
         </div>
 
+    </div>
+</div>
+
+<div id="profileModal" class="profile-modal hidden">
+    <div class="profile-modal-backdrop"></div>
+
+    <div class="profile-modal-card">
+        <h2>Profilini tamamla</h2>
+        <p>Gebelik haftanı, boyunu, kilonu ve risk bilgilerini ekleyerek PregNova'yı daha doğru kullanabilirsin.</p>
+
+        <div class="profile-modal-actions">
+            <button class="secondary-btn" onclick="closeProfileModal()">Daha Sonra</button>
+            <button class="primary-btn" onclick="go('profile_edit.html')">Tamamla</button>
+        </div>
     </div>
 </div>
 

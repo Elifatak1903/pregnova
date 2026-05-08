@@ -1,32 +1,23 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import { auth, db } from "./app.js";
 
 import {
-  getAuth,
   onAuthStateChanged,
   signOut
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 import {
-  getFirestore,
   doc,
   getDoc,
+  getDocs,
+  addDoc,
   collection,
   query,
   where,
   orderBy,
   onSnapshot,
-  updateDoc
+  updateDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-
-/* FIREBASE INIT */
-const app = initializeApp({
-  apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
-  authDomain: "pregnova-38391.firebaseapp.com",
-  projectId: "pregnova-38391"
-});
-
-const auth = getAuth(app);
-const db = getFirestore(app);
 
 /* NAVIGATION */
 window.go = function(page) {
@@ -65,7 +56,17 @@ async function loadUserData(uid) {
   if (!snap.exists()) return;
 
   const data = snap.data();
-  const hafta = data.hafta || 1;
+  const hafta = calculatePregnancyWeek(data);
+
+  if (data.profilTamamlandi !== true) {
+    showProfileModal();
+  }
+
+  if (hafta !== data.hafta) {
+    await updateDoc(userRef, { hafta });
+  }
+
+  await createWeeklyNotification(uid, hafta);
 
   const weekEl = document.getElementById("weekText");
 
@@ -73,6 +74,53 @@ async function loadUserData(uid) {
     weekEl.innerText = hafta + ". Hafta";
   }
 }
+
+function calculatePregnancyWeek(data) {
+  const start = data.gebelikBaslangicTarihi;
+
+  if (!start) {
+    return data.hafta || 1;
+  }
+
+  const startDate = start.toDate ? start.toDate() : new Date(start);
+  const diffMs = Date.now() - startDate.getTime();
+  const week = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 7));
+
+  return Math.min(Math.max(week, 1), 42);
+}
+
+async function createWeeklyNotification(uid, week) {
+  if (!week) return;
+
+  const existing = await getDocs(query(
+    collection(db, "notification"),
+    where("uid", "==", uid),
+    where("type", "==", "weekly_info"),
+    where("week", "==", week)
+  ));
+
+  if (!existing.empty) return;
+
+  await addDoc(collection(db, "notification"), {
+    uid,
+    week,
+    type: "weekly_info",
+    title: `Hafta ${week} Bilgilendirmesi`,
+    message: `${week}. hafta için sağlık ve beslenme takibini düzenli yapmayı unutma.`,
+    isRead: false,
+    createdAt: serverTimestamp()
+  });
+}
+
+function showProfileModal() {
+  const modal = document.getElementById("profileModal");
+  if (modal) modal.classList.remove("hidden");
+}
+
+window.closeProfileModal = function() {
+  const modal = document.getElementById("profileModal");
+  if (modal) modal.classList.add("hidden");
+};
 
 /* RISK DASHBOARD */
 function loadRisk(uid) {
@@ -146,17 +194,19 @@ function loadNotifications(uid) {
     let unread = 0;
 
     snapshot.forEach(docSnap => {
+      if (!docSnap.data().isRead) unread++;
+    });
+
+    snapshot.docs.slice(0, 7).forEach(docSnap => {
 
       const data = docSnap.data();
-
-      if (!data.isRead) unread++;
 
       const div = document.createElement("div");
       div.className = "notif-item";
 
       div.innerHTML = `
-        <b>${data.title}</b><br>
-        <small>${data.message}</small>
+        <b>${data.title || "Bildirim"}</b><br>
+        <small>${data.message || ""}</small>
       `;
 
       div.onclick = async () => {

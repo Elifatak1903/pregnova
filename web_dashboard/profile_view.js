@@ -35,6 +35,12 @@ auth.onAuthStateChanged(async (user) => {
         const d = snap.data();
 
         content.innerHTML = `
+            ${kart("Yaş", d.yas ?? "-", "👤")}
+            ${kart("Güncel Kilo", d.kilo ? `${d.kilo} kg` : "-", "⚖️")}
+            ${kart("Boy", d.boy ? `${d.boy} cm` : "-", "📏")}
+            ${kart("BMI", d.bmi ? Number(d.bmi).toFixed(1) : "-", "📊")}
+            ${kart("Hamilelik Haftası", d.hafta ? `${d.hafta}. hafta` : "-", "📅")}
+            ${kart("Alerjiler", d.alerjiler || "Yok", "⚠️")}
             ${kart("Kronik Hipertansiyon", d.chronicHypertension ? "Var" : "Yok", "❤️")}
             ${kart("Diyabet", d.diabetes ? "Var" : "Yok", "🩸")}
             ${kart("Tiroid Hastalığı", d.thyroidDisease ? "Var" : "Yok", "🧬")}

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Diyet Planım</title>
+
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/pregnant_diet.css">
+</head>
+
+<body class="pregnant">
+
+<div class="container">
+
+    <div class="sidebar">
+        <h2 style="display:flex; align-items:center; gap:10px;">
+            <img src="assets/icon/app_icon.jpeg" width="30">
+            PregNova
+        </h2>
+
+        <ul>
+            <li onclick="go('pregnant.html')"><span>🏠</span> Ana Sayfa</li>
+            <li onclick="go('messages_pregnant.html')"><span>💬</span> Mesajlar</li>
+            <li onclick="go('expert_search.html')"><span>🔍</span> Uzman Ara</li>
+            <li class="active"><span>🥗</span> Diyet Planım</li>
+            <li onclick="go('account_pregnant.html')"><span>👤</span> Hesabım</li>
+            <li onclick="logout()"><span>🚪</span> Çıkış</li>
+        </ul>
+    </div>
+
+    <div class="main">
+        <div class="top-bar">
+            <h1 class="page-title">Diyet Planım</h1>
+
+            <div class="notification-btn" onclick="toggleNotifications(event)">
+                🔔
+                <span class="badge"></span>
+
+                <div id="notifDropdown" class="notif-dropdown hidden">
+                    <div id="notifList" class="notif-list"></div>
+
+                    <div class="notif-footer" onclick="go('notifications.html')">
+                        Tümünü Gör →
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="diet-page">
+            <div id="dietState" class="state-card">Yükleniyor...</div>
+
+            <button id="dietSummary" class="diet-summary hidden" type="button">
+                <span id="summaryDate">-</span>
+                <b>Diyeti Gör</b>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="dietModal" class="diet-modal hidden">
+    <div class="diet-modal-backdrop" onclick="closeDietModal()"></div>
+
+    <div class="diet-modal-panel">
+        <div class="modal-handle"></div>
+
+        <div class="modal-header">
+            <div>
+                <p class="eyebrow">Diyet detayı</p>
+                <h2 id="modalTitle">Diyet Planım</h2>
+            </div>
+
+            <button class="close-btn" onclick="closeDietModal()" type="button">×</button>
+        </div>
+
+        <div id="dietPlan" class="meal-grid">
+            <div class="meal-card" data-field="kahvalti">
+                <span>Kahvaltı</span>
+                <p></p>
+            </div>
+
+            <div class="meal-card" data-field="ara1">
+                <span>Ara Öğün 1</span>
+                <p></p>
+            </div>
+
+            <div class="meal-card" data-field="ogle">
+                <span>Öğle</span>
+                <p></p>
+            </div>
+
+            <div class="meal-card" data-field="ara2">
+                <span>Ara Öğün 2</span>
+                <p></p>
+            </div>
+
+            <div class="meal-card" data-field="aksam">
+                <span>Akşam</span>
+                <p></p>
+            </div>
+
+            <div class="meal-card" data-field="gece">
+                <span>Gece</span>
+                <p></p>
+            </div>
+
+            <div class="meal-card note-card" data-field="notlar">
+                <span>Notlar</span>
+                <p></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="app.js"></script>
+<script type="module" src="pregnant_diet.js"></script>
+
+</body>
+</html>
