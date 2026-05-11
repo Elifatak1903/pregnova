@@ -15,6 +15,7 @@ import {
 import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { t } from "./i18n.js";
 
 /* AUTH */
 onAuthStateChanged(auth, async (user) => {
@@ -73,16 +74,16 @@ async function loadDashboard(uid) {
   ));
 
   document.getElementById("weekly").innerText =
-    weeklySnap.size + " ölçüm";
+    t("measurementsCount", { count: weeklySnap.size });
 }
 
 function updateHighRiskBanner(count) {
   const banner = document.getElementById("highRiskBanner");
-  const countEl = document.getElementById("highRiskBannerCount");
+  const textEl = document.getElementById("highRiskBannerText");
 
-  if (!banner || !countEl) return;
+  if (!banner || !textEl) return;
 
-  countEl.innerText = count;
+  textEl.innerText = t("highRiskPatientDetected", { count });
   banner.classList.toggle("hidden", count <= 0);
 }
 
@@ -101,7 +102,7 @@ async function loadActivity() {
   container.innerHTML = "";
 
   if (snapshot.empty) {
-    container.innerHTML = "Henüz veri yok";
+    container.innerHTML = t("noDataYet");
     return;
   }
 
@@ -110,14 +111,14 @@ async function loadActivity() {
     const data = item.data();
     const uid = data.uid;
 
-    let name = "Hasta";
+    let name = t("patient");
     let surname = "";
 
     if (uid) {
       const userDoc = await getDoc(doc(db, "users", uid));
       const user = userDoc.data();
 
-      name = user?.name || "Hasta";
+      name = user?.name || t("patient");
       surname = user?.surname || "";
     }
 
@@ -140,7 +141,7 @@ async function loadActivity() {
 
     div.innerHTML = `
       <div class="activity-content">
-        <b>${name} ${surname}</b> yeni ölçüm gönderdi
+        <b>${name} ${surname}</b> ${t("sentNewMeasurement")}
         <br>
         <span class="time">${timeAgo(data.tarih)}</span>
       </div>
@@ -172,7 +173,7 @@ async function loadChart() {
   new Chart(ctx, {
     type: "doughnut",
     data: {
-      labels: ["Normal", "Orta", "Yüksek"],
+      labels: [t("normal"), t("medium"), t("high")],
       datasets: [{
         data: [normal.size, medium.size, high.size],
         backgroundColor: ["#00BFA5", "#FFA000", "#EF5350"]
@@ -199,7 +200,7 @@ function createLegend(normalCount, mediumCount, highCount) {
     <div class="legend-item">
       <div class="legend-left">
         <div class="legend-color" style="background:#00BFA5"></div>
-        Normal
+        ${t("normal")}
       </div>
       <b>${normalCount}</b>
     </div>
@@ -207,7 +208,7 @@ function createLegend(normalCount, mediumCount, highCount) {
     <div class="legend-item">
       <div class="legend-left">
         <div class="legend-color" style="background:#FFA000"></div>
-        Orta
+        ${t("medium")}
       </div>
       <b>${mediumCount}</b>
     </div>
@@ -215,7 +216,7 @@ function createLegend(normalCount, mediumCount, highCount) {
     <div class="legend-item">
       <div class="legend-left">
         <div class="legend-color" style="background:#EF5350"></div>
-        Yüksek
+        ${t("high")}
       </div>
       <b>${highCount}</b>
     </div>
@@ -231,9 +232,9 @@ function timeAgo(timestamp) {
 
   const diff = Math.floor((now - date) / 1000);
 
-  if (diff < 60) return diff + " sn önce";
-  if (diff < 3600) return Math.floor(diff/60) + " dk önce";
-  if (diff < 86400) return Math.floor(diff/3600) + " saat önce";
+  if (diff < 60) return t("secondsAgo", { count: diff });
+  if (diff < 3600) return t("minutesAgo", { count: Math.floor(diff / 60) });
+  if (diff < 86400) return t("hoursAgo", { count: Math.floor(diff / 3600) });
 
-  return Math.floor(diff/86400) + " gün önce";
+  return t("daysAgo", { count: Math.floor(diff / 86400) });
 }

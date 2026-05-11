@@ -14,22 +14,13 @@
 
 <div class="container">
 
-    <!-- SIDEBAR (senin mevcut sidebar) -->
-    <div class="sidebar">
-        <h2>PregNova</h2>
-
-        <ul>
-            <li onclick="go('gynecologist.html')">🏠 Dashboard</li>
-            <li onclick="go('notifications.html')" class="active">🔔 Bildirimler</li>
-            <li onclick="logout()">🚪 Çıkış</li>
-        </ul>
-    </div>
+    <div class="sidebar"></div>
 
     <!-- MAIN -->
     <div class="main">
 
         <div class="top-bar">
-            <h1 class="page-title">Bildirimler</h1>
+            <h1 class="page-title" data-i18n="notifications">Bildirimler</h1>
         </div>
 
         <!-- LIST -->
@@ -39,8 +30,8 @@
 
 </div>
 
-<script type="module" src="notifications.js"></script>
 <script type="module" src="app.js"></script>
+<script type="module" src="notifications.js"></script>
 
 </body>
 </html>

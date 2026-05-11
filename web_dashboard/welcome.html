@@ -8,27 +8,49 @@
 
 <body class="welcome-body">
 
+<div class="language-switcher" aria-label="Dil">
+    <button type="button" data-lang="tr" onclick="setPregnovaLanguage('tr')">TR</button>
+    <button type="button" data-lang="en" onclick="setPregnovaLanguage('en')">EN</button>
+</div>
+
 <div class="welcome-container">
 
-    <!-- ICON -->
     <div class="logo-circle">
-        <img src="assets/icon/app_icon.jpeg">
+        <img src="assets/icon/app_icon.jpeg" alt="PregNova">
     </div>
 
-    <!-- TITLE -->
-    <h1 class="title">PregNova’ya Hoş Geldin</h1>
+    <h1 class="title" data-i18n="welcomeTitle">PregNova'ya Hoş Geldin</h1>
 
-    <p class="desc">
-        Hamilelik sürecini güvenle takip edebilmen için <br>
-        sağlık, beslenme ve egzersiz tek yerde 💕
+    <p class="desc" data-i18n="welcomeDescription">
+        Hamilelik sürecini güvenle takip edebilmen için sağlık, beslenme ve egzersiz tek yerde
     </p>
 
-    <!-- BUTTON -->
-    <button class="main-btn" onclick="go('login.html')">
-        Kullanmaya Başla 💗
+    <button class="main-btn" onclick="go('login.html')" data-i18n="getStarted">
+        Kullanmaya Başla
     </button>
 
 </div>
+
+<script type="module" src="app.js"></script>
+<script type="module">
+    import { applyTranslations, getLanguage } from "./i18n.js";
+
+    function syncLanguageButtons() {
+      document.querySelectorAll("[data-lang]").forEach(button => {
+        button.classList.toggle("active", button.dataset.lang === getLanguage());
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      applyTranslations();
+      syncLanguageButtons();
+    });
+
+    window.addEventListener("pregnova:languageChanged", () => {
+      applyTranslations();
+      syncLanguageButtons();
+    });
+</script>
 
 </body>
 </html>

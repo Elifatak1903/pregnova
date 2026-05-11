@@ -10,6 +10,7 @@ import {
 import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { t } from "./i18n.js";
 
 const db = window.db;
 const auth = window.auth;
@@ -43,7 +44,7 @@ function loadDietPlan(uid) {
 
   onSnapshot(q, (snapshot) => {
     if (snapshot.empty) {
-      state.textContent = "Henüz diyet planın yok.";
+      state.textContent = t("noDietPlan");
       state.classList.remove("hidden");
       summary.classList.add("hidden");
       return;
@@ -56,8 +57,8 @@ function loadDietPlan(uid) {
     summary.classList.remove("hidden");
     summaryDate.textContent = currentDietDate;
   }, (error) => {
-    console.error("Diyet planı yüklenemedi:", error);
-    state.textContent = "Diyet planı yüklenirken bir hata oluştu.";
+    console.error("Diet plan could not be loaded:", error);
+    state.textContent = t("dietPlanLoadError");
     state.classList.remove("hidden");
     summary.classList.add("hidden");
   });
@@ -66,7 +67,7 @@ function loadDietPlan(uid) {
 window.openDietModal = function () {
   if (!currentDiet) return;
 
-  modalTitle.textContent = `Diyet Detayı - ${currentDietDate}`;
+  modalTitle.textContent = t("dietDetailTitle", { date: currentDietDate });
 
   document.querySelectorAll(".meal-card").forEach((card) => {
     const field = card.dataset.field;

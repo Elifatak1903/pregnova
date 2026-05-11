@@ -1,3 +1,5 @@
+import { t } from "./i18n.js";
+
 import {
   EmailAuthProvider,
   reauthenticateWithCredential,
@@ -7,58 +9,51 @@ import {
 const auth = window.auth;
 
 window.changePassword = async function () {
-
   const currentPassword = document.getElementById("currentPassword").value;
   const newPassword = document.getElementById("newPassword").value;
   const confirmPassword = document.getElementById("confirmPassword").value;
 
   if (!currentPassword || !newPassword || !confirmPassword) {
-    alert("Tüm alanları doldur ⚠️");
+    alert(t("fillAllFields"));
     return;
   }
 
   if (newPassword.length < 6) {
-    alert("Şifre en az 6 karakter olmalı");
+    alert(t("passwordMinLength"));
     return;
   }
 
   if (newPassword !== confirmPassword) {
-    alert("Şifreler eşleşmiyor");
+    alert(t("passwordsDoNotMatch"));
     return;
   }
 
   const user = auth.currentUser;
 
   if (!user || !user.email) {
-    alert("Kullanıcı bulunamadı");
+    alert(t("userNotFound"));
     return;
   }
 
   try {
-    const credential = EmailAuthProvider.credential(
-      user.email,
-      currentPassword
-    );
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
 
     await reauthenticateWithCredential(user, credential);
-
     await updatePassword(user, newPassword);
 
-    alert("Şifre başarıyla değiştirildi ✅");
-
+    alert(t("passwordUpdated"));
     window.location.href = "account_pregnant.html";
-
   } catch (e) {
     console.error(e);
 
     if (e.code === "auth/wrong-password") {
-      alert("Mevcut şifre yanlış ❌");
+      alert(t("wrongCurrentPassword"));
     } else if (e.code === "auth/weak-password") {
-      alert("Şifre çok zayıf ❌");
+      alert(t("weakPassword"));
     } else if (e.code === "auth/requires-recent-login") {
-      alert("Tekrar giriş yapman gerekiyor ⚠️");
+      alert(t("recentLoginRequired"));
     } else {
-      alert("Hata oluştu ❌");
+      alert(t("genericError"));
     }
   }
 };

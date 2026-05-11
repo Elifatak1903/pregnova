@@ -14,56 +14,42 @@
 
 <div class="container">
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <h2 style="display:flex; align-items:center; gap:10px;">
-            <img src="assets/icon/app_icon.jpeg" width="30">
-            PregNova
-        </h2>
-
-        <ul>
-            <li class="active" onclick="go('admin.html')">📊 Dashboard</li>
-            <li onclick="go('admin_requests.html')">📩 Expert Requests</li>
-            <li onclick="go('admin_users.html')">👥 User Management</li>
-            <li onclick="go('admin_reports.html')">📄 System Reports</li>
-            <li onclick="logout()">🚪 Çıkış</li>
-        </ul>
-    </div>
+    <div class="sidebar"></div>
 
     <!-- MAIN -->
     <div class="main">
 
         <!-- TOP -->
         <div class="top-bar">
-            <h1 class="page-title">Admin Dashboard 👑</h1>
+            <h1 class="page-title" data-i18n="adminDashboard">Admin Dashboard</h1>
         </div>
 
         <!-- WELCOME -->
         <div class="welcome-box">
-            <h2>Welcome Admin</h2>
-            <p>System monitoring & approvals</p>
+            <h2 data-i18n="welcomeAdmin">Welcome Admin</h2>
+            <p data-i18n="systemMonitoringApprovals">System monitoring & approvals</p>
         </div>
 
         <!-- STATS -->
         <div class="stats">
 
             <div class="card" onclick="go('admin_requests.html')">
-                <h3>Pending Requests</h3>
+                <h3 data-i18n="pendingRequests">Bekleyen Başvurular</h3>
                 <p id="pendingCount">0</p>
             </div>
 
             <div class="card" onclick="go('admin_users.html')">
-                <h3>Total Users</h3>
+                <h3 data-i18n="totalUsers">Toplam Kullanıcı</h3>
                 <p id="totalUsers">0</p>
             </div>
 
             <div class="card">
-                <h3>Active Experts</h3>
+                <h3 data-i18n="activeExperts">Aktif Uzmanlar</h3>
                 <p id="activeExperts">0</p>
             </div>
 
             <div class="card" onclick="go('admin_reports.html')">
-                <h3>System Reports</h3>
+                <h3 data-i18n="systemReports">Sistem Raporları</h3>
                 <p id="reports">0</p>
             </div>
 
@@ -71,16 +57,16 @@
 
         <!-- ACTIONS -->
         <div class="section">
-            <h2>Admin Actions</h2>
+            <h2 data-i18n="adminActions">Admin İşlemleri</h2>
 
             <div class="action-card" onclick="go('admin_requests.html')">
-                <h3>Expert Applications</h3>
-                <p>Approve or reject expert requests</p>
+                <h3 data-i18n="expertApplications">Uzman Başvuruları</h3>
+                <p data-i18n="approveRejectExpertRequests">Uzman başvurularını onayla veya reddet</p>
             </div>
 
             <div class="action-card" onclick="go('admin_users.html')">
-                <h3>User Management</h3>
-                <p>View and manage all users</p>
+                <h3 data-i18n="userManagement">Kullanıcı Yönetimi</h3>
+                <p data-i18n="viewManageAllUsers">Tüm kullanıcıları görüntüle ve yönet</p>
             </div>
 
         </div>

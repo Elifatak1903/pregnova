@@ -1,4 +1,5 @@
 import { auth, db } from "./app.js";
+import { t } from "./i18n.js";
 
 import {
   collection,
@@ -20,19 +21,19 @@ function timeAgo(date) {
   const now = new Date();
   const diff = (now - date) / 1000;
 
-  if (diff < 60) return "Az önce";
-  if (diff < 3600) return Math.floor(diff / 60) + " dk önce";
-  if (diff < 86400) return Math.floor(diff / 3600) + " saat önce";
-  if (diff < 604800) return Math.floor(diff / 86400) + " gün önce";
+  if (diff < 60) return t("justNow");
+  if (diff < 3600) return t("minutesAgo", { count: Math.floor(diff / 60) });
+  if (diff < 86400) return t("hoursAgo", { count: Math.floor(diff / 3600) });
+  if (diff < 604800) return t("daysAgo", { count: Math.floor(diff / 86400) });
 
   return date.toLocaleDateString();
 }
 
 /* ICON */
 function getIcon(type) {
-  if (type === "risk_alert") return "⚠️";
-  if (type === "message") return "💬";
-  return "🔔";
+  if (type === "risk_alert") return "!";
+  if (type === "message") return "M";
+  return "N";
 }
 
 function getIconClass(type) {
@@ -68,7 +69,7 @@ function loadNotifications(uid) {
     list.innerHTML = "";
 
     if (snapshot.empty) {
-      list.innerHTML = "<p>Bildirim yok</p>";
+      list.innerHTML = `<p>${t("noNotifications")}</p>`;
       return;
     }
 

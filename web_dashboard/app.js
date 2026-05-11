@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 import { renderSidebar } from "./sidebar.js";
+import { applyTranslations, getLanguage, setLanguage, t } from "./i18n.js";
 import {
   getFirestore,
   doc,
@@ -36,6 +37,9 @@ window.logout = function() {
 
 window.db = db;
 window.auth = auth;
+window.pregnovaT = t;
+window.setPregnovaLanguage = setLanguage;
+window.getPregnovaLanguage = getLanguage;
 
 /* AUTH CONTROL */
 onAuthStateChanged(auth, async (user) => {
@@ -53,7 +57,11 @@ onAuthStateChanged(auth, async (user) => {
   document.body.className = role;
   document.body.classList.add("ready");
   renderSidebar(role);
+  applyTranslations();
 });
+
+document.addEventListener("DOMContentLoaded", () => applyTranslations());
+window.addEventListener("pregnova:languageChanged", () => applyTranslations());
 
 /* NOTIFICATION */
 window.toggleNotifications = function(e) {
@@ -98,7 +106,7 @@ function loadNotifications(uid) {
       div.className = "notif-item";
 
       div.innerHTML = `
-        <b>${data.title || "Bildirim"}</b><br>
+        <b>${data.title || t("notification")}</b><br>
         <small>${data.message || ""}</small>
       `;
 

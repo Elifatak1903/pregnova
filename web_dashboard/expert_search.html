@@ -14,37 +14,23 @@
 
 <div class="container">
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <h2 style="display:flex; align-items:center; gap:10px;">
-            <img src="assets/icon/app_icon.jpeg" width="30">
-            PregNova
-        </h2>
-
-        <ul>
-            <li onclick="go('pregnant.html')"><span>🏠</span> Ana Sayfa</li>
-            <li onclick="go('messages_pregnant.html')"><span>💬</span> Mesajlar</li>
-            <li class="active"><span>🩺</span> Uzman Ara</li>
-            <li onclick="go('account_pregnant.html')"><span>👤</span> Hesabım</li>
-            <li onclick="logout()"><span>🚪</span> Çıkış</li>
-        </ul>
-    </div>
+    <div class="sidebar"></div>
 
     <!-- MAIN -->
     <div class="main">
 
         <div class="top-bar">
-            <h1 class="page-title">Uzman Ara</h1>
+            <h1 class="page-title" data-i18n="searchExpert">Uzman Ara</h1>
         </div>
 
         <!-- FILTER -->
         <div class="filter-bar">
-            <input id="searchInput" placeholder="İsim ara...">
+            <input id="searchInput" data-i18n-placeholder="searchNamePlaceholder" placeholder="İsim ara...">
 
             <select id="roleFilter">
-                <option value="">Tümü</option>
-                <option value="gynecologist">Jinekolog</option>
-                <option value="dietitian">Diyetisyen</option>
+                <option value="" data-i18n="all">Tümü</option>
+                <option value="gynecologist" data-i18n="gynecologist">Jinekolog</option>
+                <option value="dietitian" data-i18n="dietitian">Diyetisyen</option>
             </select>
         </div>
 

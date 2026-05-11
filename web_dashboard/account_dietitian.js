@@ -1,3 +1,5 @@
+import { t } from "./i18n.js";
+
 import {
   doc,
   getDoc
@@ -6,7 +8,6 @@ import {
 const db = window.db;
 const auth = window.auth;
 
-/* AUTH */
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
     window.location.href = "login.html";
@@ -16,9 +17,7 @@ auth.onAuthStateChanged(async (user) => {
   loadUser(user.uid);
 });
 
-/* LOAD USER */
 async function loadUser(uid) {
-
   const snap = await getDoc(doc(db, "users", uid));
   if (!snap.exists()) return;
 
@@ -26,18 +25,10 @@ async function loadUser(uid) {
 
   document.getElementById("userName").innerText =
     `${data.name || ""} ${data.surname || ""}`;
-
-  document.getElementById("userEmail").innerText =
-    auth.currentUser.email || "";
-
-  document.getElementById("expertise").innerText =
-    data.expertise || "-";
-
-  document.getElementById("experience").innerText =
-    data.experience || "-";
-
-  document.getElementById("institution").innerText =
-    data.institution || "-";
+  document.getElementById("userEmail").innerText = auth.currentUser.email || "";
+  document.getElementById("expertise").innerText = data.expertise || "-";
+  document.getElementById("experience").innerText = data.experience || "-";
+  document.getElementById("institution").innerText = data.institution || "-";
 
   const diplomaUrl = data.diplomaUrl || data.diploma || null;
 
@@ -47,11 +38,11 @@ async function loadUser(uid) {
   }
 }
 
-/* diploma aç */
 window.openDiploma = () => {
   if (!window.diplomaUrl) {
-    alert("Henüz diploma yok");
+    alert(t("noDiploma"));
     return;
   }
+
   window.open(window.diplomaUrl, "_blank");
 };

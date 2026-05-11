@@ -1,3 +1,5 @@
+import { t } from "./i18n.js";
+
 import {
   doc,
   getDoc,
@@ -9,14 +11,12 @@ const db = window.db;
 const auth = window.auth;
 
 auth.onAuthStateChanged(async (user) => {
-
   if (!user) {
     window.location.href = "login.html";
     return;
   }
 
   const snap = await getDoc(doc(db, "users", user.uid));
-
   if (!snap.exists()) return;
 
   const d = snap.data();
@@ -34,11 +34,9 @@ auth.onAuthStateChanged(async (user) => {
   document.getElementById("previousPreterm").checked = d.previousPreterm || false;
   document.getElementById("multiplePregnancy").checked = d.multiplePregnancy || false;
   document.getElementById("smoker").checked = d.smoker || false;
-
 });
 
 window.saveProfile = async function () {
-
   const user = auth.currentUser;
   if (!user) return;
 
@@ -49,7 +47,7 @@ window.saveProfile = async function () {
   const alerjiler = document.getElementById("alerjiler").value.trim();
 
   if (!yas || !kilo || !boy || !hafta) {
-    alert("Tüm alanları doldur kanka ⚠️");
+    alert(t("fillAllFields"));
     return;
   }
 
@@ -59,7 +57,9 @@ window.saveProfile = async function () {
   const boyMetre = boyNumber / 100;
   const bmi = boyMetre > 0 ? kiloNumber / (boyMetre * boyMetre) : 0;
   const gebelikBaslangicTarihi = new Date();
-  gebelikBaslangicTarihi.setDate(gebelikBaslangicTarihi.getDate() - (haftaNumber * 7));
+  gebelikBaslangicTarihi.setDate(
+    gebelikBaslangicTarihi.getDate() - haftaNumber * 7
+  );
 
   const data = {
     yas: Number(yas),
@@ -69,27 +69,23 @@ window.saveProfile = async function () {
     hafta: haftaNumber,
     gebelikBaslangicTarihi: Timestamp.fromDate(gebelikBaslangicTarihi),
     alerjiler,
-
     chronicHypertension: document.getElementById("chronicHypertension").checked,
     diabetes: document.getElementById("diabetes").checked,
     thyroidDisease: document.getElementById("thyroidDisease").checked,
     previousPreterm: document.getElementById("previousPreterm").checked,
     multiplePregnancy: document.getElementById("multiplePregnancy").checked,
     smoker: document.getElementById("smoker").checked,
-
     profilTamamlandi: true
   };
 
   try {
     await setDoc(doc(db, "users", user.uid), data, { merge: true });
 
-    alert("Kaydedildi ✅");
-
+    alert(t("saved"));
     window.location.href = "profile_view.html";
-
   } catch (err) {
     console.error(err);
-    alert("Hata oluştu ❌");
+    alert(t("genericError"));
   }
 };
 

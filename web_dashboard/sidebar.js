@@ -1,85 +1,111 @@
+import { getLanguage, setLanguage, t } from "./i18n.js";
+
 const sidebarGroups = {
   pregnant: [
     {
-      label: "Ana Sayfa",
+      labelKey: "home",
       icon: "🏠",
       page: "pregnant.html",
       children: [
-        { label: "Risk Ölçüm", icon: "❤️", page: "risk.html" },
-        { label: "Besin Analizi", icon: "🍽️", page: "nutrition.html" },
-        { label: "Ölçüm Geçmişi", icon: "📊", page: "measurement_history.html" },
-        { label: "Besin Geçmişi", icon: "💊", page: "nutrition_history.html" }
+        { labelKey: "riskMeasurement", icon: "❤️", page: "risk.html" },
+        { labelKey: "nutritionAnalysis", icon: "🍽️", page: "nutrition.html" },
+        {
+          labelKey: "measurementHistory",
+          icon: "📊",
+          page: "measurement_history.html"
+        },
+        {
+          labelKey: "nutritionHistory",
+          icon: "💊",
+          page: "nutrition_history.html"
+        }
       ]
     },
-    { label: "Mesajlar", icon: "💬", page: "messages_pregnant.html" },
-    { label: "Uzman Ara", icon: "🔍", page: "expert_search.html" },
-    { label: "Diyet Planım", icon: "🥗", page: "pregnant_diet.html" },
+    { labelKey: "messages", icon: "💬", page: "messages_pregnant.html" },
+    { labelKey: "searchExpert", icon: "🔍", page: "expert_search.html" },
+    { labelKey: "myDietPlan", icon: "🥗", page: "pregnant_diet.html" },
     {
-      label: "Hesabım",
+      labelKey: "account",
       icon: "👤",
       page: "account_pregnant.html",
       children: [
-        { label: "Profil Bilgileri", icon: "📝", page: "profile_view.html" },
-        { label: "Profili Düzenle", icon: "✏️", page: "profile_edit.html" },
-        { label: "Şifre Değiştir", icon: "🔒", page: "change_password.html" },
-        { label: "Uzman Olarak Başvur", icon: "🩺", page: "expert_application.html" }
+        { labelKey: "profileInfo", icon: "📝", page: "profile_view.html" },
+        { labelKey: "profileEdit", icon: "✏️", page: "profile_edit.html" },
+        { labelKey: "changePassword", icon: "🔒", page: "change_password.html" },
+        {
+          labelKey: "expertApplication",
+          icon: "🩺",
+          page: "expert_application.html"
+        }
       ]
     }
   ],
   dietitian: [
     {
-      label: "Ana Sayfa",
+      labelKey: "home",
       icon: "🏠",
       page: "dietitian.html",
       children: [
-        { label: "Son Analizler", icon: "📈", page: "son_analizler.html" },
-        { label: "Diyet Yaz", icon: "🥗", page: "select_client_for_diet.html" }
+        { labelKey: "recentAnalyses", icon: "📈", page: "son_analizler.html" },
+        { labelKey: "writeDiet", icon: "🥗", page: "select_client_for_diet.html" }
       ]
     },
-    { label: "Danışanlar", icon: "👩‍⚕️", page: "dietitian_clients.html" },
-    { label: "İstekler", icon: "📥", page: "dietitian_requests.html" },
-    { label: "Mesajlar", icon: "💬", page: "messages_dietitian.html" },
+    { labelKey: "clients", icon: "👩‍⚕️", page: "dietitian_clients.html" },
+    { labelKey: "requests", icon: "📥", page: "dietitian_requests.html" },
+    { labelKey: "messages", icon: "💬", page: "messages_dietitian.html" },
     {
-      label: "Hesabım",
+      labelKey: "account",
       icon: "👤",
       page: "account_dietitian.html",
       children: [
-        { label: "Profil Düzenle", icon: "✏️", page: "edit_profile.html" },
-        { label: "Şifre Değiştir", icon: "🔒", page: "change_password.html" }
+        { labelKey: "editProfile", icon: "✏️", page: "edit_profile.html" },
+        { labelKey: "changePassword", icon: "🔒", page: "change_password.html" }
       ]
     }
   ],
   gynecologist: [
     {
-      label: "Ana Sayfa",
+      labelKey: "home",
       icon: "🏠",
       page: "gynecologist.html",
       children: [
-        { label: "Son Ölçümler", icon: "📈", page: "son_olcumler.html" }
+        {
+          labelKey: "recentMeasurements",
+          icon: "📈",
+          page: "son_olcumler.html"
+        }
       ]
     },
-    { label: "Danışanlar", icon: "👩‍⚕️", page: "patients.html" },
-    { label: "İstekler", icon: "📥", page: "requests_gynecologist.html" },
-    { label: "Mesajlar", icon: "💬", page: "messages_gynecologist.html" },
+    { labelKey: "clients", icon: "👩‍⚕️", page: "patients.html" },
+    { labelKey: "requests", icon: "📥", page: "requests_gynecologist.html" },
+    { labelKey: "messages", icon: "💬", page: "messages_gynecologist.html" },
     {
-      label: "Hesabım",
+      labelKey: "account",
       icon: "👤",
       page: "account_gynecologist.html",
       children: [
-        { label: "Profil Düzenle", icon: "✏️", page: "edit_gynecologist_profile.html" },
-        { label: "Şifre Değiştir", icon: "🔒", page: "change_password.html" }
+        {
+          labelKey: "editProfile",
+          icon: "✏️",
+          page: "edit_gynecologist_profile.html"
+        },
+        { labelKey: "changePassword", icon: "🔒", page: "change_password.html" }
       ]
     }
   ],
   admin: [
     {
-      label: "Dashboard",
+      labelKey: "dashboard",
       icon: "📊",
       page: "admin.html",
       children: [
-        { label: "Uzman Başvuruları", icon: "📩", page: "admin_requests.html" },
-        { label: "Kullanıcı Yönetimi", icon: "👥", page: "admin_users.html" },
-        { label: "Sistem Raporları", icon: "📄", page: "admin_reports.html" }
+        {
+          labelKey: "expertApplications",
+          icon: "📩",
+          page: "admin_requests.html"
+        },
+        { labelKey: "userManagement", icon: "👥", page: "admin_users.html" },
+        { labelKey: "systemReports", icon: "📄", page: "admin_reports.html" }
       ]
     }
   ]
@@ -101,9 +127,13 @@ export function renderSidebar(role) {
       ${groups.map(group => renderGroup(group, currentPage)).join("")}
       <li class="sidebar-item sidebar-logout" onclick="logout()">
         <span>🚪</span>
-        <span>Çıkış</span>
+        <span>${t("logout")}</span>
       </li>
     </ul>
+    <div class="sidebar-language" aria-label="${t("language")}">
+      <button type="button" data-sidebar-lang="tr" class="${getLanguage() === "tr" ? "active" : ""}">TR</button>
+      <button type="button" data-sidebar-lang="en" class="${getLanguage() === "en" ? "active" : ""}">EN</button>
+    </div>
   `;
 
   sidebar.querySelectorAll(".sidebar-caret").forEach(caret => {
@@ -115,6 +145,16 @@ export function renderSidebar(role) {
       localStorage.setItem(`sidebar:${key}`, isOpen ? "open" : "closed");
     });
   });
+
+  sidebar.querySelectorAll("[data-sidebar-lang]").forEach(button => {
+    button.addEventListener("click", event => {
+      event.stopPropagation();
+      const lang = button.dataset.sidebarLang;
+      if (lang === getLanguage()) return;
+      setLanguage(lang);
+      window.location.reload();
+    });
+  });
 }
 
 function renderGroup(group, currentPage) {
@@ -124,12 +164,13 @@ function renderGroup(group, currentPage) {
   const storageKey = group.page;
   const stored = localStorage.getItem(`sidebar:${storageKey}`);
   const isOpen = canExpand && (stored === "open" || childPages.includes(currentPage));
+  const label = t(group.labelKey);
 
   if (!canExpand) {
     return `
       <li class="sidebar-item ${isActive ? "active" : ""}" onclick="go('${group.page}')">
         <span>${group.icon}</span>
-        <span>${group.label}</span>
+        <span>${label}</span>
       </li>
     `;
   }
@@ -137,10 +178,10 @@ function renderGroup(group, currentPage) {
   return `
     <li class="sidebar-group ${isOpen ? "open" : ""} ${isActive ? "active-group" : ""}" data-group="${storageKey}">
       <div class="sidebar-parent ${group.page === currentPage ? "active" : ""}">
-        <span class="sidebar-caret" role="button" aria-label="${group.label} alt menüsünü aç/kapat">▸</span>
+        <span class="sidebar-caret" role="button" aria-label="${t("toggleSubmenu", { label })}">▸</span>
         <span class="sidebar-parent-label" onclick="go('${group.page}')">
           <span>${group.icon}</span>
-          <span>${group.label}</span>
+          <span>${label}</span>
         </span>
       </div>
       <ul class="sidebar-submenu">
@@ -154,7 +195,7 @@ function renderChild(child, currentPage) {
   return `
     <li class="sidebar-subitem ${child.page === currentPage ? "active" : ""}" onclick="go('${child.page}')">
       <span>${child.icon}</span>
-      <span>${child.label}</span>
+      <span>${t(child.labelKey)}</span>
     </li>
   `;
 }

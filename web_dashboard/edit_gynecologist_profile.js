@@ -1,15 +1,23 @@
+import { t } from "./i18n.js";
+
 import {
   doc,
   getDoc,
   updateDoc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-storage.js";
 
 const db = window.db;
 const auth = window.auth;
+const storage = getStorage();
 
 let diplomaUrl = null;
 
-/* LOAD */
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
     window.location.href = "login.html";
@@ -17,34 +25,22 @@ auth.onAuthStateChanged(async (user) => {
   }
 
   const snap = await getDoc(doc(db, "users", user.uid));
-  const data = snap.data();
+  const data = snap.data() || {};
 
-  document.getElementById("name").value =
-    data?.name || "";
+  document.getElementById("name").value = data.name || "";
+  document.getElementById("email").value = user.email || "";
+  document.getElementById("license").value = data.licenseNumber || "";
+  document.getElementById("experience").value = data.experience || "";
+  document.getElementById("hospital").value = data.hospital || "";
 
-  document.getElementById("email").value =
-    user.email || "";
-
-  document.getElementById("license").value =
-    data?.licenseNumber || "";
-
-  document.getElementById("experience").value =
-    data?.experience || "";
-
-  document.getElementById("hospital").value =
-    data?.hospital || "";
-
-  diplomaUrl = data?.diplomaUrl || data?.diploma || null;
+  diplomaUrl = data.diplomaUrl || data.diploma || null;
 
   if (diplomaUrl) {
-    document.getElementById("uploadStatus").innerText =
-      "Diploma yüklendi ✅";
+    document.getElementById("uploadStatus").innerText = t("diplomaUploaded");
   }
 });
 
-/* UPLOAD */
 document.getElementById("uploadBtn").onclick = async () => {
-
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*,.pdf";
@@ -53,38 +49,44 @@ document.getElementById("uploadBtn").onclick = async () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
 
-    reader.onload = () => {
-      diplomaUrl = reader.result;
+      document.getElementById("uploadStatus").innerText = t("loading");
 
-      document.getElementById("uploadStatus").innerText =
-        "Diploma yüklendi ✅";
-    };
+      const path = `diplomas/${user.uid}/${Date.now()}_${sanitizeFileName(file.name)}`;
+      const storageRef = ref(storage, path);
 
-    reader.readAsDataURL(file);
+      await uploadBytes(storageRef, file);
+      diplomaUrl = await getDownloadURL(storageRef);
+      document.getElementById("uploadStatus").innerText = t("diplomaUploaded");
+    } catch (error) {
+      console.error("Diploma upload error:", error);
+      document.getElementById("uploadStatus").innerText = t("uploadError");
+    }
   };
 
   input.click();
 };
 
-/* SAVE */
-window.saveData = async () => {
+function sanitizeFileName(name) {
+  return name.replace(/[^a-zA-Z0-9._-]/g, "_");
+}
 
+window.saveData = async () => {
   const user = auth.currentUser;
+  if (!user) return;
 
   await updateDoc(doc(db, "users", user.uid), {
-
     name: document.getElementById("name").value,
     licenseNumber: document.getElementById("license").value,
     experience: document.getElementById("experience").value,
     hospital: document.getElementById("hospital").value,
     diploma: diplomaUrl,
-    diplomaUrl: diplomaUrl,
-
+    diplomaUrl
   });
 
-  alert("Güncellendi ✅");
-
+  alert(t("updated"));
   window.location.href = "account_gynecologist.html";
 };

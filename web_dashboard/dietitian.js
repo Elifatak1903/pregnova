@@ -9,6 +9,7 @@ import {
   getDoc,
   Timestamp
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { t } from "./i18n.js";
 
 const db = window.db;
 const auth = window.auth;
@@ -101,7 +102,7 @@ async function loadRecentActivity(uid) {
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
-      container.innerHTML = "Henüz aktivite yok";
+      container.innerHTML = t("noActivity");
       return;
     }
 
@@ -115,12 +116,12 @@ async function loadRecentActivity(uid) {
       /* USER ÇEK */
       const userSnap = await getDoc(doc(db, "users", patientId));
 
-      let name = "Kullanıcı";
+      let name = t("user");
       let surname = "";
 
       if (userSnap.exists()) {
         const u = userSnap.data();
-        name = u.name || "Kullanıcı";
+        name = u.name || t("user");
         surname = u.surname || "";
       }
 
@@ -128,7 +129,7 @@ async function loadRecentActivity(uid) {
       div.className = "activity-item";
 
       div.innerHTML = `
-        <b>${name} ${surname}</b> yeni analiz gönderdi<br>
+        <b>${name} ${surname}</b> ${t("sentNewAnalysis")}<br>
         <small>${formatTime(data.createdAt)}</small>
       `;
 
@@ -141,7 +142,7 @@ async function loadRecentActivity(uid) {
 
   } catch (err) {
     console.error("ACTIVITY ERROR:", err);
-    container.innerHTML = "Hata oluştu";
+    container.innerHTML = t("genericError");
   }
 }
 
@@ -155,7 +156,7 @@ function formatTime(timestamp) {
       ? timestamp.toDate()
       : new Date(timestamp);
 
-    return date.toLocaleString("tr-TR");
+    return date.toLocaleString();
   } catch {
     return "-";
   }

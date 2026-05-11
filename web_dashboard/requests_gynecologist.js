@@ -1,4 +1,5 @@
 import { auth, db } from "./app.js";
+import { t } from "./i18n.js";
 
 import {
   collection,
@@ -29,7 +30,7 @@ async function createNotification(targetUid, title, message) {
   await addDoc(collection(db, "notification"), {
     uid: targetUid,
     type: "expert_request",
-    title: title || "Bildirim",
+    title: title || t("notification"),
     message: message || "",
     isRead: false,
     createdAt: serverTimestamp()
@@ -40,7 +41,7 @@ async function loadRequests(uid) {
   const container = document.getElementById("requestsList");
   if (!container) return;
 
-  container.innerHTML = "Yükleniyor...";
+  container.innerHTML = t("loading");
   container.className = "requests-container";
 
   try {
@@ -54,7 +55,7 @@ async function loadRequests(uid) {
     container.innerHTML = "";
 
     if (snap.empty) {
-      container.innerHTML = "Bekleyen istek yok";
+      container.innerHTML = t("noPendingRequests");
       return;
     }
 
@@ -71,29 +72,29 @@ async function loadRequests(uid) {
       div.innerHTML = `
         <div class="request-info">
           <b>${fullName(user)}</b>
-          <span>Hasta ID: ${clientId}</span>
-          <span>İstek ID: ${item.id}</span>
+          <span>${t("patientId")}: ${clientId}</span>
+          <span>${t("requestId")}: ${item.id}</span>
 
           <div class="request-grid">
-            ${detail("E-posta", user.email)}
-            ${detail("Telefon", user.phone)}
-            ${detail("Gebelik haftası", user.hafta)}
-            ${detail("Boy", formatUnit(user.boy, "cm"))}
-            ${detail("Kilo", formatUnit(user.kilo, "kg"))}
+            ${detail(t("email"), user.email)}
+            ${detail(t("phone"), user.phone)}
+            ${detail(t("pregnancyWeek"), user.hafta)}
+            ${detail(t("height"), formatUnit(user.boy, "cm"))}
+            ${detail(t("weight"), formatUnit(user.kilo, "kg"))}
             ${detail("BMI", user.bmi || user.BMI)}
-            ${detail("Risk", riskText(user.riskLevel))}
-            ${detail("Alerji", user.allergy || user.alerji)}
+            ${detail(t("risk"), riskText(user.riskLevel))}
+            ${detail(t("allergy"), user.allergy || user.alerji)}
           </div>
         </div>
 
         <div class="request-actions">
-          <button class="accept">Kabul</button>
-          <button class="reject">Reddet</button>
+          <button class="accept">${t("accept")}</button>
+          <button class="reject">${t("reject")}</button>
         </div>
       `;
 
       div.querySelector(".accept").onclick = async () => {
-        if (!confirm("Danışanı kabul etmek istiyor musunuz?")) return;
+        if (!confirm(t("confirmAcceptClient"))) return;
 
         try {
           await updateDoc(doc(db, "expert_requests", item.id), {
@@ -107,20 +108,20 @@ async function loadRequests(uid) {
 
           await createNotification(
             clientId,
-            "Doktor Onayı",
-            "Doktorunuz sizi danışan olarak kabul etti."
+            t("doctorApprovalTitle"),
+            t("doctorApprovalMessage")
           );
 
-          alert("Danışan kabul edildi");
+          alert(t("clientAccepted"));
           loadRequests(uid);
         } catch (e) {
-          console.error("Kabul hatası:", e);
-          alert("Hata: " + e.message);
+          console.error("Accept error:", e);
+          alert(t("errorWithMessage", { message: e.message }));
         }
       };
 
       div.querySelector(".reject").onclick = async () => {
-        if (!confirm("İsteği reddetmek istiyor musunuz?")) return;
+        if (!confirm(t("confirmRejectRequest"))) return;
 
         try {
           await updateDoc(doc(db, "expert_requests", item.id), {
@@ -130,15 +131,15 @@ async function loadRequests(uid) {
 
           await createNotification(
             clientId,
-            "İstek Reddedildi",
-            "Gönderdiğiniz danışan isteği reddedildi."
+            t("requestRejectedTitle"),
+            t("requestRejectedMessage")
           );
 
-          alert("İstek reddedildi");
+          alert(t("requestRejected"));
           loadRequests(uid);
         } catch (e) {
-          console.error("Red hatası:", e);
-          alert("Hata: " + e.message);
+          console.error("Reject error:", e);
+          alert(t("errorWithMessage", { message: e.message }));
         }
       };
 
@@ -146,13 +147,13 @@ async function loadRequests(uid) {
     }
   } catch (e) {
     console.error("LOAD ERROR:", e);
-    container.innerHTML = "Hata oluştu";
+    container.innerHTML = t("genericError");
   }
 }
 
 function fullName(user) {
   const name = `${user.name || ""} ${user.surname || ""}`.trim();
-  return name || "İsimsiz hasta";
+  return name || t("anonymousPatient");
 }
 
 function detail(label, value) {
@@ -169,8 +170,8 @@ function formatUnit(value, unit) {
 }
 
 function riskText(value) {
-  if (value === "high") return "Yüksek";
-  if (value === "medium") return "Orta";
-  if (value === "normal") return "Normal";
+  if (value === "high") return t("high");
+  if (value === "medium") return t("medium");
+  if (value === "normal") return t("normal");
   return value || "-";
 }

@@ -6,6 +6,7 @@ import {
   doc,
   getDoc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { t } from "./i18n.js";
 
 const db = window.db;
 const auth = window.auth;
@@ -29,7 +30,7 @@ async function loadClients(uid) {
   const snap = await getDocs(q);
 
   if (snap.empty) {
-    container.innerHTML = "Danışan yok";
+    container.innerHTML = t("noClients");
     return;
   }
 
@@ -47,7 +48,7 @@ async function loadClients(uid) {
 
     div.innerHTML = `
       <b>${u.name || ""} ${u.surname || ""}</b>
-      <span>›</span>
+      <span>&rsaquo;</span>
     `;
 
     div.onclick = () => {

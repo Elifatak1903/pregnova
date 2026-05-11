@@ -6,6 +6,7 @@ import {
   doc,
   getDoc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { t } from "./i18n.js";
 
 const db = window.db;
 const auth = window.auth;
@@ -33,7 +34,7 @@ async function loadAnalyses(uid) {
     const snap = await getDocs(q);
 
     if (snap.empty) {
-      container.innerHTML = "Son 7 günde analiz yok";
+      container.innerHTML = t("noAnalysesLast7Days");
       return;
     }
 
@@ -57,7 +58,7 @@ async function loadAnalyses(uid) {
 
       div.innerHTML = `
         <div class="analysis-left">
-            <div class="analysis-icon">🍽</div>
+            <div class="analysis-icon">A</div>
 
             <div class="analysis-text">
                 <b>${name} ${surname}</b>
@@ -65,7 +66,7 @@ async function loadAnalyses(uid) {
             </div>
         </div>
 
-        <div class="analysis-arrow">›</div>
+        <div class="analysis-arrow">&rsaquo;</div>
       `;
 
       div.onclick = () => {
@@ -77,7 +78,7 @@ async function loadAnalyses(uid) {
 
   } catch (err) {
     console.error(err);
-    container.innerHTML = "Hata oluştu";
+    container.innerHTML = t("genericError");
   }
 }
 
@@ -91,11 +92,11 @@ function timeAgo(timestamp) {
 
   const diff = (now - date) / 1000;
 
-  if (diff < 60) return `${Math.floor(diff)} sn önce`;
-  if (diff < 3600) return `${Math.floor(diff/60)} dk önce`;
-  if (diff < 86400) return `${Math.floor(diff/3600)} saat önce`;
+  if (diff < 60) return t("secondsAgo", { count: Math.floor(diff) });
+  if (diff < 3600) return t("minutesAgo", { count: Math.floor(diff / 60) });
+  if (diff < 86400) return t("hoursAgo", { count: Math.floor(diff / 3600) });
 
-  return `${Math.floor(diff/86400)} gün önce`;
+  return t("daysAgo", { count: Math.floor(diff / 86400) });
 }
 
 function formatDateTime(timestamp) {
@@ -104,7 +105,7 @@ function formatDateTime(timestamp) {
 
   const date = timestamp.toDate();
 
-  return date.toLocaleString("tr-TR", {
+  return date.toLocaleString(undefined, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

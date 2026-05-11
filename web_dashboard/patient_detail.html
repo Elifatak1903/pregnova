@@ -14,38 +14,7 @@
 
 <div class="container">
 
-    <div class="sidebar">
-        <h2 style="display:flex; align-items:center; gap:10px;">
-            <img src="assets/icon/app_icon.jpeg" width="30">
-            PregNova
-        </h2>
-
-        <ul>
-            <li onclick="go('gynecologist.html')">
-                <span>🏠</span> Dashboard
-            </li>
-
-            <li class="active">
-                <span>👩‍⚕️</span> Danışanlar
-            </li>
-
-            <li onclick="go('requests_gynecologist.html')">
-                <span>📥</span> İstekler
-            </li>
-
-            <li onclick="go('messages_gynecologist.html')">
-                <span>💬</span> Mesajlar
-            </li>
-
-            <li onclick="go('account_gynecologist.html')">
-                <span>👤</span> Hesabım
-            </li>
-
-            <li onclick="logout()">
-                <span>🚪</span> Çıkış
-            </li>
-        </ul>
-    </div>
+    <div class="sidebar"></div>
 
     <!-- MAIN -->
     <div class="main">
@@ -59,7 +28,7 @@
             <!-- SOL -->
             <div class="left">
 
-                <h2 class="section-title">Grafikler</h2>
+                <h2 class="section-title" data-i18n="charts">Grafikler</h2>
 
                 <div class="chart-box">
                     <canvas id="sugarChart"></canvas>
@@ -74,7 +43,7 @@
             <!-- SAĞ -->
             <div class="right">
 
-                <h2 class="section-title">Ölçümler</h2>
+                <h2 class="section-title" data-i18n="measurements">Ölçümler</h2>
 
                 <div id="measurementsList"></div>
 
@@ -87,8 +56,8 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script type="module" src="patient_detail.js"></script>
 <script type="module" src="app.js"></script>
+<script type="module" src="patient_detail.js"></script>
 
 </body>
 </html>

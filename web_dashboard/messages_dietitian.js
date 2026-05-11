@@ -10,6 +10,7 @@ import {
   serverTimestamp,
   updateDoc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { t } from "./i18n.js";
 
 const db = window.db;
 const auth = window.auth;
@@ -40,7 +41,7 @@ function loadChats(uid) {
     container.innerHTML = "";
 
     if (snapshot.empty) {
-      container.innerHTML = "Henüz mesaj yok";
+      container.innerHTML = t("noMessages");
       return;
     }
 
@@ -53,7 +54,7 @@ function loadChats(uid) {
       const userDoc = await getDoc(doc(db, "users", otherUserId));
       const user = userDoc.data();
 
-      const name = user?.name || "";
+      const name = user?.name || t("user");
       const surname = user?.surname || "";
 
       const div = document.createElement("div");

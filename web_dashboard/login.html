@@ -8,40 +8,43 @@
 
 <body class="split-body">
 
+<div class="language-switcher" aria-label="Dil">
+    <button type="button" data-lang="tr" onclick="setPregnovaLanguage('tr')">TR</button>
+    <button type="button" data-lang="en" onclick="setPregnovaLanguage('en')">EN</button>
+</div>
+
 <div class="split-container">
 
-    <!-- SOL PANEL -->
     <div class="left-panel">
 
-        <img src="assets/icon/app_icon.jpeg" class="big-logo">
+        <img src="assets/icon/app_icon.jpeg" class="big-logo" alt="PregNova">
 
         <h1>PregNova</h1>
 
         <p>
-            PregNova, özellikle yüksek riskli gebeliklerin takibi için geliştirilmiş bir Klinik Karar Destek Sistemidir. <br><br>
-
-            Sistem, hamile bireylerin sağlık ölçümlerini ve beslenme verilerini kaydetmesine olanak tanırken, sağlık profesyonellerinin bu verileri takip edip değerlendirmesine yardımcı olur.
+            <span data-i18n="appDescription">PregNova, özellikle yüksek riskli gebeliklerin takibi için geliştirilmiş bir Klinik Karar Destek Sistemidir.</span>
+            <br><br>
+            <span data-i18n="appDescriptionDetail">Sistem, hamile bireylerin sağlık ölçümlerini ve beslenme verilerini kaydetmesine olanak tanırken, sağlık profesyonellerinin bu verileri takip edip değerlendirmesine yardımcı olur.</span>
         </p>
 
     </div>
 
-    <!-- SAĞ PANEL -->
     <div class="right-panel">
 
         <div class="login-card">
 
-            <h2>Giriş Yap</h2>
+            <h2 data-i18n="loginTitle">Giriş Yap</h2>
 
             <input id="email" class="input" placeholder="Email">
-            <input id="password" type="password" class="input" placeholder="Şifre">
+            <input id="password" type="password" class="input" data-i18n-placeholder="password" placeholder="Şifre">
 
-            <button class="main-btn" onclick="login()">Giriş Yap</button>
+            <button class="main-btn" onclick="login()" data-i18n="loginAction">Giriş Yap</button>
 
             <p id="error"></p>
 
             <p class="switch-text">
-                Hesabınız yok mu?
-                <span onclick="go('register.html')">Kayıt olun</span>
+                <span data-i18n="noAccount">Hesabınız yok mu?</span>
+                <span onclick="go('register.html')" data-i18n="registerAction">Kayıt olun</span>
             </p>
 
         </div>
@@ -54,7 +57,24 @@
 
 <script type="module">
     import { auth } from "./app.js";
+    import { applyTranslations, getLanguage } from "./i18n.js";
     import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+
+    function syncLanguageButtons() {
+      document.querySelectorAll("[data-lang]").forEach(button => {
+        button.classList.toggle("active", button.dataset.lang === getLanguage());
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      applyTranslations();
+      syncLanguageButtons();
+    });
+
+    window.addEventListener("pregnova:languageChanged", () => {
+      applyTranslations();
+      syncLanguageButtons();
+    });
 
     window.login = function() {
       const email = document.getElementById("email").value;

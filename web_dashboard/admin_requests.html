@@ -14,42 +14,29 @@
 
 <div class="container">
 
-    <div class="sidebar">
-        <h2 style="display:flex; align-items:center; gap:10px;">
-            <img src="assets/icon/app_icon.jpeg" width="30">
-            PregNova
-        </h2>
-
-        <ul>
-            <li onclick="go('admin.html')">📊 Dashboard</li>
-            <li class="active">📩 Uzman Başvuruları</li>
-            <li onclick="go('admin_users.html')">👥 Kullanıcı Yönetimi</li>
-            <li onclick="go('admin_reports.html')">📄 Sistem Raporları</li>
-            <li onclick="logout()">🚪 Çıkış</li>
-        </ul>
-    </div>
+    <div class="sidebar"></div>
 
     <div class="main">
 
         <div class="top-bar">
-            <h1 class="page-title">Uzman Başvuruları 📩</h1>
+            <h1 class="page-title" data-i18n="expertApplications">Uzman Başvuruları</h1>
         </div>
 
         <div class="filters">
 
-            <input type="text" id="searchInput" placeholder="E-posta, hastane veya lisans ara...">
+            <input type="text" id="searchInput" data-i18n-placeholder="searchExpertApplicationsPlaceholder" placeholder="E-posta, hastane veya lisans ara...">
 
             <div class="filter-buttons">
-                <button onclick="setRoleFilter('all')">Tümü</button>
-                <button onclick="setRoleFilter('gynecologist')">Jinekologlar</button>
-                <button onclick="setRoleFilter('dietitian')">Diyetisyenler</button>
+                <button onclick="setRoleFilter('all')" data-i18n="all">Tümü</button>
+                <button onclick="setRoleFilter('gynecologist')" data-i18n="gynecologists">Jinekologlar</button>
+                <button onclick="setRoleFilter('dietitian')" data-i18n="dietitians">Diyetisyenler</button>
             </div>
 
             <div class="filter-buttons">
-                <button onclick="setStatusFilter('all')">Tüm Durumlar</button>
-                <button onclick="setStatusFilter('pending')">Bekleyen</button>
-                <button onclick="setStatusFilter('approved')">Onaylanan</button>
-                <button onclick="setStatusFilter('rejected')">Reddedilen</button>
+                <button onclick="setStatusFilter('all')" data-i18n="allStatuses">Tüm Durumlar</button>
+                <button onclick="setStatusFilter('pending')" data-i18n="pending">Bekleyen</button>
+                <button onclick="setStatusFilter('approved')" data-i18n="approved">Onaylanan</button>
+                <button onclick="setStatusFilter('rejected')" data-i18n="rejected">Reddedilen</button>
             </div>
 
         </div>
@@ -63,7 +50,7 @@
 <div id="detailModal" class="detail-modal hidden">
     <div class="detail-panel">
         <button id="closeDetailModal" class="modal-close">×</button>
-        <h2>Başvuru Detayı</h2>
+        <h2 data-i18n="applicationDetail">Başvuru Detayı</h2>
         <div id="detailContent"></div>
     </div>
 </div>

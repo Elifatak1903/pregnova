@@ -1,23 +1,21 @@
 import { db } from "./app.js";
+import { t } from "./i18n.js";
 
 import {
   collection,
   query,
-  where,
   orderBy,
   onSnapshot,
-  Timestamp,
   getDoc,
   doc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-
   const list = document.getElementById("measurementsList");
   const filter = document.getElementById("dateFilter");
 
   if (!list || !filter) {
-    console.error("❌ elements bulunamadı");
+    console.error("Required measurement list elements were not found");
     return;
   }
 
@@ -37,9 +35,8 @@ document.addEventListener("DOMContentLoaded", () => {
   );
 
   onSnapshot(q, async (snapshot) => {
-
     if (snapshot.empty) {
-      list.innerHTML = "<p>Ölçüm yok</p>";
+      list.innerHTML = `<p>${t("noMeasurements")}</p>`;
       return;
     }
 
@@ -70,69 +67,63 @@ document.addEventListener("DOMContentLoaded", () => {
       selectedDate = filter.value;
       renderList();
     };
-
   }, (error) => {
-    console.error("Firestore hata:", error);
+    console.error("Firestore error:", error);
   });
 
   async function renderList() {
-
     list.innerHTML = "";
 
-    const filtered = allDocs.filter(doc => {
-      const d = doc.data().tarih.toDate().toLocaleDateString();
+    const filtered = allDocs.filter(item => {
+      const d = item.data().tarih.toDate().toLocaleDateString();
       return d === selectedDate;
     });
 
     for (let index = 0; index < filtered.length; index++) {
-
       const docSnap = filtered[index];
       const data = docSnap.data();
       const uid = data.uid;
 
-      let name = "Hasta";
+      let name = t("patient");
       let surname = "";
 
       if (uid) {
         const userDoc = await getDoc(doc(db, "users", uid));
         const user = userDoc.data();
 
-        name = user?.name || "Hasta";
+        name = user?.name || t("patient");
         surname = user?.surname || "";
       }
 
       const div = document.createElement("div");
       div.className = "measurement-card";
-
       div.id = `item-${data.tarih.seconds}`;
 
       div.innerHTML = `
         <div class="measurement-full-card">
-
           <div class="top">
             <b>${name} ${surname}</b>
             <span class="time">${formatDate(data.tarih)}</span>
           </div>
 
           <div class="info">
-            <div>Tansiyon: ${data.sistolik || "-"} / ${data.diastolik || "-"}</div>
-            <div>Açlık: ${data.aclikSeker || "-"}</div>
-            <div>Tokluk: ${data.toklukSeker || "-"}</div>
-            <div>Stres: ${data.stresSeviyesi || "-"}</div>
+            <div>${t("bloodPressure")}: ${data.sistolik || "-"} / ${data.diastolik || "-"}</div>
+            <div>${t("fastingSugar")}: ${data.aclikSeker || "-"}</div>
+            <div>${t("postprandialSugar")}: ${data.toklukSeker || "-"}</div>
+            <div>${t("stress")}: ${data.stresSeviyesi || "-"}</div>
           </div>
 
           <div class="risk">
-            Preeklampsi: ${formatRiskText(data.preeklampsiRisk ?? "-")} <br>
-            Diyabet: ${formatRiskText(data.diyabetRisk ?? "-")} <br>
-            Preterm: ${formatRiskText(data.pretermRisk ?? "-")}
+            ${t("preeclampsia")}: ${formatRiskText(data.preeklampsiRisk ?? "-")} <br>
+            ${t("diabetes")}: ${formatRiskText(data.diyabetRisk ?? "-")} <br>
+            ${t("preterm")}: ${formatRiskText(data.pretermRisk ?? "-")}
           </div>
 
           <div class="action">
             <button onclick="goDetail('${uid}', '${name}', '${surname}', ${index})">
-              Detaylı İncele ➜
+              ${t("detailedReview")} &rsaquo;
             </button>
           </div>
-
         </div>
       `;
 
@@ -158,36 +149,32 @@ document.addEventListener("DOMContentLoaded", () => {
             { transform: "scale(1.03)" },
             { transform: "scale(1)" }
           ], { duration: 400 });
-
         }, 400);
       }
     }
   }
-
 });
 
 function timeAgo(timestamp) {
-
   if (!timestamp) return "";
 
   const now = new Date();
   const date = timestamp.toDate();
   const diff = (now - date) / 1000;
 
-  if (diff < 60) return Math.floor(diff) + " sn önce";
-  if (diff < 3600) return Math.floor(diff / 60) + " dk önce";
-  if (diff < 86400) return Math.floor(diff / 3600) + " saat önce";
+  if (diff < 60) return t("secondsAgo", { count: Math.floor(diff) });
+  if (diff < 3600) return t("minutesAgo", { count: Math.floor(diff / 60) });
+  if (diff < 86400) return t("hoursAgo", { count: Math.floor(diff / 3600) });
 
-  return Math.floor(diff / 86400) + " gün önce";
+  return t("daysAgo", { count: Math.floor(diff / 86400) });
 }
 
 function formatDate(timestamp) {
-
   if (!timestamp) return "";
 
   const d = timestamp.toDate();
 
-  return d.toLocaleString("tr-TR", {
+  return d.toLocaleString(undefined, {
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
@@ -196,7 +183,6 @@ function formatDate(timestamp) {
 }
 
 window.openPopup = function (data, name, surname) {
-
   document.getElementById("popup").classList.remove("hidden");
 
   document.getElementById("popupName").innerText =
@@ -206,7 +192,6 @@ window.openPopup = function (data, name, surname) {
   let risksHTML = "";
 
   for (const key in data) {
-
     const value = data[key];
 
     if (key === "uid" || key === "tarih") continue;
@@ -230,9 +215,8 @@ window.openPopup = function (data, name, surname) {
 
   document.getElementById("popupData").innerHTML = `
     <div class="popup-grid">
-
       <div class="popup-left">
-        <h4>🩺 Ölçümler</h4>
+        <h4>${t("measurements")}</h4>
         <div class="measurements-grid">
           ${measurementsHTML || "<p>-</p>"}
         </div>
@@ -241,37 +225,52 @@ window.openPopup = function (data, name, surname) {
       <div class="popup-divider"></div>
 
       <div class="popup-right">
-        <h4>⚠️ Risk Analizi</h4>
+        <h4>${t("riskAnalysis")}</h4>
         ${risksHTML || "<p>-</p>"}
       </div>
-
     </div>
   `;
 };
 
 function formatKey(key) {
+  const labels = {
+    sistolik: t("systolic"),
+    diastolik: t("diastolic"),
+    aclikSeker: t("fastingSugar"),
+    toklukSeker: t("postprandialSugar"),
+    stresSeviyesi: t("stress"),
+    basAgrisi: t("headache"),
+    gormeBozuklugu: t("visionProblem"),
+    sislik: t("swelling"),
+    karinKasilma: t("abdominalContraction"),
+    belAgrisi: t("backPain"),
+    akinti: t("discharge"),
+    kilo: t("weight"),
+    boy: t("height"),
+    nabiz: t("pulse"),
+    preeklampsiRisk: t("preeclampsia"),
+    diyabetRisk: t("diabetes"),
+    pretermRisk: t("preterm")
+  };
 
-  return key
+  return labels[key] || key
     .replace(/([A-Z])/g, " $1")
     .replace(/^./, str => str.toUpperCase());
 }
 
 function formatRisk(risk) {
+  const riskLevel = getRiskLevel(risk);
 
-  if (!risk) return "-";
+  if (riskLevel === "high")
+    return `<span style="color:#EF5350; font-weight:bold;">${t("high")}</span>`;
 
-  const r = risk.toLowerCase();
+  if (riskLevel === "medium")
+    return `<span style="color:#FFA000; font-weight:bold;">${t("medium")}</span>`;
 
-  if (r.includes("high") || r.includes("yüksek"))
-    return `<span style="color:#EF5350; font-weight:bold;">Yüksek</span>`;
+  if (riskLevel === "low")
+    return `<span style="color:#00BFA5; font-weight:bold;">${t("low")}</span>`;
 
-  if (r.includes("medium") || r.includes("orta"))
-    return `<span style="color:#FFA000; font-weight:bold;">Orta</span>`;
-
-  if (r.includes("low") || r.includes("düşük"))
-    return `<span style="color:#00BFA5; font-weight:bold;">Düşük</span>`;
-
-  return risk;
+  return risk || "-";
 }
 
 window.closePopup = function () {
@@ -286,9 +285,8 @@ window.addEventListener("click", (e) => {
 });
 
 function formatValue(key, value) {
-
-  if (value === true) return "Var";
-  if (value === false) return "Yok";
+  if (value === true) return t("exists");
+  if (value === false) return t("none");
 
   if (value === null || value === undefined) return "-";
 
@@ -300,28 +298,33 @@ function formatValue(key, value) {
 }
 
 function getRiskClass(risk) {
-  if (!risk) return "";
-
-  const r = risk.toLowerCase();
-
-  if (r.includes("high") || r.includes("yüksek")) return "high";
-  if (r.includes("medium") || r.includes("orta")) return "medium";
-  return "low";
+  return getRiskLevel(risk) || "";
 }
 
 function formatRiskText(risk) {
-  if (!risk) return "-";
+  const riskLevel = getRiskLevel(risk);
 
-  const r = risk.toLowerCase();
+  if (riskLevel === "high") return t("high");
+  if (riskLevel === "medium") return t("medium");
+  if (riskLevel === "low") return t("low");
 
-  if (r.includes("high") || r.includes("yüksek")) return "Yüksek";
-  if (r.includes("medium") || r.includes("orta")) return "Orta";
-  if (r.includes("low") || r.includes("düşük")) return "Düşük";
+  return risk || "-";
+}
 
-  return risk;
+function getRiskLevel(risk) {
+  if (!risk) return "";
+
+  const r = String(risk).toLowerCase();
+
+  if (r.includes("high")) return "high";
+  if (r.includes("medium")) return "medium";
+  if (r.includes("low")) return "low";
+
+  return "";
 }
 
 window.goDetail = function(uid, name, surname, index) {
+  const fullName = encodeURIComponent(`${name} ${surname}`.trim());
   window.location.href =
-    `patient_detail.html?uid=${uid}&name=${name} ${surname}&index=${index}`;
+    `patient_detail.html?uid=${encodeURIComponent(uid)}&name=${fullName}&index=${index}`;
 };

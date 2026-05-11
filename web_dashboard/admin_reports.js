@@ -1,4 +1,5 @@
 import { db } from "./app.js";
+import { t } from "./i18n.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 async function loadReports() {
@@ -96,7 +97,7 @@ function renderChart(high, medium, low) {
     new Chart(ctx, {
         type: "doughnut",
         data: {
-            labels: ["Yüksek", "Orta", "Düşük"],
+            labels: [t("high"), t("medium"), t("low")],
             datasets: [{
                 data: [high, medium, low],
                 backgroundColor: ["#EF5350", "#FFA000", "#00B894"],
@@ -119,9 +120,9 @@ function renderBars(high, medium, low, hp, mp, lp) {
     if (!riskBars) return;
 
     riskBars.innerHTML = `
-        ${bar("Yüksek Risk", high, hp, "#EF5350")}
-        ${bar("Orta Risk", medium, mp, "#FFA000")}
-        ${bar("Düşük Risk", low, lp, "#00B894")}
+        ${bar(t("highRisk"), high, hp, "#EF5350")}
+        ${bar(t("mediumRisk"), medium, mp, "#FFA000")}
+        ${bar(t("lowRisk"), low, lp, "#00B894")}
     `;
 }
 
@@ -140,14 +141,14 @@ function bar(title, value, percentValue, color) {
 }
 
 function renderInsight(highPercent) {
-    let text = "Sistem stabil durumda.";
+    let text = t("systemStable");
     let color = "rgba(0,184,148,0.15)";
 
     if (highPercent > 30) {
-        text = "Yüksek risk oranı dikkat gerektiriyor.";
+        text = t("highRiskNeedsAttention");
         color = "rgba(239,83,80,0.15)";
     } else if (highPercent > 15) {
-        text = "Risk oranında artış gözlemleniyor.";
+        text = t("riskRateIncreasing");
         color = "rgba(255,160,0,0.15)";
     }
 
@@ -157,11 +158,11 @@ function renderInsight(highPercent) {
         card.innerText = text;
     }
 
-    setText("highPercentText", `Yüksek risk oranı: ${highPercent}%`);
+    setText("highPercentText", t("highRiskRate", { percent: highPercent }));
     setText("systemComment", text);
 }
 
 loadReports().catch(error => {
-    console.error("Admin raporları yüklenemedi:", error);
-    setText("insightCard", "Raporlar yüklenirken hata oluştu.");
+    console.error("Admin reports could not be loaded:", error);
+    setText("insightCard", t("reportsLoadError"));
 });

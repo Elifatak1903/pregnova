@@ -5,6 +5,8 @@
   min-height: 100vh;
   padding: 20px 18px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-brand {
@@ -160,4 +162,27 @@
 
 .sidebar-logout {
   margin-top: 12px;
+}
+
+.sidebar-language {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+.sidebar-language button {
+  min-height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sidebar-language button.active {
+  background: white;
+  color: var(--primary);
 }

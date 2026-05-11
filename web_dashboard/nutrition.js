@@ -1,6 +1,7 @@
 import { FoodUnits } from "./foodUnits.js";
 import { NutritionEngine } from "./nutritionEngine.js";
 import { SupplementUnits } from "./supplementUnits.js";
+import { t } from "./i18n.js";
 
 import {
   collection,
@@ -62,7 +63,7 @@ window.addSupplement = function () {
   if (!name || amount <= 0) return;
 
   if (!SupplementUnits[name]) {
-    alert("Geçerli bir takviye girin ❌");
+    alert(t("invalidSupplement"));
     return;
   }
 
@@ -93,7 +94,7 @@ function renderList() {
     foodList.innerHTML += `
       <div class="list-item">
         <span>${item.ad} (${item.miktar} ${item.format})</span>
-        <button class="delete-btn" onclick="removeFood(${index})">✖</button>
+        <button class="delete-btn" onclick="removeFood(${index})">x</button>
       </div>
     `;
   });
@@ -102,7 +103,7 @@ function renderList() {
     supList.innerHTML += `
       <div class="list-item">
         <span>${item.ad} (${item.miktar}${item.birim ? " " + item.birim : ""})</span>
-        <button class="delete-btn" onclick="removeSup(${index})">✖</button>
+        <button class="delete-btn" onclick="removeSup(${index})">x</button>
       </div>
     `;
   });
@@ -121,13 +122,13 @@ window.removeSup = function (i) {
 window.saveAnalysis = async function () {
 
   if (besinListesi.length === 0) {
-    alert("Lütfen besin ekleyin ❌");
+    alert(t("pleaseAddFood"));
     return;
   }
 
   const user = auth.currentUser;
   if (!user) {
-    alert("Kullanıcı bulunamadı ❌");
+    alert(t("userNotFound"));
     return;
   }
 

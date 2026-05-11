@@ -1,4 +1,5 @@
 import { auth, db } from "./app.js";
+import { t } from "./i18n.js";
 
 import {
   onAuthStateChanged,
@@ -71,7 +72,7 @@ async function loadUserData(uid) {
   const weekEl = document.getElementById("weekText");
 
   if (weekEl) {
-    weekEl.innerText = hafta + ". Hafta";
+    weekEl.innerText = t("weekValue", { week: hafta });
   }
 }
 
@@ -105,8 +106,8 @@ async function createWeeklyNotification(uid, week) {
     uid,
     week,
     type: "weekly_info",
-    title: `Hafta ${week} Bilgilendirmesi`,
-    message: `${week}. hafta için sağlık ve beslenme takibini düzenli yapmayı unutma.`,
+    title: t("weeklyInfoTitle", { week }),
+    message: t("weeklyInfoMessage", { week }),
     isRead: false,
     createdAt: serverTimestamp()
   });
@@ -141,9 +142,9 @@ function loadRisk(uid) {
     if (!box) return;
 
     box.innerHTML = `
-      <div>Preeklampsi: ${colorRisk(data.preeklampsiRisk)}</div>
-      <div>Diyabet: ${colorRisk(data.diyabetRisk)}</div>
-      <div>Preterm: ${colorRisk(data.pretermRisk)}</div>
+      <div>${t("preeclampsia")}: ${colorRisk(data.preeklampsiRisk)}</div>
+      <div>${t("diabetes")}: ${colorRisk(data.diyabetRisk)}</div>
+      <div>${t("preterm")}: ${colorRisk(data.pretermRisk)}</div>
     `;
   });
 }
@@ -153,12 +154,12 @@ function colorRisk(risk) {
   if (!risk) return "-";
 
   if (risk === "HIGH")
-    return `<span style="color:#EF5350">Yüksek</span>`;
+    return `<span style="color:#EF5350">${t("high")}</span>`;
 
   if (risk === "MEDIUM")
-    return `<span style="color:#FFA000">Orta</span>`;
+    return `<span style="color:#FFA000">${t("medium")}</span>`;
 
-  return `<span style="color:#00BFA5">Düşük</span>`;
+  return `<span style="color:#00BFA5">${t("low")}</span>`;
 }
 
 /* NOTIFICATIONS */
@@ -205,7 +206,7 @@ function loadNotifications(uid) {
       div.className = "notif-item";
 
       div.innerHTML = `
-        <b>${data.title || "Bildirim"}</b><br>
+        <b>${data.title || t("notification")}</b><br>
         <small>${data.message || ""}</small>
       `;
 

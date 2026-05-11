@@ -4,13 +4,13 @@ import {
   collection,
   query,
   where,
-  getDocs,
-  orderBy
+  getDocs
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 import { FoodUnits } from "./foodUnits.js";
 import { NutritionEngine } from "./nutritionEngine.js";
 import { SupplementUnits } from "./supplementUnits.js";
+import { t } from "./i18n.js";
 
 const db = window.db;
 
@@ -21,6 +21,24 @@ const clientId = urlParams.get("id");
 /* CHART INSTANCES */
 let weightChart;
 let calorieChart;
+
+function toDate(value) {
+  if (!value) return null;
+  if (value.toDate) return value.toDate();
+  if (value.seconds) return new Date(value.seconds * 1000);
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function getNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function canRenderCharts() {
+  return typeof window.Chart === "function";
+}
 
 /* USER BİLGİ */
 async function loadUser() {
@@ -35,7 +53,7 @@ async function loadUser() {
       `${data.name || ""} ${data.surname || ""}`;
 
     document.getElementById("patientInfo").innerText =
-      `Hafta: ${data.hafta || "-"} | Kilo: ${data.kilo || "-"}`;
+      `${t("week")}: ${data.hafta || "-"} | ${t("weight")}: ${data.kilo || "-"}`;
 
   } catch (err) {
     console.error("USER ERROR:", err);
@@ -48,36 +66,34 @@ async function loadWeightChart() {
 
     const q = query(
       collection(db, "risk_olcumleri"),
-      where("uid", "==", clientId),
-      orderBy("tarih")
+      where("uid", "==", clientId)
     );
 
     const snap = await getDocs(q);
 
-    const labels = [];
-    const values = [];
+    const rows = snap.docs
+      .map(docSnap => {
+        const data = docSnap.data();
+        return {
+          date: toDate(data.tarih),
+          weight: getNumber(data.kilo)
+        };
+      })
+      .filter(row => row.date)
+      .sort((a, b) => a.date - b.date);
 
-    snap.forEach(docSnap => {
-      const d = docSnap.data();
-
-      if (!d.tarih) return;
-
-      const date = d.tarih.toDate
-        ? d.tarih.toDate()
-        : new Date(d.tarih);
-
-      labels.push(date.toLocaleDateString("tr-TR"));
-      values.push(d.kilo || 0);
-    });
+    const labels = rows.map(row => row.date.toLocaleDateString());
+    const values = rows.map(row => row.weight);
 
     if (weightChart) weightChart.destroy();
+    if (!canRenderCharts()) return;
 
     weightChart = new Chart(document.getElementById("weightChart"), {
       type: "line",
       data: {
         labels,
         datasets: [{
-          label: "Kilo",
+          label: t("weight"),
           data: values,
           tension: 0.3
         }]
@@ -95,43 +111,44 @@ async function loadCalorieChart() {
 
     const q = query(
       collection(db, "besin_analizleri"),
-      where("uid", "==", clientId),
-      orderBy("createdAt")
+      where("uid", "==", clientId)
     );
 
     const snap = await getDocs(q);
 
     const dailyCalories = new Map();
 
-    snap.forEach(docSnap => {
-      const d = docSnap.data();
+    snap.docs
+      .map(docSnap => {
+        const data = docSnap.data();
+        return {
+          date: toDate(data.createdAt || data.tarih),
+          calorie: getNumber(data.kalori)
+        };
+      })
+      .filter(row => row.date)
+      .sort((a, b) => a.date - b.date)
+      .forEach(row => {
+        const key = row.date.toLocaleDateString();
 
-      if (!d.createdAt) return;
-
-      const date = d.createdAt.toDate
-        ? d.createdAt.toDate()
-        : new Date(d.createdAt);
-
-      const key = date.toLocaleDateString("tr-TR");
-      const kalori = Number(d.kalori) || 0;
-
-      dailyCalories.set(
-        key,
-        (dailyCalories.get(key) || 0) + kalori
-      );
-    });
+        dailyCalories.set(
+          key,
+          (dailyCalories.get(key) || 0) + row.calorie
+        );
+      });
 
     const labels = Array.from(dailyCalories.keys());
     const values = Array.from(dailyCalories.values());
 
     if (calorieChart) calorieChart.destroy();
+    if (!canRenderCharts()) return;
 
     calorieChart = new Chart(document.getElementById("calorieChart"), {
       type: "line",
       data: {
         labels,
         datasets: [{
-          label: "Günlük Toplam Kalori",
+          label: t("dailyTotalCalories"),
           data: values,
           tension: 0.3
         }]
@@ -157,7 +174,7 @@ async function loadAnalysis() {
     const snap = await getDocs(q);
 
     if (snap.empty) {
-      container.innerHTML = "Henüz analiz yok";
+      container.innerHTML = t("noAnalyses");
       return;
     }
 
@@ -169,7 +186,7 @@ async function loadAnalysis() {
       const date = getAnalysisDate(data);
       if (!date) return;
 
-      const key = date.toLocaleDateString("tr-TR");
+      const key = date.toLocaleDateString();
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push({ data, date });
     });
@@ -186,12 +203,12 @@ async function loadAnalysis() {
         <b>${day}</b>
         ${items.map((item, index) => renderAnalysisLine(item, index)).join("")}
         <hr>
-        <div><b>Günlük Toplam:</b> ${total.calorie.toFixed(0)} kcal</div>
+        <div><b>${t("dailyTotal")}:</b> ${total.calorie.toFixed(0)} kcal</div>
         <div style="color:#EF5350">
-          Eksikler: ${total.missing.slice(0,4).join(", ") || "-"}
+          ${t("missing")}: ${total.missing.slice(0,4).join(", ") || "-"}
         </div>
         <div style="color:#00B894">
-          Alınanlar: ${total.consumed.slice(0,4).join(", ") || "-"}
+          ${t("consumed")}: ${total.consumed.slice(0,4).join(", ") || "-"}
         </div>
       `;
 
@@ -200,32 +217,38 @@ async function loadAnalysis() {
 
   } catch (err) {
     console.error("ANALYSIS ERROR:", err);
-    container.innerHTML = "Hata oluştu";
+    container.innerHTML = t("genericError");
   }
 }
 
 function renderAnalysisLine(item, index) {
   const data = item.data;
-  const time = item.date.toLocaleTimeString("tr-TR", {
+  const time = item.date.toLocaleTimeString(undefined, {
     hour: "2-digit",
     minute: "2-digit"
   });
-  const takviyeler = (data.takviyeler || []).map(t => t.ad).slice(0, 2).join(", ") || "-";
+  const supplements = getArray(data.takviyeler)
+    .map(item => item.ad || item.name)
+    .filter(Boolean)
+    .slice(0, 2)
+    .join(", ") || "-";
 
   return `
     <div style="margin-top:10px">
-      <b>${index + 1}. Analiz - ${time}</b>
-      <div>Kalori: ${data.kalori || 0} kcal</div>
-      <div>Takviyeler: ${takviyeler}</div>
+      <b>${t("analysisNumber", { number: index + 1, time })}</b>
+      <div>${t("calories")}: ${getNumber(data.kalori)} kcal</div>
+      <div>${t("supplements")}: ${supplements}</div>
     </div>
   `;
 }
 
 function getAnalysisDate(data) {
   const raw = data.createdAt || data.tarih;
-  if (raw?.toDate) return raw.toDate();
-  if (raw?.seconds) return new Date(raw.seconds * 1000);
-  return raw ? new Date(raw) : null;
+  return toDate(raw);
+}
+
+function getArray(value) {
+  return Array.isArray(value) ? value : [];
 }
 
 function summarizeAnalysisDay(items) {
@@ -233,21 +256,34 @@ function summarizeAnalysisDay(items) {
   const supplements = [];
 
   items.forEach(({ data }) => {
-    (data.besinler || []).forEach(item => {
-      const gram = (FoodUnits.units[item.format] || 1) * Number(item.miktar || 0);
+    getArray(data.besinler).forEach(item => {
+      if (!item || typeof item !== "object") return;
+
+      const name = String(item.ad || item.name || "").trim().toLowerCase();
+      if (!name) return;
+
+      const unit = item.format || item.birim || item.unit || "gram";
+      const amount = getNumber(item.miktar ?? item.amount);
+      const gram = (FoodUnits.units[unit] || 1) * amount;
 
       foods.push({
-        name: String(item.ad || "").toLowerCase(),
+        name,
         amount: gram
       });
     });
 
-    (data.takviyeler || []).forEach(item => {
-      const info = SupplementUnits[item.ad];
+    getArray(data.takviyeler).forEach(item => {
+      if (!item || typeof item !== "object") return;
+
+      const name = String(item.ad || item.name || "").trim().toLowerCase();
+      if (!name) return;
+
+      const amount = getNumber(item.miktar ?? item.amount);
+      const info = SupplementUnits[name];
 
       supplements.push({
-        name: item.ad,
-        amount: info ? Number(item.miktar || 0) * info.value : Number(item.miktar || 0),
+        name,
+        amount: info ? amount * info.value : amount,
         unit: info ? info.unit : ""
       });
     });
@@ -266,7 +302,8 @@ function summarizeAnalysisDay(items) {
 async function init() {
 
   if (!clientId) {
-    alert("Danışan bulunamadı");
+    document.getElementById("patientName").innerText = t("clientNotFound");
+    document.getElementById("patientInfo").innerText = "";
     return;
   }
 

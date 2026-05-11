@@ -2,129 +2,72 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Hesabım</title>
-
+    <title>PregNova</title>
     <link rel="stylesheet" href="css/theme.css">
     <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/account_gynecologist.css">
 </head>
-
-<body>
-
+<body class="gynecologist">
 <div class="container">
-
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <h2 style="display:flex; align-items:center; gap:10px;">
-            <img src="assets/icon/app_icon.jpeg" width="30">
-            PregNova
-        </h2>
-
-        <ul>
-            <li onclick="go('gynecologist.html')"><span>🏠</span> Dashboard</li>
-            <li onclick="go('patients.html')"><span>👩‍⚕️</span> Danışanlar</li>
-            <li onclick="go('requests_gynecologist.html')"><span>📥</span> İstekler</li>
-
-            <li onclick="go('messages_gynecologist.html')">
-                <span>💬</span> Mesajlar
-            </li>
-
-            <li class="active">
-                <span>👤</span> Hesabım
-            </li>
-
-            <li onclick="logout()">
-                <span>🚪</span> Çıkış
-            </li>
-        </ul>
-    </div>
-
-    <!-- MAIN -->
+    <div class="sidebar"></div>
     <div class="main">
-
         <div class="top-bar">
-
-            <h1 class="page-title">Hesabım</h1>
-
+            <h1 class="page-title" data-i18n="account">Hesabım</h1>
             <div class="notification-btn" onclick="toggleNotifications(event)">
                 🔔
                 <span class="badge"></span>
-
                 <div id="notifDropdown" class="notif-dropdown hidden">
                     <div id="notifList" class="notif-list"></div>
-
-                    <div class="notif-footer" onclick="go('notifications.html')">
+                    <div class="notif-footer" onclick="go('notifications.html')" data-i18n="viewAll">
                         Tümünü Gör →
                     </div>
                 </div>
             </div>
         </div>
-
         <div class="account-page">
-
-            <!-- PROFIL -->
             <div class="profile-card">
                 <div class="avatar">👤</div>
-
                 <div>
-                    <h2 id="name">Yükleniyor...</h2>
+                    <h2 id="name" data-i18n="loading">Yükleniyor...</h2>
                     <p id="email"></p>
-                    <span class="role">Jinekolog</span>
+                    <span class="role" data-i18n="gynecologist">Jinekolog</span>
                 </div>
             </div>
-
-            <button class="edit-btn" onclick="go('edit_gynecologist_profile.html')">
+            <button class="edit-btn" onclick="go('edit_gynecologist_profile.html')" data-i18n="editInfo">
                 Düzenle
             </button>
-
-            <!-- INFO -->
-            <h3>Uzmanlık Bilgileri</h3>
-
+            <h3 data-i18n="expertiseInfo">Uzmanlık Bilgileri</h3>
             <div class="info-card">
-                <span>Lisans No</span>
+                <span data-i18n="licenseNo">Lisans No</span>
                 <b id="license"></b>
             </div>
-
             <div class="info-card">
-                <span>Deneyim</span>
+                <span data-i18n="experience">Deneyim</span>
                 <b id="experience"></b>
             </div>
-
             <div class="info-card">
-                <span>Kurum</span>
+                <span data-i18n="hospital">Hastane</span>
                 <b id="hospital"></b>
             </div>
-
             <div class="setting-item" onclick="openDiploma()">
-                📄 Diploma / Belgeler
-                <span id="diplomaStatus" class="status-text">Yok</span>
+                📄 <span data-i18n="diplomaDocuments">Diploma / Belgeler</span>
+                <span id="diplomaStatus" class="status-text" data-i18n="none">Yok</span>
             </div>
-
-            <!-- SETTINGS -->
-            <h3>Ayarlar</h3>
-
             <div class="settings">
-
                 <div class="setting-item" onclick="go('change_password.html')">
-                    🔒 Şifre Değiştir
+                    🔒 <span data-i18n="changePassword">Şifre Değiştir</span>
                 </div>
-
                 <div class="setting-item logout" onclick="logout()">
-                    🚪 Çıkış Yap
+                    🚪 <span data-i18n="logoutAction">Çıkış Yap</span>
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
-
 <script type="module">
-
     import { auth, db } from "./app.js";
+    import { t } from "./i18n.js";
     import {
       doc,
       getDoc
@@ -135,9 +78,7 @@
       signOut
     } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
-    /* AUTH */
     onAuthStateChanged(auth, async (user) => {
-
       if (!user) return location.href = "login.html";
 
       const snap = await getDoc(doc(db, "users", user.uid));
@@ -145,48 +86,35 @@
 
       document.getElementById("name").innerText =
         "Dr. " + (data?.name || "") + " " + (data?.surname || "");
-
-      document.getElementById("email").innerText =
-        user.email;
-
-      document.getElementById("license").innerText =
-        data?.licenseNumber || "-";
-
-      document.getElementById("experience").innerText =
-        data?.experience || "-";
-
-      document.getElementById("hospital").innerText =
-        data?.hospital || "-";
+      document.getElementById("email").innerText = user.email;
+      document.getElementById("license").innerText = data?.licenseNumber || "-";
+      document.getElementById("experience").innerText = data?.experience || "-";
+      document.getElementById("hospital").innerText = data?.hospital || "-";
 
       const diplomaUrl = data?.diplomaUrl || data?.diploma || null;
       window.diplomaUrl = diplomaUrl;
       document.getElementById("diplomaStatus").innerText =
-        diplomaUrl ? "Yüklendi" : "Yok";
-
+        diplomaUrl ? t("diplomaUploaded") : t("none");
     });
 
-    /* LOGOUT */
     window.logout = async function () {
       await signOut(auth);
       location.href = "login.html";
     };
 
-    /* NAV */
     window.go = function(page) {
       window.location.href = page;
     };
 
     window.openDiploma = function() {
       if (!window.diplomaUrl) {
-        alert("Henüz diploma yok");
+        alert(t("noDiploma"));
         return;
       }
 
       window.open(window.diplomaUrl, "_blank");
     };
-
 </script>
 <script type="module" src="app.js"></script>
-
 </body>
 </html>

@@ -1,4 +1,5 @@
 import { auth, db } from "./app.js";
+import { t } from "./i18n.js";
 
 import {
   collection,
@@ -48,7 +49,7 @@ async function loadPatients(uid) {
 
   if (!container) return;
 
-  container.innerHTML = "Yükleniyor...";
+  container.innerHTML = t("loading");
 
   const snap = await getDocs(query(
     collection(db, "expert_requests"),
@@ -108,16 +109,16 @@ function renderPatients(list) {
   list.forEach(p => {
 
     let color = "#00BFA5";
-    let text = "Normal";
+    let text = t("normal");
 
     if (p.risk === "medium") {
       color = "#FFA000";
-      text = "Orta";
+      text = t("medium");
     }
 
     if (p.risk === "high") {
       color = "#EF5350";
-      text = "Yüksek";
+      text = t("high");
     }
 
     const fullName = `${p.name} ${p.surname}`;
@@ -128,9 +129,9 @@ function renderPatients(list) {
 
     div.innerHTML = `
       <b>${highlightedName}</b><br>
-      Hafta: ${p.hafta}<br>
+      ${t("week")}: ${p.hafta}<br>
       <span style="color:${color}">
-        Risk: ${text}
+        ${t("risk")}: ${text}
       </span>
     `;
 
@@ -138,13 +139,11 @@ function renderPatients(list) {
     div.onclick = () => {
 
       if (!p.uid) {
-        console.error("UID yok ❌");
+        console.error("UID missing");
         return;
       }
 
       const fullName = p.name + " " + p.surname;
-
-      console.log("Gidiyor:", p.uid);
 
       window.location.href =
         "/patient_detail.html?uid=" + encodeURIComponent(p.uid) +

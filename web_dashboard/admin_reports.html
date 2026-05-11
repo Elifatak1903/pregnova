@@ -16,67 +16,54 @@
 
 <div class="container">
 
-    <div class="sidebar">
-        <h2 style="display:flex; align-items:center; gap:10px;">
-            <img src="assets/icon/app_icon.jpeg" width="30">
-            PregNova
-        </h2>
-
-        <ul>
-            <li onclick="go('admin.html')">📊 Dashboard</li>
-            <li onclick="go('admin_requests.html')">📩 Uzman Başvuruları</li>
-            <li onclick="go('admin_users.html')">👥 Kullanıcı Yönetimi</li>
-            <li class="active">📄 Sistem Raporları</li>
-            <li onclick="logout()">🚪 Çıkış</li>
-        </ul>
-    </div>
+    <div class="sidebar"></div>
 
     <div class="main">
 
         <div class="top-bar">
-            <h1>Sistem Raporları 📊</h1>
+            <h1 data-i18n="systemReportsTitle">Sistem Raporları</h1>
         </div>
 
         <div class="top-stats">
             <div class="stat-card">
-                <span>Toplam Kullanıcı</span>
+                <span data-i18n="totalUsers">Toplam Kullanıcı</span>
                 <strong id="totalUsers">0</strong>
             </div>
 
             <div class="stat-card">
-                <span>Hamile</span>
+                <span data-i18n="pregnantUsers">Hamileler</span>
                 <strong id="pregnantUsers">0</strong>
             </div>
 
             <div class="stat-card">
-                <span>Jinekolog</span>
+                <span data-i18n="gynecologist">Jinekolog</span>
                 <strong id="doctorUsers">0</strong>
             </div>
 
             <div class="stat-card">
-                <span>Diyetisyen</span>
+                <span data-i18n="dietitian">Diyetisyen</span>
                 <strong id="dietitianUsers">0</strong>
             </div>
         </div>
 
         <div class="top-stats secondary-stats">
             <div class="stat-card">
-                <span>Risk Ölçümü</span>
+                <span data-i18n="riskMeasurementCount">Risk Ölçümü</span>
                 <strong id="riskMeasurements">0</strong>
             </div>
 
             <div class="stat-card">
-                <span>Besin Analizi</span>
+                <span data-i18n="nutritionAnalysisCount">Besin Analizi</span>
                 <strong id="nutritionAnalyses">0</strong>
             </div>
 
             <div class="stat-card">
-                <span>Bekleyen Başvuru</span>
+                <span data-i18n="pendingApplication">Bekleyen Başvuru</span>
                 <strong id="pendingApplications">0</strong>
             </div>
 
             <div class="stat-card">
-                <span>Onay / Ret</span>
+                <span data-i18n="approvalReject">Onay / Ret</span>
                 <strong><span id="approvedApplications">0</span> / <span id="rejectedApplications">0</span></strong>
             </div>
         </div>
@@ -84,13 +71,13 @@
         <div class="report-grid">
 
             <div class="chart-card">
-                <h3>Risk Dağılımı</h3>
+                <h3 data-i18n="riskDistribution">Risk Dağılımı</h3>
                 <canvas id="riskChart"></canvas>
             </div>
 
             <div>
                 <div id="insightCard" class="insight-card">
-                    Analiz ediliyor...
+                    <span data-i18n="analyzing">Analiz ediliyor...</span>
                 </div>
 
                 <div id="riskBars"></div>
@@ -99,7 +86,7 @@
         </div>
 
         <div class="bottom-insight">
-            <h3>Sistem İçgörüsü</h3>
+            <h3 data-i18n="systemInsight">Sistem İçgörüsü</h3>
             <p id="highPercentText"></p>
             <p id="systemComment"></p>
         </div>

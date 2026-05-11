@@ -11,6 +11,7 @@ import {
 import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { t } from "./i18n.js";
 
 let db;
 let auth;
@@ -48,8 +49,6 @@ function init() {
 
 async function loadExperts() {
 
-  console.log("Experts yükleniyor...");
-
   const snap = await getDocs(collection(db, "users"));
 
   allExperts = [];
@@ -58,23 +57,19 @@ async function loadExperts() {
 
     const data = docSnap.data();
 
-    console.log("USER DATA 👉", data);
-
     const role = data.role?.toLowerCase();
 
     if (role === "gynecologist" || role === "dietitian") {
 
       allExperts.push({
         id: docSnap.id,
-        name: data.name || "Uzman",
+        name: data.name || t("expert"),
         role: role,
-        hospital: data.hospital || "Kurum bilgisi yok",
+        hospital: data.hospital || t("noInstitutionInfo"),
         clients: data.clients || []
       });
     }
   });
-
-  console.log("BULUNAN EXPERT:", allExperts);
 
   window.filterExperts();
 }
@@ -89,14 +84,14 @@ async function renderExperts(list) {
     const div = document.createElement("div");
     div.className = "expert-card";
 
-    let btnText = "İstek Gönder";
+    let btnText = t("sendRequest");
     let disabled = false;
 
     if (
       (e.role === "gynecologist" && currentUserData?.assignedDoctor === e.id) ||
       (e.role === "dietitian" && currentUserData?.assignedDietitian === e.id)
     ) {
-      btnText = "Danışanısınız";
+      btnText = t("youAreClient");
       disabled = true;
     }
 
@@ -110,13 +105,13 @@ async function renderExperts(list) {
       ));
 
       if (!snap.empty) {
-        btnText = "Beklemede";
+        btnText = t("pending");
         disabled = true;
       }
     }
 
     const roleText =
-      e.role === "dietitian" ? "Diyetisyen" : "Jinekolog";
+      e.role === "dietitian" ? t("dietitian") : t("gynecologist");
 
     div.innerHTML = `
       <div class="expert-left">
@@ -191,12 +186,12 @@ async function sendRequest(expertId) {
     const status = existing.data().status;
 
     if (status === "pending") {
-      alert("Zaten istek gönderdiniz ⏳");
+      alert(t("alreadyRequested"));
       return;
     }
 
     if (status === "approved") {
-      alert("Zaten danışansınız ✅");
+      alert(t("alreadyClient"));
       return;
     }
   }
@@ -208,5 +203,5 @@ async function sendRequest(expertId) {
     createdAt: new Date()
   });
 
-  alert("İstek gönderildi ✅");
+  alert(t("requestSent"));
 }

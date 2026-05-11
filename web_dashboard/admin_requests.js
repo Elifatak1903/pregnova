@@ -1,4 +1,5 @@
 import { db } from "./app.js";
+import { t } from "./i18n.js";
 
 import {
     collection,
@@ -65,7 +66,7 @@ function render() {
     });
 
     if (filtered.length === 0) {
-        list.innerHTML = "<p>Kayıt bulunamadı</p>";
+        list.innerHTML = `<p>${t("noRecordsFound")}</p>`;
         return;
     }
 
@@ -84,18 +85,18 @@ function render() {
                 </div>
 
                 <div class="request-info">
-                    Rol: ${getRoleText(item.role)} |
-                    Lisans: ${item.licenseNumber || "-"} |
-                    Deneyim: ${item.experience || "-"} |
+                    ${t("role")}: ${getRoleText(item.role)} |
+                    ${t("licenseNo")}: ${item.licenseNumber || "-"} |
+                    ${t("experience")}: ${item.experience || "-"} |
                     ${item.hospital || "-"}
                 </div>
             </div>
 
             <div class="request-actions">
-                <button class="action-btn btn-detail">Detay</button>
+                <button class="action-btn btn-detail">${t("detail")}</button>
                 ${status === "pending" ? `
-                    <button class="action-btn btn-reject">✕</button>
-                    <button class="action-btn btn-approve">✓</button>
+                    <button class="action-btn btn-reject" aria-label="${t("rejected")}">✕</button>
+                    <button class="action-btn btn-approve" aria-label="${t("approved")}">✓</button>
                 ` : ""}
             </div>
         `;
@@ -123,18 +124,18 @@ function showDetail(item) {
     const status = item.status || "pending";
 
     detailContent.innerHTML = `
-        <div class="detail-row"><span>E-posta</span><strong>${item.email || "-"}</strong></div>
-        <div class="detail-row"><span>Rol</span><strong>${getRoleText(item.role)}</strong></div>
-        <div class="detail-row"><span>Durum</span><strong>${getStatusText(status)}</strong></div>
-        <div class="detail-row"><span>Lisans No</span><strong>${item.licenseNumber || "-"}</strong></div>
-        <div class="detail-row"><span>Deneyim</span><strong>${item.experience || "-"}</strong></div>
-        <div class="detail-row"><span>Telefon</span><strong>${item.phone || "-"}</strong></div>
-        <div class="detail-row"><span>Kurum</span><strong>${item.hospital || "-"}</strong></div>
-        <div class="detail-row"><span>Şehir</span><strong>${item.city || "-"}</strong></div>
+        <div class="detail-row"><span>${t("email")}</span><strong>${item.email || "-"}</strong></div>
+        <div class="detail-row"><span>${t("role")}</span><strong>${getRoleText(item.role)}</strong></div>
+        <div class="detail-row"><span>${t("status")}</span><strong>${getStatusText(status)}</strong></div>
+        <div class="detail-row"><span>${t("licenseNo")}</span><strong>${item.licenseNumber || "-"}</strong></div>
+        <div class="detail-row"><span>${t("experience")}</span><strong>${item.experience || "-"}</strong></div>
+        <div class="detail-row"><span>${t("phone")}</span><strong>${item.phone || "-"}</strong></div>
+        <div class="detail-row"><span>${t("institution")}</span><strong>${item.hospital || "-"}</strong></div>
+        <div class="detail-row"><span>${t("city")}</span><strong>${item.city || "-"}</strong></div>
         <div class="detail-actions">
             ${diplomaUrl
-                ? `<a class="action-btn btn-open-document" href="${diplomaUrl}" target="_blank" rel="noopener">Diplomayı Gör</a>`
-                : `<span class="empty-document">Diploma/belge bulunamadı</span>`}
+                ? `<a class="action-btn btn-open-document" href="${diplomaUrl}" target="_blank" rel="noopener">${t("viewDiploma")}</a>`
+                : `<span class="empty-document">${t("noDocumentFound")}</span>`}
         </div>
     `;
 
@@ -164,8 +165,8 @@ async function approveExpert(data) {
     batch.set(doc(collection(db, "notification")), {
         uid: data.uid,
         type: "expert_application",
-        title: "Başvurun Onaylandı",
-        message: "Artık uzman olarak giriş yapabilirsin.",
+        title: t("applicationApprovedTitle"),
+        message: t("applicationApprovedMessage"),
         isRead: false,
         createdAt: serverTimestamp()
     });
@@ -174,14 +175,14 @@ async function approveExpert(data) {
 }
 
 function getRoleText(role) {
-    if (role === "gynecologist") return "Jinekolog";
-    if (role === "dietitian") return "Diyetisyen";
-    if (role === "pregnant") return "Hamile";
+    if (role === "gynecologist") return t("gynecologist");
+    if (role === "dietitian") return t("dietitian");
+    if (role === "pregnant") return t("pregnant");
     return role || "-";
 }
 
 function getStatusText(status) {
-    if (status === "approved") return "Onaylandı";
-    if (status === "rejected") return "Reddedildi";
-    return "Bekliyor";
+    if (status === "approved") return t("approvedShort");
+    if (status === "rejected") return t("rejectedShort");
+    return t("waiting");
 }

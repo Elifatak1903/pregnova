@@ -23,39 +23,7 @@
 
 <div class="container">
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <h2 style="display:flex; align-items:center; gap:10px;">
-            <img src="assets/icon/app_icon.jpeg" width="30">
-            PregNova
-        </h2>
-
-        <ul>
-            <li class="active">
-                <span>🏠</span> Ana Sayfa
-            </li>
-
-            <li onclick="go('messages_pregnant.html')">
-                <span>💬</span> Mesajlar
-            </li>
-
-            <li onclick="go('expert_search.html')">
-                <span>🔍</span> Uzman Ara
-            </li>
-
-            <li onclick="go('pregnant_diet.html')">
-                <span>🥗</span> Diyet Planım
-            </li>
-
-            <li onclick="go('account_pregnant.html')">
-                <span>👤</span> Hesabım
-            </li>
-
-            <li onclick="logout()">
-                <span>🚪</span> Çıkış
-            </li>
-        </ul>
-    </div>
+    <div class="sidebar"></div>
 
     <!-- MAIN -->
     <div class="main">
@@ -73,7 +41,7 @@
                 <div id="notifDropdown" class="notif-dropdown hidden">
                     <div id="notifList" class="notif-list"></div>
 
-                    <div class="notif-footer" onclick="go('notifications.html')">
+                    <div class="notif-footer" onclick="go('notifications.html')" data-i18n="viewAll">
                         Tümünü Gör →
                     </div>
                 </div>
@@ -85,21 +53,21 @@
         <div class="content">
 
             <!-- HOŞ GELDİN -->
-            <h2 class="welcome">Hoş geldin anne 💕</h2>
-            <p class="subtitle">Sağlık ve beslenme takibini kolayca yapabilirsin.</p>
+            <h2 class="welcome" data-i18n="welcomeMother">Hoş geldin anne</h2>
+            <p class="subtitle" data-i18n="healthTrackingSubtitle">Sağlık ve beslenme takibini kolayca yapabilirsin.</p>
 
             <!-- HAFTA KART -->
             <div class="week-card">
                 <div class="icon">👶</div>
                 <div>
-                    <p>Şu an</p>
+                    <p data-i18n="now">Şu an</p>
                     <h3 id="weekText">-</h3>
                 </div>
             </div>
 
             <!-- RISK -->
             <div class="card">
-                <h3>Son Risk Durumu</h3>
+                <h3 data-i18n="latestRiskStatus">Son Risk Durumu</h3>
                 <div id="riskBox"></div>
             </div>
 
@@ -107,19 +75,19 @@
             <div class="action-buttons">
 
                 <div class="action-card" onclick="go('risk.html')">
-                    ❤️ Risk Ölçüm
+                    <span data-i18n="riskMeasurement">Risk Ölçüm</span>
                 </div>
 
                 <div class="action-card" onclick="go('nutrition.html')">
-                    🍽️ Besin Analizi
+                    <span data-i18n="nutritionAnalysis">Besin Analizi</span>
                 </div>
 
                 <div class="action-card" onclick="go('measurement_history.html')">
-                    📊 Ölçüm Geçmişi
+                    <span data-i18n="measurementHistory">Ölçüm Geçmişi</span>
                 </div>
 
                 <div class="action-card" onclick="go('nutrition_history.html')">
-                    💊 Besin Geçmişi
+                    <span data-i18n="nutritionHistory">Besin Geçmişi</span>
                 </div>
 
             </div>
@@ -133,18 +101,18 @@
     <div class="profile-modal-backdrop"></div>
 
     <div class="profile-modal-card">
-        <h2>Profilini tamamla</h2>
-        <p>Gebelik haftanı, boyunu, kilonu ve risk bilgilerini ekleyerek PregNova'yı daha doğru kullanabilirsin.</p>
+        <h2 data-i18n="completeProfile">Profilini tamamla</h2>
+        <p data-i18n="completeProfileText">Gebelik haftanı, boyunu, kilonu ve risk bilgilerini ekleyerek PregNova'yı daha doğru kullanabilirsin.</p>
 
         <div class="profile-modal-actions">
-            <button class="secondary-btn" onclick="closeProfileModal()">Daha Sonra</button>
-            <button class="primary-btn" onclick="go('profile_edit.html')">Tamamla</button>
+            <button class="secondary-btn" onclick="closeProfileModal()" data-i18n="later">Daha Sonra</button>
+            <button class="primary-btn" onclick="go('profile_edit.html')" data-i18n="complete">Tamamla</button>
         </div>
     </div>
 </div>
 
-<script type="module" src="pregnant.js"></script>
 <script type="module" src="app.js"></script>
+<script type="module" src="pregnant.js"></script>
 
 </body>
 </html>

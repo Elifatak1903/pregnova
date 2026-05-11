@@ -14,30 +14,16 @@
 
 <div class="container">
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <h2 style="display:flex; align-items:center; gap:10px;">
-            <img src="assets/icon/app_icon.jpeg" width="30">
-            PregNova
-        </h2>
-        <ul>
-            <li onclick="go('dietitian.html')">🏠 Ana Sayfa</li>
-            <li onclick="go('dietitian_clients.html')">👩‍⚕️ Danışanlar</li>
-            <li onclick="go('dietitian_requests.html')">📥 İstekler</li>
-            <li onclick="go('messages_dietitian.html')">💬 Mesajlar</li>
-            <li onclick="go('account_dietitian.html')">👤 Hesap</li>
-            <li onclick="logout()">🚪 Çıkış</li>
-        </ul>
-    </div>
+    <div class="sidebar"></div>
 
     <!-- MAIN -->
     <div class="main">
 
         <div class="top-bar">
-            <h1 class="page-title">Danışan Seç</h1>
+            <h1 class="page-title" data-i18n="selectClient">Danışan Seç</h1>
         </div>
 
-        <div id="clientList">Yükleniyor...</div>
+        <div id="clientList" data-i18n="loading">Yükleniyor...</div>
 
     </div>
 

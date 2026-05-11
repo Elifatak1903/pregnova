@@ -17,8 +17,6 @@
       const snap = await getDoc(doc(db, "users", user.uid));
       const role = snap.data()?.role;
 
-      console.log("ROLE:", role);
-
       if (role === "pregnant") {
         window.location.href = "pregnant.html";
       }

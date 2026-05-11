@@ -13,6 +13,7 @@ import {
   uploadBytes,
   getDownloadURL
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-storage.js";
+import { t } from "./i18n.js";
 
 const db = window.db;
 const auth = window.auth;
@@ -46,16 +47,16 @@ auth.onAuthStateChanged(async (user) => {
     const status = snap.data()?.status;
 
     if (status === "pending") {
-      statusView.textContent = "⏳ Başvurunuz inceleniyor...";
+      statusView.textContent = t("applicationPending");
     } else if (status === "approved") {
-      statusView.textContent = "✅ Zaten uzmansınız!";
+      statusView.textContent = t("alreadyExpert");
     } else if (status === "rejected") {
-      statusView.textContent = "❌ Başvurunuz reddedildi. Tekrar deneyebilirsiniz.";
+      statusView.textContent = t("applicationRejectedRetry");
       form.classList.remove("hidden");
     }
 
   } catch (err) {
-    console.error("Status kontrol hatası:", err);
+    console.error("Status check error:", err);
   }
 });
 
@@ -66,12 +67,12 @@ form.addEventListener("submit", async (e) => {
   if (!user) return;
 
   if (!selectedFile) {
-    alert("Lütfen belge yükleyin");
+    alert(t("pleaseUploadDocument"));
     return;
   }
 
   submitBtn.disabled = true;
-  submitBtn.textContent = "Gönderiliyor...";
+  submitBtn.textContent = t("sending");
 
   try {
     const path = `expert_documents/${Date.now()}_${selectedFile.name}`;
@@ -103,13 +104,13 @@ form.addEventListener("submit", async (e) => {
     await addDoc(collection(db, "notification"), {
       uid: user.uid,
       type: "expert_application",
-      title: "Uzman Başvurusu Alındı",
-      message: "Başvurunuz alındı. Onay bekleniyor.",
+      title: t("expertApplicationReceivedTitle"),
+      message: t("expertApplicationReceivedMessage"),
       isRead: false,
       createdAt: serverTimestamp()
     });
 
-    alert("Başvurunuz alındı");
+    alert(t("applicationReceived"));
     location.reload();
 
   } catch (err) {
@@ -117,6 +118,6 @@ form.addEventListener("submit", async (e) => {
     alert(err.message);
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = "Başvuruyu Gönder";
+    submitBtn.textContent = t("submitApplication");
   }
 });

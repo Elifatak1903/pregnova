@@ -14,34 +14,22 @@
 
 <div class="container">
 
-    <div class="sidebar">
-        <h2 style="display:flex; align-items:center; gap:10px;">
-            <img src="assets/icon/app_icon.jpeg" width="30">
-            PregNova
-        </h2>
-        <ul>
-            <li onclick="go('admin.html')">📊 Dashboard</li>
-            <li onclick="go('admin_requests.html')">📩 Uzman Başvuruları</li>
-            <li class="active">👥 Kullanıcı Yönetimi</li>
-            <li onclick="go('admin_reports.html')">📄 Sistem Raporları</li>
-            <li onclick="logout()">🚪 Çıkış</li>
-        </ul>
-    </div>
+    <div class="sidebar"></div>
 
     <div class="main">
 
         <div class="top-bar">
-            <h1>Kullanıcı Yönetimi 👥</h1>
+            <h1 data-i18n="userManagement">Kullanıcı Yönetimi</h1>
         </div>
 
         <div class="user-filters">
-            <button onclick="setRoleFilter('all')">Tümü</button>
-            <button onclick="setRoleFilter('pregnant')">Hamileler</button>
-            <button onclick="setRoleFilter('gynecologist')">Jinekologlar</button>
-            <button onclick="setRoleFilter('dietitian')">Diyetisyenler</button>
+            <button onclick="setRoleFilter('all')" data-i18n="all">Tümü</button>
+            <button onclick="setRoleFilter('pregnant')" data-i18n="pregnantUsers">Hamileler</button>
+            <button onclick="setRoleFilter('gynecologist')" data-i18n="gynecologists">Jinekologlar</button>
+            <button onclick="setRoleFilter('dietitian')" data-i18n="dietitians">Diyetisyenler</button>
         </div>
 
-        <input id="searchInput" placeholder="İsim veya e-posta ara..." />
+        <input id="searchInput" data-i18n-placeholder="searchUserPlaceholder" placeholder="İsim veya e-posta ara..." />
 
         <div id="userList"></div>
 

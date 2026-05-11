@@ -4,6 +4,7 @@ import {
   where,
   getDocs
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { t } from "./i18n.js";
 
 const db = window.db;
 const auth = window.auth;
@@ -31,7 +32,7 @@ async function loadClients(uid) {
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
-      container.innerHTML = "Danışan bulunamadı";
+      container.innerHTML = t("clientNotFound");
       return;
     }
 
@@ -51,11 +52,11 @@ async function loadClients(uid) {
             ${data.name || ""} ${data.surname || ""}
           </div>
           <div class="client-meta">
-            Yaş: ${data.yas || "-"} | Hafta: ${data.hafta || "-"}
+            ${t("age")}: ${data.yas || "-"} | ${t("week")}: ${data.hafta || "-"}
           </div>
         </div>
 
-        <button class="view-btn">Detay</button>
+        <button class="view-btn">${t("detail")}</button>
       `;
 
       div.onclick = () => {
@@ -67,6 +68,6 @@ async function loadClients(uid) {
 
   } catch (err) {
     console.error(err);
-    container.innerHTML = "Hata oluştu";
+    container.innerHTML = t("genericError");
   }
 }

@@ -3,6 +3,7 @@ import {
   addDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { t } from "./i18n.js";
 
 const db = window.db;
 const auth = window.auth;
@@ -27,7 +28,7 @@ window.saveDiet = async () => {
     createdAt: serverTimestamp()
   });
 
-  alert("Kaydedildi ✅");
+  alert(t("saved"));
 
   window.location.href = "dietitian.html";
 };

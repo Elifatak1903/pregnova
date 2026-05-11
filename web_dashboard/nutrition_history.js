@@ -14,6 +14,7 @@ import {
 import { FoodUnits } from "./foodUnits.js";
 import { NutritionEngine } from "./nutritionEngine.js";
 import { SupplementUnits } from "./supplementUnits.js";
+import { t } from "./i18n.js";
 
 const db = window.db;
 const auth = window.auth;
@@ -29,7 +30,7 @@ function loadHistory(user) {
     container.innerHTML = "";
 
     if (snap.empty) {
-      container.innerHTML = "<p>Henüz analiz yok</p>";
+      container.innerHTML = `<p>${t("noAnalyses")}</p>`;
       return;
     }
 
@@ -54,20 +55,20 @@ function loadHistory(user) {
       container.innerHTML += `
         <div class="history-card">
           <div class="card-header">
-            <span>📅 ${day}</span>
+            <span>${day}</span>
             <b>${total.calorie.toFixed(0)} kcal</b>
           </div>
 
           ${items.map((item, index) => renderAnalysis(item, index)).join("")}
 
           <div class="section">
-            <h4>Günlük Toplam Analiz Sonucu</h4>
-            <h4>✔ Alınanlar</h4>
-            ${total.consumed.map(n => `<div class="good">✔ ${n}</div>`).join("") || "Yok"}
-            <h4>⚠ Eksikler</h4>
-            ${total.missing.map(n => `<div class="warn">⚠ ${n}</div>`).join("") || "Yok"}
-            <h4>⬆ Fazlalar</h4>
-            ${total.excess.map(n => `<div class="bad">⬆ ${n}</div>`).join("") || "Yok"}
+            <h4>${t("dailyTotalAnalysisResult")}</h4>
+            <h4>${t("consumed")}</h4>
+            ${total.consumed.map(n => `<div class="good">${n}</div>`).join("") || t("none")}
+            <h4>${t("missing")}</h4>
+            ${total.missing.map(n => `<div class="warn">${n}</div>`).join("") || t("none")}
+            <h4>${t("excess")}</h4>
+            ${total.excess.map(n => `<div class="bad">${n}</div>`).join("") || t("none")}
           </div>
         </div>
       `;
@@ -83,24 +84,24 @@ function renderAnalysis(item, index) {
   });
 
   const foods = (data.besinler || [])
-    .map(f => `<div class="tag">🍎 ${f.ad} (${f.miktar} ${f.format})</div>`)
+    .map(f => `<div class="tag">${f.ad} (${f.miktar} ${f.format})</div>`)
     .join("");
 
   const sups = (data.takviyeler || [])
-    .map(s => `<div class="tag">💊 ${s.ad} (${s.miktar} ${s.format || s.birim || ""})</div>`)
+    .map(s => `<div class="tag">${s.ad} (${s.miktar} ${s.format || s.birim || ""})</div>`)
     .join("");
 
   return `
     <div class="section">
       <div class="card-header">
-        <span>${index + 1}. Analiz - ${time}</span>
-        <button onclick="deleteItem('${item.id}')">🗑️</button>
+        <span>${t("analysisNumber", { number: index + 1, time })}</span>
+        <button onclick="deleteItem('${item.id}')">x</button>
       </div>
-      <h4>Besinler</h4>
-      <div class="tag-container">${foods || "Yok"}</div>
-      <h4>Takviyeler</h4>
-      <div class="tag-container">${sups || "Yok"}</div>
-      <div>Kalori: ${Number(data.kalori || 0).toFixed(0)} kcal</div>
+      <h4>${t("foods")}</h4>
+      <div class="tag-container">${foods || t("none")}</div>
+      <h4>${t("supplements")}</h4>
+      <div class="tag-container">${sups || t("none")}</div>
+      <div>${t("calories")}: ${Number(data.kalori || 0).toFixed(0)} kcal</div>
     </div>
   `;
 }
@@ -148,7 +149,7 @@ function summarizeDay(items) {
 }
 
 window.deleteItem = async function(id) {
-  if (!confirm("Silmek istediğine emin misin?")) return;
+  if (!confirm(t("confirmDelete"))) return;
   await deleteDoc(doc(db, "besin_analizleri", id));
 };
 

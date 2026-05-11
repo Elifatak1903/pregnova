@@ -23,46 +23,14 @@
 
 <div class="container">
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <h2 style="display:flex; align-items:center; gap:10px;">
-            <img src="assets/icon/app_icon.jpeg" width="30">
-            PregNova
-        </h2>
-
-        <ul>
-            <li class="active">
-                <span>🏠</span> Dashboard
-            </li>
-
-            <li onclick="go('patients.html')">
-                <span>👩‍⚕️</span> Danışanlar
-            </li>
-
-            <li onclick="go('requests_gynecologist.html')">
-                <span>📥</span> İstekler
-            </li>
-
-            <li onclick="go('messages_gynecologist.html')">
-                <span>💬</span> Mesajlar
-            </li>
-
-            <li onclick="go('account_gynecologist.html')">
-                <span>👤</span> Hesabım
-            </li>
-
-            <li onclick="logout()">
-                <span>🚪</span> Çıkış
-            </li>
-        </ul>
-    </div>
+    <div class="sidebar"></div>
 
     <!-- MAIN -->
     <div class="main">
 
         <div class="top-bar">
 
-            <h1 class="page-title">Jinekolog Paneli</h1>
+            <h1 class="page-title" data-i18n="gynecologistPanel">Jinekolog Paneli</h1>
 
             <!-- NOTIFICATION -->
             <div class="notification-btn" onclick="toggleNotifications(event)">
@@ -71,7 +39,7 @@
                 <div id="notifDropdown" class="notif-dropdown hidden">
                     <div id="notifList" class="notif-list"></div>
 
-                    <div class="notif-footer" onclick="go('notifications.html')">
+                    <div class="notif-footer" onclick="go('notifications.html')" data-i18n="viewAll">
                         Tümünü Gör →
                     </div>
                 </div>
@@ -84,7 +52,7 @@
 
             <div class="card stat-card" onclick="go('patients.html')">
                 <div class="card-top">
-                    <p>Toplam Hasta</p>
+                    <p data-i18n="totalPatients">Toplam Hasta</p>
                     <div class="icon purple">👤</div>
                 </div>
                 <span id="approved">0</span>
@@ -92,7 +60,7 @@
 
             <div class="card stat-card" onclick="go('requests_gynecologist.html')">
                 <div class="card-top">
-                    <p>Bekleyen İstek</p>
+                    <p data-i18n="pendingRequest">Bekleyen İstek</p>
                     <div class="icon orange">⏳</div>
                 </div>
                 <span id="pending">0</span>
@@ -100,7 +68,7 @@
 
             <div class="card stat-card">
                 <div class="card-top">
-                    <p>Yüksek Risk</p>
+                    <p data-i18n="highRisk">Yüksek Risk</p>
                     <div class="icon red">⚠️</div>
                 </div>
                 <span id="highRisk">0</span>
@@ -108,7 +76,7 @@
 
             <div class="card stat-card" onclick="go('son_olcumler.html')">
                 <div class="card-top">
-                    <p>Son 7 Gün</p>
+                    <p data-i18n="last7Days">Son 7 Gün</p>
                     <div class="icon green">📈</div>
                 </div>
                 <span id="weekly">0</span>
@@ -119,30 +87,30 @@
         <div id="highRiskBanner" class="high-risk-banner hidden" onclick="go('son_olcumler.html')">
             <div class="risk-icon">⚠️</div>
             <div class="risk-copy">
-                <h3>Yüksek riskli hasta uyarısı</h3>
-                <p><span id="highRiskBannerCount">0</span> hastada yüksek risk tespit edildi.</p>
+                <h3 data-i18n="highRiskPatientWarning">Yüksek riskli hasta uyarısı</h3>
+                <p id="highRiskBannerText">0 hastada yüksek risk tespit edildi.</p>
             </div>
-            <button type="button">İncele</button>
+            <button type="button" data-i18n="inspect">İncele</button>
         </div>
 
         <div class="dashboard-row">
 
             <!-- SOL -->
             <div class="dashboard-box">
-                <h3>Son Aktiviteler</h3>
+                <h3 data-i18n="recentActivities">Son Aktiviteler</h3>
 
                 <div id="activity"></div>
 
                 <div class="view-all">
                     <button onclick="go('son_olcumler.html')">
-                        Tümünü Gör →
+                        <span data-i18n="viewAll">Tümünü Gör →</span>
                     </button>
                 </div>
             </div>
 
             <!-- SAĞ -->
             <div class="dashboard-box chart-dashboard-box">
-                <h3>Risk Dağılımı</h3>
+                <h3 data-i18n="riskDistribution">Risk Dağılımı</h3>
                 <canvas id="chart"></canvas>
                 <div id="riskLegend"></div>
             </div>
@@ -154,8 +122,8 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script type="module" src="gynecologist.js"></script>
 <script type="module" src="app.js"></script>
+<script type="module" src="gynecologist.js"></script>
 
 </body>
 </html>

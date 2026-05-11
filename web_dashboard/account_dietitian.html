@@ -2,113 +2,67 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Hesabım</title>
-
+    <title>PregNova</title>
     <link rel="stylesheet" href="css/theme.css">
     <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/account_dietitian.css">
 </head>
-
 <body class="dietitian">
-
 <div class="container">
-
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <h2 style="display:flex; align-items:center; gap:10px;">
-            <img src="assets/icon/app_icon.jpeg" width="30">
-            PregNova
-        </h2>
-
-        <ul>
-            <li onclick="go('dietitian.html')">🏠 Ana Sayfa</li>
-            <li onclick="go('dietitian_clients.html')">👩‍⚕️ Danışanlar</li>
-            <li onclick="go('dietitian_requests.html')">📥 İstekler</li>
-            <li onclick="go('messages_dietitian.html')">💬 Mesajlar</li>
-
-            <li class="active">👤 Hesabım</li>
-
-            <li onclick="logout()">🚪 Çıkış</li>
-        </ul>
-    </div>
-
-    <!-- MAIN -->
+    <div class="sidebar"></div>
     <div class="main">
-
         <div class="top-bar">
-            <h1 class="page-title">Hesabım</h1>
+            <h1 class="page-title" data-i18n="account">Hesabım</h1>
         </div>
-
-        <!-- PROFİL KART -->
         <div class="profile-card">
-
             <div class="profile-left">
                 <div class="avatar">👩‍⚕️</div>
-
                 <div>
-                    <h2 id="userName">Yükleniyor...</h2>
+                    <h2 id="userName" data-i18n="loading">Yükleniyor...</h2>
                     <p id="userEmail"></p>
-                    <span class="role">Diyetisyen</span>
+                    <span class="role" data-i18n="dietitian">Diyetisyen</span>
                 </div>
             </div>
-
         </div>
-
-        <button class="edit-btn" onclick="go('edit_profile.html')">
+        <button class="edit-btn" onclick="go('edit_profile.html')" data-i18n="editInfo">
             Bilgileri Düzenle
         </button>
-
-        <!-- UZMANLIK -->
-        <h2 class="section-title">Uzmanlık Bilgileri</h2>
-
+        <h2 class="section-title" data-i18n="expertiseInfo">Uzmanlık Bilgileri</h2>
         <div class="info-card">
             <div>
-                <b>Uzmanlık Alanı</b>
+                <b data-i18n="expertiseArea">Uzmanlık Alanı</b>
                 <span id="expertise">-</span>
             </div>
         </div>
-
         <div class="info-card">
             <div>
-                <b>Deneyim</b>
+                <b data-i18n="experience">Deneyim</b>
                 <span id="experience">-</span>
             </div>
         </div>
-
         <div class="info-card">
             <div>
-                <b>Çalıştığı Kurum</b>
+                <b data-i18n="institutionWorked">Çalıştığı Kurum</b>
                 <span id="institution">-</span>
             </div>
         </div>
-
-        <!-- DİPLOMA -->
         <div class="menu-item" onclick="openDiploma()">
-            📄 Diploma / Belgeler
+            📄 <span data-i18n="diplomaDocuments">Diploma / Belgeler</span>
         </div>
-
         <div id="diplomaStatus" class="badge hidden">
-            ✔ Diploma yüklendi
+            ✔ <span data-i18n="diplomaUploaded">Diploma yüklendi</span>
         </div>
-
-        <!-- AYARLAR -->
-        <h2 class="section-title">Ayarlar</h2>
-
+        <h2 class="section-title" data-i18n="settings">Ayarlar</h2>
         <div class="menu-item" onclick="go('change_password.html')">
-            🔒 Şifre Değiştir
+            🔒 <span data-i18n="changePassword">Şifre Değiştir</span>
         </div>
-
         <div class="menu-item danger" onclick="logout()">
-            🚪 Çıkış Yap
+            🚪 <span data-i18n="logoutAction">Çıkış Yap</span>
         </div>
-
     </div>
-
 </div>
-
 <script type="module" src="app.js"></script>
 <script type="module" src="account_dietitian.js"></script>
-
 </body>
 </html>

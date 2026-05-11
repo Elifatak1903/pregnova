@@ -11,6 +11,7 @@ import {
   getDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { t } from "./i18n.js";
 
 const db = window.db;
 const auth = window.auth;
@@ -27,13 +28,13 @@ window.closeModal = function () {
 async function createNotification(targetUid, type, message) {
 
   const notificationType = type === "risk" ? "risk_alert" : type || "general";
-  let title = "Bildirim";
+  let title = t("notification");
 
-  if (type === "risk") title = "⚠️ Risk Uyarısı";
-  if (type === "chat") title = "💬 Yeni Mesaj";
+  if (type === "risk") title = t("riskWarning");
+  if (type === "chat") title = t("newMessage");
 
-  if (notificationType === "risk_alert") title = "Risk Uyarısı";
-  if (notificationType === "message") title = "Yeni Mesaj";
+  if (notificationType === "risk_alert") title = t("riskWarning");
+  if (notificationType === "message") title = t("newMessage");
 
   await addDoc(collection(db, "notification"), {
     uid: targetUid,
@@ -48,7 +49,7 @@ async function createNotification(targetUid, type, message) {
 window.calculateRisk = async function () {
 
   const user = auth.currentUser;
-  if (!user) return alert("Kullanıcı bulunamadı ❌");
+  if (!user) return alert(t("userNotFound"));
 
   const userDoc = await getDoc(doc(db, "users", user.uid));
   const userData = userDoc.data() || {};
@@ -111,25 +112,25 @@ window.calculateRisk = async function () {
   });
 
   if (pre === "HIGH") {
-    await createNotification(user.uid, "risk", "⚠️ Preeklampsi riski yüksek!");
+    await createNotification(user.uid, "risk", t("preeclampsiaHighMessage"));
 
     if (assignedDoctor) {
       await createNotification(
         assignedDoctor,
         "risk",
-        "🚨 Hastanızda yüksek preeklampsi riski!"
+        t("patientPreeclampsiaHighMessage")
       );
     }
   }
 
   if (diyabet === "HIGH") {
-    await createNotification(user.uid, "risk", "⚠️ Diyabet riski yüksek!");
+    await createNotification(user.uid, "risk", t("diabetesHighMessage"));
 
     if (assignedDoctor) {
       await createNotification(
         assignedDoctor,
         "risk",
-        "🚨 Hastada diyabet riski!"
+        t("patientDiabetesHighMessage")
       );
     }
 
@@ -137,26 +138,33 @@ window.calculateRisk = async function () {
       await createNotification(
         assignedDietitian,
         "risk",
-        "🥗 Danışanda beslenme riski!"
+        t("clientNutritionRiskMessage")
       );
     }
   }
 
   if (preterm === "HIGH") {
-    await createNotification(user.uid, "risk", "⚠️ Preterm riski yüksek!");
+    await createNotification(user.uid, "risk", t("pretermHighMessage"));
 
     if (assignedDoctor) {
       await createNotification(
         assignedDoctor,
         "risk",
-        "🚨 Preterm doğum riski!"
+        t("pretermBirthRiskMessage")
       );
     }
   }
 
   showModal(`
-Preeklampsi: ${pre}
-Diyabet: ${diyabet}
-Preterm: ${preterm}
+${t("preeclampsia")}: ${riskText(pre)}
+${t("diabetes")}: ${riskText(diyabet)}
+${t("preterm")}: ${riskText(preterm)}
   `);
 };
+
+function riskText(value) {
+  if (value === "HIGH") return t("high");
+  if (value === "MEDIUM") return t("medium");
+  if (value === "LOW") return t("low");
+  return value || "-";
+}

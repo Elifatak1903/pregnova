@@ -14,46 +14,14 @@
 
 <div class="container">
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <h2 style="display:flex; align-items:center; gap:10px;">
-            <img src="assets/icon/app_icon.jpeg" width="30">
-            PregNova
-        </h2>
-
-        <ul>
-            <li onclick="go('gynecologist.html')">
-                <span>🏠</span> Dashboard
-            </li>
-
-            <li onclick="go('patients.html')">
-                <span>👩‍⚕️</span> Danışanlar
-            </li>
-
-            <li class="active" onclick="go('requests_gynecologist.html')">
-                <span>📥</span> İstekler
-            </li>
-
-            <li onclick="go('messages_gynecologist.html')">
-                <span>💬</span> Mesajlar
-            </li>
-
-            <li onclick="go('account_gynecologist.html')">
-                <span>👤</span> Hesabım
-            </li>
-
-            <li onclick="logout()">
-                <span>🚪</span> Çıkış
-            </li>
-        </ul>
-    </div>
+    <div class="sidebar"></div>
 
     <!-- MAIN -->
     <div class="main">
 
         <div class="top-bar header-bar">
 
-            <h1 class="page-title">Danışma İstekleri</h1>
+            <h1 class="page-title" data-i18n="consultationRequests">Danışma İstekleri</h1>
 
             <div class="notification-btn" onclick="toggleNotifications(event)">
                 🔔
@@ -62,7 +30,7 @@
                 <div id="notifDropdown" class="notif-dropdown hidden">
                     <div id="notifList" class="notif-list"></div>
 
-                    <div class="notif-footer" onclick="go('notifications.html')">
+                    <div class="notif-footer" onclick="go('notifications.html')" data-i18n="viewAll">
                         Tümünü Gör →
                     </div>
                 </div>
@@ -76,7 +44,7 @@
 
 </div>
 
-<script type="module" src="requests_gynecologist.js"></script>
 <script type="module" src="app.js"></script>
+<script type="module" src="requests_gynecologist.js"></script>
 </body>
 </html>

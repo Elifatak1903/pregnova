@@ -1,3 +1,5 @@
+import { t } from "./i18n.js";
+
 import {
   doc,
   getDoc
@@ -26,9 +28,8 @@ window.kisiselBilgiKontrol = async function () {
     } else {
       window.location.href = "profile_edit.html";
     }
-
   } catch (error) {
-    console.error("Profil kontrol hatası:", error);
-    alert("Bir hata oluştu");
+    console.error(error);
+    alert(t("genericError"));
   }
 };

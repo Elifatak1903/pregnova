@@ -15,7 +15,6 @@ onSnapshot(collection(db, "users"), (snapshot) => {
 
     snapshot.forEach(docSnap => {
         const user = docSnap.data();
-        console.log("USER:", user);
 
         totalUsers++;
 
@@ -29,8 +28,6 @@ onSnapshot(collection(db, "users"), (snapshot) => {
 
     document.getElementById("totalUsers").innerText = totalUsers;
     document.getElementById("activeExperts").innerText = activeExperts;
-
-    console.log("✔ USERS:", { totalUsers, activeExperts });
 });
 
 
@@ -42,7 +39,5 @@ onSnapshot(
     (snapshot) => {
 
         document.getElementById("pendingCount").innerText = snapshot.size;
-
-        console.log("✔ PENDING:", snapshot.size);
     }
 );

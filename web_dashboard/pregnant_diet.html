@@ -14,25 +14,11 @@
 
 <div class="container">
 
-    <div class="sidebar">
-        <h2 style="display:flex; align-items:center; gap:10px;">
-            <img src="assets/icon/app_icon.jpeg" width="30">
-            PregNova
-        </h2>
-
-        <ul>
-            <li onclick="go('pregnant.html')"><span>🏠</span> Ana Sayfa</li>
-            <li onclick="go('messages_pregnant.html')"><span>💬</span> Mesajlar</li>
-            <li onclick="go('expert_search.html')"><span>🔍</span> Uzman Ara</li>
-            <li class="active"><span>🥗</span> Diyet Planım</li>
-            <li onclick="go('account_pregnant.html')"><span>👤</span> Hesabım</li>
-            <li onclick="logout()"><span>🚪</span> Çıkış</li>
-        </ul>
-    </div>
+    <div class="sidebar"></div>
 
     <div class="main">
         <div class="top-bar">
-            <h1 class="page-title">Diyet Planım</h1>
+            <h1 class="page-title" data-i18n="myDietPlan">Diyet Planım</h1>
 
             <div class="notification-btn" onclick="toggleNotifications(event)">
                 🔔
@@ -41,7 +27,7 @@
                 <div id="notifDropdown" class="notif-dropdown hidden">
                     <div id="notifList" class="notif-list"></div>
 
-                    <div class="notif-footer" onclick="go('notifications.html')">
+                    <div class="notif-footer" onclick="go('notifications.html')" data-i18n="viewAll">
                         Tümünü Gör →
                     </div>
                 </div>
@@ -49,11 +35,11 @@
         </div>
 
         <div class="diet-page">
-            <div id="dietState" class="state-card">Yükleniyor...</div>
+            <div id="dietState" class="state-card" data-i18n="loading">Yükleniyor...</div>
 
             <button id="dietSummary" class="diet-summary hidden" type="button">
                 <span id="summaryDate">-</span>
-                <b>Diyeti Gör</b>
+                <b data-i18n="viewDiet">Diyeti Gör</b>
             </button>
         </div>
     </div>
@@ -67,8 +53,8 @@
 
         <div class="modal-header">
             <div>
-                <p class="eyebrow">Diyet detayı</p>
-                <h2 id="modalTitle">Diyet Planım</h2>
+                <p class="eyebrow" data-i18n="dietDetail">Diyet detayı</p>
+                <h2 id="modalTitle" data-i18n="myDietPlan">Diyet Planım</h2>
             </div>
 
             <button class="close-btn" onclick="closeDietModal()" type="button">×</button>
@@ -76,37 +62,37 @@
 
         <div id="dietPlan" class="meal-grid">
             <div class="meal-card" data-field="kahvalti">
-                <span>Kahvaltı</span>
+                <span data-i18n="breakfast">Kahvaltı</span>
                 <p></p>
             </div>
 
             <div class="meal-card" data-field="ara1">
-                <span>Ara Öğün 1</span>
+                <span data-i18n="snack1">Ara Öğün 1</span>
                 <p></p>
             </div>
 
             <div class="meal-card" data-field="ogle">
-                <span>Öğle</span>
+                <span data-i18n="lunch">Öğle</span>
                 <p></p>
             </div>
 
             <div class="meal-card" data-field="ara2">
-                <span>Ara Öğün 2</span>
+                <span data-i18n="snack2">Ara Öğün 2</span>
                 <p></p>
             </div>
 
             <div class="meal-card" data-field="aksam">
-                <span>Akşam</span>
+                <span data-i18n="dinner">Akşam</span>
                 <p></p>
             </div>
 
             <div class="meal-card" data-field="gece">
-                <span>Gece</span>
+                <span data-i18n="night">Gece</span>
                 <p></p>
             </div>
 
             <div class="meal-card note-card" data-field="notlar">
-                <span>Notlar</span>
+                <span data-i18n="notes">Notlar</span>
                 <p></p>
             </div>
         </div>

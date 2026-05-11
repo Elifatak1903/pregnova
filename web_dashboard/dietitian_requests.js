@@ -8,6 +8,7 @@ import {
   getDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { t } from "./i18n.js";
 
 const db = window.db;
 const auth = window.auth;
@@ -34,7 +35,7 @@ async function loadRequests(uid) {
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
-      container.innerHTML = "İstek yok";
+      container.innerHTML = t("noRequests");
       return;
     }
 
@@ -54,24 +55,24 @@ async function loadRequests(uid) {
       div.innerHTML = `
         <div class="req-info">
           <div class="req-name">${fullName(user)}</div>
-          <div class="req-id">Hasta ID: ${clientId}</div>
-          <div class="req-id">İstek ID: ${requestId}</div>
+          <div class="req-id">${t("patientId")}: ${clientId}</div>
+          <div class="req-id">${t("requestId")}: ${requestId}</div>
 
           <div class="req-grid">
-            ${detail("E-posta", user.email)}
-            ${detail("Telefon", user.phone)}
-            ${detail("Gebelik haftası", user.hafta)}
-            ${detail("Boy", formatUnit(user.boy, "cm"))}
-            ${detail("Kilo", formatUnit(user.kilo, "kg"))}
+            ${detail(t("email"), user.email)}
+            ${detail(t("phone"), user.phone)}
+            ${detail(t("pregnancyWeek"), user.hafta)}
+            ${detail(t("height"), formatUnit(user.boy, "cm"))}
+            ${detail(t("weight"), formatUnit(user.kilo, "kg"))}
             ${detail("BMI", user.bmi || user.BMI)}
-            ${detail("Risk", riskText(user.riskLevel))}
-            ${detail("Alerji", user.allergy || user.alerji)}
+            ${detail(t("risk"), riskText(user.riskLevel))}
+            ${detail(t("allergy"), user.allergy || user.alerji)}
           </div>
         </div>
 
         <div class="req-actions">
-          <button class="btn btn-approve">Kabul</button>
-          <button class="btn btn-reject">Reddet</button>
+          <button class="btn btn-approve">${t("accept")}</button>
+          <button class="btn btn-reject">${t("reject")}</button>
         </div>
       `;
 
@@ -83,7 +84,7 @@ async function loadRequests(uid) {
     }
   } catch (err) {
     console.error(err);
-    container.innerHTML = "Hata oluştu";
+    container.innerHTML = t("genericError");
   }
 }
 
@@ -98,7 +99,7 @@ async function approveRequest(requestId, clientId, expertId) {
       assignedDietitian: expertId
     });
 
-    alert("Kabul edildi");
+    alert(t("accepted"));
     location.reload();
   } catch (err) {
     console.error(err);
@@ -112,7 +113,7 @@ async function rejectRequest(requestId) {
       rejectedAt: serverTimestamp()
     });
 
-    alert("Reddedildi");
+    alert(t("rejectedShort"));
     location.reload();
   } catch (err) {
     console.error(err);
@@ -121,7 +122,7 @@ async function rejectRequest(requestId) {
 
 function fullName(user) {
   const name = `${user.name || ""} ${user.surname || ""}`.trim();
-  return name || "İsimsiz hasta";
+  return name || t("anonymousPatient");
 }
 
 function detail(label, value) {
@@ -138,8 +139,8 @@ function formatUnit(value, unit) {
 }
 
 function riskText(value) {
-  if (value === "high") return "Yüksek";
-  if (value === "medium") return "Orta";
-  if (value === "normal") return "Normal";
+  if (value === "high") return t("high");
+  if (value === "medium") return t("medium");
+  if (value === "normal") return t("normal");
   return value || "-";
 }

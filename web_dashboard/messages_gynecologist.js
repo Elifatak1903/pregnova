@@ -1,4 +1,5 @@
 import { auth, db } from "./app.js";
+import { t } from "./i18n.js";
 
 import {
   collection,
@@ -45,7 +46,7 @@ function loadChats(uid) {
     container.innerHTML = "";
 
     if (snapshot.empty) {
-      container.innerHTML = "Henüz mesaj yok";
+      container.innerHTML = t("noMessages");
       return;
     }
 
@@ -58,7 +59,7 @@ function loadChats(uid) {
       const userDoc = await getDoc(doc(db, "users", otherUserId));
       const user = userDoc.data();
 
-      const name = user?.name || "";
+      const name = user?.name || t("user");
       const surname = user?.surname || "";
 
       const lastMessage = data.lastMessage || "";
@@ -152,8 +153,6 @@ function loadMessages() {
 
     snapshot.forEach(doc => {
       const data = doc.data();
-
-      console.log("MESAJ:", data);
 
       const div = document.createElement("div");
       div.className =

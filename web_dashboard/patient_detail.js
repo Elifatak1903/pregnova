@@ -1,4 +1,5 @@
 import { db } from "./app.js";
+import { t } from "./i18n.js";
 
 import {
   collection,
@@ -12,24 +13,20 @@ const params = new URLSearchParams(window.location.search);
 const uid = params.get("uid");
 const name = params.get("name");
 
-console.log("FULL URL:", window.location.href);
-console.log("UID:", uid);
-console.log("NAME:", name);
-
 const nameEl = document.getElementById("patientName");
 const list = document.getElementById("measurementsList");
 
 /* NAME */
 if (nameEl) {
-  nameEl.innerText = name || "Hasta";
+  nameEl.innerText = name || t("patient");
 }
 
 /* UID YOKSA */
 if (!uid) {
-  console.error("UID gelmedi ❌");
+  console.error("UID missing");
 
   if (nameEl) {
-    nameEl.innerText = "Hasta bulunamadı";
+    nameEl.innerText = t("patientNotFound");
   }
 }
 
@@ -93,35 +90,35 @@ if (uid) {
 
         <div class="measurement-grid">
           <div class="measurement-item">
-            Tansiyon: ${data.sistolik || "-"} / ${data.diastolik || "-"}
+            ${t("bloodPressure")}: ${data.sistolik || "-"} / ${data.diastolik || "-"}
           </div>
 
           <div class="measurement-item">
-            Açlık: ${data.aclikSeker || "-"}
+            ${t("fastingSugar")}: ${data.aclikSeker || "-"}
           </div>
 
           <div class="measurement-item">
-            Tokluk: ${tokluk}
+            ${t("postprandialSugar")}: ${tokluk}
           </div>
 
           <div class="measurement-item">
-            Stres: ${stres}
+            ${t("stress")}: ${stres}
           </div>
         </div>
 
         <div class="symptoms">
-          Baş ağrısı: ${boolText(basAgrisi)} <br>
-          Görme: ${boolText(gorme)} <br>
-          Şişlik: ${boolText(sislik)} <br>
-          Karın kasılması: ${boolText(karin)} <br>
-          Bel ağrısı: ${boolText(bel)} <br>
-          Akıntı: ${boolText(akinti)}
+          ${t("headache")}: ${boolText(basAgrisi)} <br>
+          ${t("vision")}: ${boolText(gorme)} <br>
+          ${t("swelling")}: ${boolText(sislik)} <br>
+          ${t("abdominalContraction")}: ${boolText(karin)} <br>
+          ${t("backPain")}: ${boolText(bel)} <br>
+          ${t("discharge")}: ${boolText(akinti)}
         </div>
 
         <div class="risk">
-          Preeklampsi: ${colorRisk(data.preeklampsiRisk)} <br>
-          Diyabet: ${colorRisk(data.diyabetRisk)} <br>
-          Preterm: ${colorRisk(data.pretermRisk)}
+          ${t("preeclampsia")}: ${colorRisk(data.preeklampsiRisk)} <br>
+          ${t("diabetes")}: ${colorRisk(data.diyabetRisk)} <br>
+          ${t("preterm")}: ${colorRisk(data.pretermRisk)}
         </div>
       `;
 
@@ -137,15 +134,15 @@ function colorRisk(risk) {
 
   if (!risk) return "-";
 
-  if (risk === "HIGH") return `<span style="color:#EF5350">Yüksek</span>`;
-  if (risk === "MEDIUM") return `<span style="color:#FFA000">Orta</span>`;
+  if (risk === "HIGH") return `<span style="color:#EF5350">${t("high")}</span>`;
+  if (risk === "MEDIUM") return `<span style="color:#FFA000">${t("medium")}</span>`;
 
-  return `<span style="color:#00BFA5">Düşük</span>`;
+  return `<span style="color:#00BFA5">${t("low")}</span>`;
 }
 
 function boolText(val) {
-  if (val === true) return `<span style="color:#EF5350">Var</span>`;
-  if (val === false) return `<span style="color:#00BFA5">Yok</span>`;
+  if (val === true) return `<span style="color:#EF5350">${t("exists")}</span>`;
+  if (val === false) return `<span style="color:#00BFA5">${t("none")}</span>`;
   return "-";
 }
 
@@ -156,7 +153,7 @@ function drawChart() {
   const bpCtx = document.getElementById("bpChart");
 
   if (!sugarCtx || !bpCtx) {
-    console.warn("Canvas bulunamadı ⚠️");
+    console.warn("Canvas not found");
     return;
   }
 
@@ -168,7 +165,7 @@ function drawChart() {
     data: {
       labels: dates,
       datasets: [{
-        label: "Kan Şekeri",
+        label: t("bloodSugar"),
         data: sugars,
         tension: 0.3
       }]
@@ -184,18 +181,16 @@ function drawChart() {
       labels: dates,
       datasets: [
         {
-          label: "Sistolik",
+          label: t("systolic"),
           data: systolic,
           tension: 0.3
         },
         {
-          label: "Diastolik",
+          label: t("diastolic"),
           data: diastolic,
           tension: 0.3
         }
       ]
     }
   });
-
-  console.log("Grafikler çizildi 🔥");
 }

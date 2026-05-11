@@ -1,4 +1,5 @@
 import { auth, db } from "./app.js";
+import { t } from "./i18n.js";
 
 import {
   collection,
@@ -43,6 +44,11 @@ function loadChats(uid) {
 
     container.innerHTML = "";
 
+    if (snapshot.empty) {
+      container.innerHTML = t("noMessages");
+      return;
+    }
+
     for (const docSnap of snapshot.docs) {
 
       const data = docSnap.data();
@@ -56,12 +62,12 @@ function loadChats(uid) {
       const u = userSnap.data();
 
       const role = u?.role;
-      let name = u?.name || "Kullanıcı";
+      let name = u?.name || t("user");
 
       if (role === "gynecologist") {
-        name = "Dr. " + name;
+        name = t("doctorPrefix", { name });
       } else if (role === "dietitian") {
-        name = "Diyetisyen " + name;
+        name = t("dietitianPrefix", { name });
       }
 
       const div = document.createElement("div");

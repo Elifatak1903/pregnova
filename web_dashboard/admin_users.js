@@ -1,4 +1,5 @@
 import { db } from "./app.js";
+import { t } from "./i18n.js";
 
 import {
     collection,
@@ -45,7 +46,7 @@ function render() {
     });
 
     if (filtered.length === 0) {
-        list.innerHTML = "<p>Kullanıcı bulunamadı</p>";
+        list.innerHTML = `<p>${t("noUsersFound")}</p>`;
         return;
     }
 
@@ -62,20 +63,20 @@ function render() {
                 </span>
             </div>
 
-            <div class="user-name">${user.name || "Kullanıcı"}</div>
+            <div class="user-name">${user.name || t("user")}</div>
 
             <div class="user-info">
                 📧 ${user.email || "-"}
-                <span>📅 Katılma: ${formatDate(user.createdAt)}</span>
+                <span>📅 ${t("joined")}: ${formatDate(user.createdAt)}</span>
             </div>
 
             <div class="user-actions">
-                <button class="btn-delete">Sil</button>
+                <button class="btn-delete">${t("delete")}</button>
             </div>
         `;
 
         div.querySelector(".btn-delete").addEventListener("click", async () => {
-            if (!confirm("Silmek istediğine emin misin?")) return;
+            if (!confirm(t("confirmDeleteUser"))) return;
             await deleteDoc(doc(db, "users", user.id));
         });
 
@@ -84,9 +85,9 @@ function render() {
 }
 
 function getRoleText(role) {
-    if (role === "pregnant") return "Hamile";
-    if (role === "dietitian") return "Diyetisyen";
-    if (role === "gynecologist") return "Jinekolog";
+    if (role === "pregnant") return t("pregnant");
+    if (role === "dietitian") return t("dietitian");
+    if (role === "gynecologist") return t("gynecologist");
     if (role === "admin") return "Admin";
     return role || "-";
 }
@@ -94,7 +95,7 @@ function getRoleText(role) {
 function formatDate(timestamp) {
     if (!timestamp) return "-";
     const date = timestamp.seconds ? new Date(timestamp.seconds * 1000) : new Date(timestamp);
-    return date.toLocaleDateString("tr-TR");
+    return date.toLocaleDateString();
 }
 
 function getInitials(name, email) {

@@ -13,45 +13,14 @@
 
 <div class="container">
 
-    <div class="sidebar">
-        <h2 style="display:flex; align-items:center; gap:10px;">
-            <img src="assets/icon/app_icon.jpeg" width="30">
-            PregNova
-        </h2>
-
-        <ul>
-            <li onclick="go('gynecologist.html')">
-                <span>🏠</span> Dashboard
-            </li>
-
-            <li class="active">
-                <span>👩‍⚕️</span> Danışanlar
-            </li>
-
-            <li onclick="go('requests_gynecologist.html')">
-                <span>📥</span> İstekler
-            </li>
-
-            <li onclick="go('messages_gynecologist.html')">
-                <span>💬</span> Mesajlar
-            </li>
-
-            <li onclick="go('account_gynecologist.html')">
-                <span>👤</span> Hesabım
-            </li>
-
-            <li onclick="logout()">
-                <span>🚪</span> Çıkış
-            </li>
-        </ul>
-    </div>
+    <div class="sidebar"></div>
 
     <!-- MAIN -->
     <div class="main">
 
         <div class="top-bar header-bar">
 
-            <h1 class="page-title">Danışanlar</h1>
+            <h1 class="page-title" data-i18n="clients">Danışanlar</h1>
 
             <div class="notification-btn" onclick="toggleNotifications(event)">
                 🔔
@@ -60,7 +29,7 @@
                 <div id="notifDropdown" class="notif-dropdown hidden">
                     <div id="notifList" class="notif-list"></div>
 
-                    <div class="notif-footer" onclick="go('notifications.html')">
+                    <div class="notif-footer" onclick="go('notifications.html')" data-i18n="viewAll">
                         Tümünü Gör →
                     </div>
                 </div>
@@ -77,18 +46,18 @@
                 <div class="top-bar">
 
                     <div class="search-box">
-                        <label>Ara</label>
-                        <input type="text" id="searchInput" placeholder="Hasta ara...">
+                        <label data-i18n="search">Ara</label>
+                        <input type="text" id="searchInput" data-i18n-placeholder="searchPatientPlaceholder" placeholder="Hasta ara...">
                     </div>
 
                     <div class="filter-box">
-                        <label>Filtrele</label>
+                        <label data-i18n="filter">Filtrele</label>
                         <select id="filterSelect">
-                            <option value="default">Varsayılan</option>
-                            <option value="riskHigh">Yüksek Risk</option>
-                            <option value="riskLow">Düşük Risk</option>
-                            <option value="newest">En Yeni</option>
-                            <option value="oldest">En Eski</option>
+                            <option value="default" data-i18n="default">Varsayılan</option>
+                            <option value="riskHigh" data-i18n="highRisk">Yüksek Risk</option>
+                            <option value="riskLow" data-i18n="lowRisk">Düşük Risk</option>
+                            <option value="newest" data-i18n="newest">En Yeni</option>
+                            <option value="oldest" data-i18n="oldest">En Eski</option>
                         </select>
                     </div>
 
@@ -99,12 +68,12 @@
 
             <!-- SAĞ -->
             <div class="summary-box">
-                <h3>Genel Durum</h3>
+                <h3 data-i18n="overview">Genel Durum</h3>
 
-                <p>Toplam Hasta: <b id="totalCount">0</b></p>
-                <p>Yüksek Risk: <b id="highCount">0</b></p>
-                <p>Orta Risk: <b id="mediumCount">0</b></p>
-                <p>Normal: <b id="normalCount">0</b></p>
+                <p><span data-i18n="totalPatients">Toplam Hasta</span>: <b id="totalCount">0</b></p>
+                <p><span data-i18n="highRisk">Yüksek Risk</span>: <b id="highCount">0</b></p>
+                <p><span data-i18n="mediumRisk">Orta Risk</span>: <b id="mediumCount">0</b></p>
+                <p><span data-i18n="normal">Normal</span>: <b id="normalCount">0</b></p>
             </div>
 
         </div>
@@ -112,8 +81,8 @@
     </div>
 </div>
 
-<script type="module" src="patients.js"></script>
 <script type="module" src="app.js"></script>
+<script type="module" src="patients.js"></script>
 
 </body>
 </html>
