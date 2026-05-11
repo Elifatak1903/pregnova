@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 class AppTheme {
   static ThemeData getTheme(String role) {
     switch (role) {
-
       case "dietitian":
         return _theme(const Color(0xFF2E7D32));
 
@@ -31,7 +30,7 @@ class AppTheme {
         primary: primaryColor,
         onPrimary: Colors.white,
 
-        secondary: primaryColor.withOpacity(0.9),
+        secondary: primaryColor.withValues(alpha: 0.9),
         onSecondary: Colors.white,
 
         surface: Colors.white,
