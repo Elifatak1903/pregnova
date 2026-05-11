@@ -1,6 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
+import 'l10n/app_localizations.dart';
 
 class HaftaniGirPage extends StatefulWidget {
   const HaftaniGirPage({super.key});
@@ -12,41 +14,55 @@ class HaftaniGirPage extends StatefulWidget {
 class _HaftaniGirPageState extends State<HaftaniGirPage> {
   final controller = TextEditingController();
 
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
   Future<void> saveWeek() async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    int week = int.parse(controller.text);
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final week = int.tryParse(controller.text);
+
+    if (uid == null || week == null || week < 1 || week > 42) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.pregnancyWeekRangeValidation)),
+      );
+      return;
+    }
 
     await FirebaseFirestore.instance.collection("users").doc(uid).update({
       "pregWeek": week,
     });
 
-    if (!context.mounted) return;
-
-    Navigator.pop(context);
+    if (!mounted) return;
+    navigator.pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-
       appBar: AppBar(
-        title: const Text("Hafta Bilgisi Gir"),
+        title: Text(l10n.enterWeekInfo),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-
             TextField(
               controller: controller,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.surface,
-                labelText: "Kaçıncı haftadasın?",
+                labelText: l10n.whichPregnancyWeek,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -59,9 +75,7 @@ class _HaftaniGirPageState extends State<HaftaniGirPage> {
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
-
             ElevatedButton(
               onPressed: saveWeek,
               style: ElevatedButton.styleFrom(
@@ -72,11 +86,8 @@ class _HaftaniGirPageState extends State<HaftaniGirPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
-                "Kaydet",
-                style: TextStyle(fontSize: 16),
-              ),
-            )
+              child: Text(l10n.save, style: const TextStyle(fontSize: 16)),
+            ),
           ],
         ),
       ),

@@ -1,6 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
+import 'l10n/app_localizations.dart';
 import 'login_page.dart';
 
 class UzmanHomePage extends StatefulWidget {
@@ -16,8 +18,10 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
   final uid = FirebaseAuth.instance.currentUser!.uid;
 
   Future<String> getRole() async {
-    final doc =
-    await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
     return doc.data()?['role'] ?? 'unknown';
   }
 
@@ -41,37 +45,46 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
     return query.docs.length;
   }
 
-  void signOut(BuildContext context) async {
+  Future<void> signOut(BuildContext context) async {
+    final navigator = Navigator.of(context);
+
     await FirebaseAuth.instance.signOut();
-    Navigator.pushAndRemoveUntil(
-      context,
+
+    if (!mounted) return;
+
+    navigator.pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginPage()),
-          (_) => false,
+      (_) => false,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return FutureBuilder<String>(
       future: getRole(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Scaffold(
-            body: Center(child: CircularProgressIndicator(
-              color: Theme.of(context).colorScheme.primary,
-            )),
+            body: Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
           );
         }
 
         final role = snapshot.data!;
         final isDietitian = role == 'dietitian';
-        final primary = Theme.of(context).colorScheme.primary;
+
         return Scaffold(
-            backgroundColor: Theme.of(context).colorScheme.surface,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           appBar: AppBar(
             title: Text(
-                isDietitian ? "Diyetisyen Paneli" : "Jinekolog Paneli"),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+              isDietitian ? l10n.dietitianPanel : l10n.gynecologistPanel,
+            ),
+            backgroundColor: Theme.of(context).colorScheme.primary,
             actions: [
               IconButton(
                 icon: const Icon(Icons.logout),
@@ -84,22 +97,29 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
             currentIndex: _selectedIndex,
             onTap: (i) => setState(() => _selectedIndex = i),
             type: BottomNavigationBarType.fixed,
-
             selectedItemColor: Theme.of(context).colorScheme.primary,
-            unselectedItemColor:
-            Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            unselectedItemColor: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.5),
             selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
             unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
-
-            items: const [
+            items: [
               BottomNavigationBarItem(
-                  icon: Icon(Icons.home), label: "Ana Sayfa"),
+                icon: const Icon(Icons.home),
+                label: l10n.home,
+              ),
               BottomNavigationBarItem(
-                  icon: Icon(Icons.people), label: "Danışanlar"),
+                icon: const Icon(Icons.people),
+                label: l10n.clients,
+              ),
               BottomNavigationBarItem(
-                  icon: Icon(Icons.pending), label: "İstekler"),
+                icon: const Icon(Icons.pending),
+                label: l10n.requests,
+              ),
               BottomNavigationBarItem(
-                  icon: Icon(Icons.person), label: "Profil"),
+                icon: const Icon(Icons.person),
+                label: l10n.profileInfo,
+              ),
             ],
           ),
         );
@@ -108,6 +128,8 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
   }
 
   Widget _buildBody(bool isDietitian, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (_selectedIndex == 1) return _buildDanisanlar();
     if (_selectedIndex == 2) return _buildPendingRequests();
 
@@ -118,7 +140,7 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              "Hoş geldin 👋",
+              l10n.welcomeExpert,
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
@@ -134,9 +156,10 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
                   future: getDanisanSayisi(),
                   builder: (context, snapshot) {
                     return _statCard(
-                        "Danışan",
-                        snapshot.data?.toString() ?? "...",
-                        context);
+                      l10n.assignedClient,
+                      snapshot.data?.toString() ?? "...",
+                      context,
+                    );
                   },
                 ),
               ),
@@ -146,9 +169,10 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
                   future: getRiskliHastaSayisi(),
                   builder: (context, snapshot) {
                     return _statCard(
-                        isDietitian ? "Eksik Besin" : "Riskli Hasta",
-                        snapshot.data?.toString() ?? "...",
-                        context);
+                      isDietitian ? l10n.missingNutrition : l10n.riskyPatient,
+                      snapshot.data?.toString() ?? "...",
+                      context,
+                    );
                   },
                 ),
               ),
@@ -165,7 +189,7 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: primary.withOpacity(0.1),
+        color: primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -181,9 +205,7 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
           const SizedBox(height: 6),
           Text(
             title,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           ),
         ],
       ),
@@ -191,6 +213,8 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
   }
 
   Widget _buildDanisanlar() {
+    final l10n = AppLocalizations.of(context)!;
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection("expert_requests")
@@ -199,26 +223,28 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return Center(child: CircularProgressIndicator(
-            color: Theme.of(context).colorScheme.primary,
-          ));
+          return Center(
+            child: CircularProgressIndicator(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          );
         }
 
         final docs = snapshot.data!.docs;
 
         if (docs.isEmpty) {
-          return Center(child: Text(
-            "Henüz danışan yok",
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
+          return Center(
+            child: Text(
+              l10n.noClientsYet,
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
-          ));
+          );
         }
 
         return ListView(
           children: docs.map((doc) {
             return ListTile(
-              title: Text("Danışan UID: ${doc["clientId"]}"),
+              title: Text(l10n.clientUid(doc["clientId"].toString())),
             );
           }).toList(),
         );
@@ -227,6 +253,8 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
   }
 
   Widget _buildPendingRequests() {
+    final l10n = AppLocalizations.of(context)!;
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection("expert_requests")
@@ -241,69 +269,72 @@ class _UzmanHomePageState extends State<UzmanHomePage> {
         final docs = snapshot.data!.docs;
 
         if (docs.isEmpty) {
-          return Center(child: Text(
-            "Bekleyen istek yok",
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
+          return Center(
+            child: Text(
+              l10n.noPendingRequests,
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
-          ));
+          );
         }
 
         return ListView.builder(
           itemCount: docs.length,
-            itemBuilder: (context, index) {
-              final requestDoc = docs[index];
-              final clientId = requestDoc["clientId"];
+          itemBuilder: (context, index) {
+            final requestDoc = docs[index];
+            final clientId = requestDoc["clientId"];
 
-              return FutureBuilder<DocumentSnapshot>(
-                future: FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(clientId)
-                    .get(),
-                builder: (context, userSnapshot) {
-                  if (!userSnapshot.hasData) {
-                    return const ListTile(title: Text("Yükleniyor..."));
-                  }
-                  final userData = userSnapshot.data!.data() as Map<
-                      String,
-                      dynamic>?;
-                  final name = userData?["name"] ?? "";
-                  final surname = userData?["surname"] ?? "";
+            return FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(clientId)
+                  .get(),
+              builder: (context, userSnapshot) {
+                if (!userSnapshot.hasData) {
+                  return ListTile(title: Text(l10n.loading));
+                }
 
-                  return Card(
-                    color: Theme.of(context).colorScheme.surface,
-                    elevation: 0,
-                    child: ListTile(
-                      title: Text("$name $surname",
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold
-                        ),),
-                      subtitle: Text("ID: $clientId"),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.check, color: Theme.of(context).colorScheme.primary),
-                            onPressed: () {
-                              requestDoc.reference
-                                  .update({"status": "approved"});
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.close,
-                                color: Theme.of(context).colorScheme.primary),
-                            onPressed: () {
-                              requestDoc.reference
-                                  .update({"status": "rejected"});
-                            },
-                          ),
-                        ],
-                      ),
+                final userData =
+                    userSnapshot.data!.data() as Map<String, dynamic>?;
+                final name = userData?["name"] ?? "";
+                final surname = userData?["surname"] ?? "";
+
+                return Card(
+                  color: Theme.of(context).colorScheme.surface,
+                  elevation: 0,
+                  child: ListTile(
+                    title: Text(
+                      "$name $surname",
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                  );
-                },
-              );
-            },
+                    subtitle: Text("ID: $clientId"),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            Icons.check,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          onPressed: () {
+                            requestDoc.reference.update({"status": "approved"});
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.close,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          onPressed: () {
+                            requestDoc.reference.update({"status": "rejected"});
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
         );
       },
     );

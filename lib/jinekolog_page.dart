@@ -9,6 +9,8 @@ import 'expert_chat_list_page.dart';
 import 'son_olcumler_page.dart';
 import 'edit_gynecologist_profile_page.dart';
 import 'sifre_degistir_page.dart';
+import 'language_selector.dart';
+import 'l10n/app_localizations.dart';
 
 class GynecologistHomePage extends StatefulWidget {
   const GynecologistHomePage({super.key});
@@ -116,6 +118,8 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
   }
 
   Widget _buildRecentActivity() {
+    final l10n = AppLocalizations.of(context)!;
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection("risk_olcumleri")
@@ -134,7 +138,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
         final docs = snapshot.data!.docs;
 
         if (docs.isEmpty) {
-          return const Text("Henüz aktivite yok");
+          return Text(l10n.noActivityYet);
         }
 
         return Column(
@@ -208,14 +212,14 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "$name $surname yeni ölçüm gönderdi",
+                                    l10n.newMeasurementSent("$name $surname"),
                                     style: const TextStyle(fontSize: 14),
                                   ),
 
                                   const SizedBox(height: 4),
 
                                   Text(
-                                    timeAgo(tarih),
+                                    timeAgo(tarih, l10n),
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Theme.of(context)
@@ -242,6 +246,8 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
   }
 
   Widget _buildHighRiskSummaryBanner() {
+    final l10n = AppLocalizations.of(context)!;
+
     return FutureBuilder<int>(
       future: getHighRiskCount(),
       builder: (context, snapshot) {
@@ -289,9 +295,9 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "Yüksek riskli hasta uyarısı",
-                        style: TextStyle(
+                      Text(
+                        l10n.highRiskPatientWarning,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.red,
                           fontSize: 16,
@@ -299,7 +305,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "$count hastada yüksek risk tespit edildi.",
+                        l10n.highRiskPatientCount(count),
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 13,
@@ -310,7 +316,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  "İncele",
+                  l10n.review,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.bold,
@@ -339,6 +345,8 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
 
@@ -346,6 +354,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
         title: const Text("PregNova"),
         backgroundColor: Theme.of(context).colorScheme.primary,
         actions: [
+          const LanguageActionButton(),
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection("notification")
@@ -398,19 +407,19 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
           });
         },
         items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Ana Sayfa",
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.home),
+            label: l10n.home,
           ),
 
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: "Danışanlar",
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.people),
+            label: l10n.clients,
           ),
 
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.pending),
-            label: "İstekler",
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.pending),
+            label: l10n.requests,
           ),
 
           BottomNavigationBarItem(
@@ -455,12 +464,12 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                 );
               },
             ),
-            label: "Mesajlar",
+            label: l10n.messages,
           ),
 
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: "Hesap",
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.person),
+            label: l10n.accountShort,
           ),
         ],
       ),
@@ -490,6 +499,8 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
   }
 
   Widget _buildHomePage() {
+    final l10n = AppLocalizations.of(context)!;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -498,7 +509,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
           const SizedBox(height: 20),
 
           Text(
-            "Jinekolog Paneli",
+            l10n.gynecologistPanel,
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -522,7 +533,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                 future: getApprovedCount(),
                 builder: (context, snapshot) {
                   return _premiumStatCard(
-                    "Danışan",
+                    l10n.clients,
                     snapshot.data?.toString() ?? "...",
                     Colors.pink,
                     Icons.people,
@@ -539,7 +550,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                 future: getPendingCount(),
                 builder: (context, snapshot) {
                   return _premiumStatCard(
-                    "Bekleyen",
+                    l10n.pending,
                     snapshot.data?.toString() ?? "...",
                     Colors.orange,
                     Icons.pending,
@@ -556,7 +567,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                 future: getHighRiskCount(),
                 builder: (context, snapshot) {
                   return _premiumStatCard(
-                    "Yüksek Risk",
+                    l10n.highRisk,
                     snapshot.data?.toString() ?? "...",
                     Colors.red,
                     Icons.warning,
@@ -572,10 +583,13 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
 
                   final text = data == null
                       ? "..."
-                      : "${data["measurements"]} ölçüm\n${data["patients"]} hasta";
+                      : l10n.activeThisWeekSummary(
+                          data["measurements"] ?? 0,
+                          data["patients"] ?? 0,
+                        );
 
                   return _premiumStatCard(
-                    "Son 7 Gün",
+                    l10n.last7Days,
                     text,
                     Colors.green,
                     Icons.timeline,
@@ -612,7 +626,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Danışma İstekleri",
+                  l10n.consultationRequests,
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -630,7 +644,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
           const SizedBox(height: 30),
 
           Text(
-            "Son Aktiviteler",
+            l10n.recentActivities,
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -647,6 +661,8 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
   }
 
   Widget _buildPatientsPage() {
+    final l10n = AppLocalizations.of(context)!;
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection("expert_requests")
@@ -667,7 +683,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
         if (docs.isEmpty) {
           return Center(
             child: Text(
-              "Henüz danışan bulunmuyor",
+              l10n.noClientsYet,
               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
           );
@@ -701,13 +717,13 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
 
                 if (risk == "high") {
                   riskColor = Colors.red;
-                  riskText = "Yüksek Risk";
+                  riskText = l10n.highRisk;
                 } else if (risk == "medium") {
                   riskColor = Colors.orange;
-                  riskText = "Orta Risk";
+                  riskText = l10n.mediumRisk;
                 } else {
                   riskColor = Colors.green;
-                  riskText = "Normal";
+                  riskText = l10n.normalRisk;
                 }
 
                 return ClipRRect(
@@ -747,10 +763,10 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 6),
-                          Text("Gebelik Haftası: $hafta"),
+                          Text("${l10n.pregnancyWeekInput}: $hafta"),
                           const SizedBox(height: 4),
                           Text(
-                            "Risk Durumu: $riskText",
+                            "${l10n.riskStatus}: $riskText",
                             style: TextStyle(
                               color: riskColor,
                               fontWeight: FontWeight.w600,
@@ -789,6 +805,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
   }
 
   Widget _buildAccountPage() {
+    final l10n = AppLocalizations.of(context)!;
     final user = FirebaseAuth.instance.currentUser;
 
     return StreamBuilder<DocumentSnapshot>(
@@ -850,7 +867,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                         ),
                         Text(email),
                         Text(
-                          "Jinekolog",
+                          l10n.gynecologist,
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
                           ),
@@ -878,30 +895,30 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text("Bilgileri Düzenle"),
+                child: Text(l10n.editInfo),
               ),
 
               const SizedBox(height: 20),
 
-              const Text(
-                "Uzmanlık Bilgileri",
+              Text(
+                l10n.expertiseInfo,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 10),
 
-              _infoCard("Lisans No", license),
-              _infoCard("Deneyim", experience),
-              _infoCard("Çalıştığı Kurum", hospital),
+              _infoCard(l10n.licenseNumber, license),
+              _infoCard(l10n.experience, experience),
+              _infoCard(l10n.institution, hospital),
 
               const SizedBox(height: 25),
 
-              _accountTile(Icons.description, "Diploma / Belgeler", () {
+              _accountTile(Icons.description, l10n.diplomaDocuments, () {
                 final url = diplomaUrl?.toString().trim();
                 if (url == null || url.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Henüz diploma eklenmemiş")),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(l10n.noDiplomaAdded)));
                   return;
                 }
                 Navigator.push(
@@ -917,10 +934,10 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                           child: Image.network(
                             url,
                             errorBuilder: (_, __, ___) {
-                              return const Padding(
-                                padding: EdgeInsets.all(20),
+                              return Padding(
+                                padding: const EdgeInsets.all(20),
                                 child: Text(
-                                  "Belge önizlenemedi. Dosya PDF ise web panelinden bağlantı olarak açılabilir.",
+                                  l10n.documentPreviewUnavailable,
                                   textAlign: TextAlign.center,
                                 ),
                               );
@@ -949,28 +966,34 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                         color: Theme.of(context).colorScheme.primary,
                       ),
                       const SizedBox(width: 8),
-                      const Text("Diploma yüklendi"),
+                      Text(l10n.diplomaUploaded),
                     ],
                   ),
                 ),
 
               const SizedBox(height: 25),
 
-              const Text(
-                "Ayarlar",
+              Text(
+                l10n.settings,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 10),
 
-              _accountTile(Icons.lock, "?ifre De?i?tir", () {
+              _accountTile(Icons.lock, l10n.changePassword, () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const SifreDegistirPage()),
                 );
               }),
 
-              _accountTile(Icons.logout, "Çıkış Yap", () async {
+              _accountTile(
+                Icons.language,
+                l10n.language,
+                () => showLanguageDialog(context),
+              ),
+
+              _accountTile(Icons.logout, l10n.logoutAction, () async {
                 await FirebaseAuth.instance.signOut();
 
                 if (!context.mounted) return;
@@ -1105,6 +1128,8 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
   }
 
   Widget _buildRiskChart() {
+    final l10n = AppLocalizations.of(context)!;
+
     return FutureBuilder<Map<String, int>>(
       future: getRiskDistribution(),
       builder: (context, snapshot) {
@@ -1126,7 +1151,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
         return Column(
           children: [
             Text(
-              "Risk Dağılımı",
+              l10n.riskDistribution,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.bold,
@@ -1156,6 +1181,8 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
   }
 
   Widget _buildPatientRequests() {
+    final l10n = AppLocalizations.of(context)!;
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection("expert_requests")
@@ -1175,7 +1202,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: _cardDecoration(),
-              child: const Text("Bekleyen istek yok."),
+              child: Text(l10n.noPendingRequests),
             ),
           );
         }
@@ -1217,28 +1244,28 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "$name $surname - Hafta $hafta",
+                          "$name $surname - ${l10n.weekLabel(hafta)}",
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
 
                         const SizedBox(height: 10),
 
-                        Text("Hasta ID: $clientId"),
-                        Text("İstek ID: ${doc.id}"),
+                        Text("${l10n.patientId}: $clientId"),
+                        Text("${l10n.requestId}: ${doc.id}"),
                         const SizedBox(height: 8),
 
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            _requestInfoChip("E-posta", email),
-                            _requestInfoChip("Telefon", phone),
-                            _requestInfoChip("Gebelik haftası", hafta),
-                            _requestInfoChip("Boy", "$boy cm"),
-                            _requestInfoChip("Kilo", "$kilo kg"),
-                            _requestInfoChip("BMI", bmi),
-                            _requestInfoChip("Risk", _riskText(risk)),
-                            _requestInfoChip("Alerji", allergy),
+                            _requestInfoChip(l10n.email, email),
+                            _requestInfoChip(l10n.phone, phone),
+                            _requestInfoChip(l10n.pregnancyWeekInput, hafta),
+                            _requestInfoChip(l10n.heightCm, "$boy cm"),
+                            _requestInfoChip(l10n.currentWeightKg, "$kilo kg"),
+                            _requestInfoChip(l10n.bmi, bmi),
+                            _requestInfoChip(l10n.risk, _riskText(risk)),
+                            _requestInfoChip(l10n.allergy, allergy),
                           ],
                         ),
 
@@ -1273,7 +1300,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                                   "ASSIGNED DOCTOR: $doctorUid to $clientId",
                                 );
                               },
-                              child: const Text("Kabul"),
+                              child: Text(l10n.accept),
                             ),
 
                             const SizedBox(width: 10),
@@ -1293,7 +1320,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                                           FieldValue.serverTimestamp(),
                                     });
                               },
-                              child: const Text("Reddet"),
+                              child: Text(l10n.reject),
                             ),
                           ],
                         ),
@@ -1322,19 +1349,19 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
     );
   }
 
-  String timeAgo(Timestamp timestamp) {
+  String timeAgo(Timestamp timestamp, AppLocalizations l10n) {
     final now = DateTime.now();
     final date = timestamp.toDate();
     final diff = now.difference(date);
 
     if (diff.inSeconds < 60) {
-      return "${diff.inSeconds} sn önce";
+      return l10n.secondsAgo(diff.inSeconds);
     } else if (diff.inMinutes < 60) {
-      return "${diff.inMinutes} dk önce";
+      return l10n.minutesAgo(diff.inMinutes);
     } else if (diff.inHours < 24) {
-      return "${diff.inHours} saat önce";
+      return l10n.hoursAgo(diff.inHours);
     } else {
-      return "${diff.inDays} gün önce";
+      return l10n.daysAgo(diff.inDays);
     }
   }
 

@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 import 'hamile_page.dart';
+import 'l10n/app_localizations.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -27,6 +28,8 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> register() async {
+    final l10n = AppLocalizations.of(context)!;
+
     if (_loading) return;
     setState(() => _loading = true);
 
@@ -35,23 +38,20 @@ class _RegisterPageState extends State<RegisterPage> {
     final password = passwordController.text.trim();
 
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
-      showMessage("Lütfen tüm alanları doldurun", isError: true);
+      showMessage(l10n.fillAllFields, isError: true);
       setState(() => _loading = false);
       return;
     }
 
     if (password.length < 6) {
-      showMessage("Şifre en az 6 karakter olmalı", isError: true);
+      showMessage(l10n.passwordMinLength, isError: true);
       setState(() => _loading = false);
       return;
     }
 
     try {
-      final userCredential =
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      final userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
 
       final uid = userCredential.user!.uid;
 
@@ -67,21 +67,20 @@ class _RegisterPageState extends State<RegisterPage> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const HamileAnaSayfa()),
-            (_) => false,
+        (_) => false,
       );
-
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
-        showMessage("Bu email zaten kayıtlı", isError: true);
+        showMessage(l10n.emailAlreadyInUse, isError: true);
       } else if (e.code == 'invalid-email') {
-        showMessage("Geçersiz email adresi", isError: true);
+        showMessage(l10n.invalidEmail, isError: true);
       } else if (e.code == 'weak-password') {
-        showMessage("Şifre çok zayıf", isError: true);
+        showMessage(l10n.weakPassword, isError: true);
       } else {
-        showMessage("Kayıt başarısız", isError: true);
+        showMessage(l10n.registerFailed, isError: true);
       }
     } catch (e) {
-      showMessage("Beklenmeyen bir hata oluştu", isError: true);
+      showMessage(l10n.unexpectedError, isError: true);
     } finally {
       if (mounted) {
         setState(() => _loading = false);
@@ -101,18 +100,16 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   InputDecoration inputDecoration(
-      BuildContext context, String label, IconData icon) {
+    BuildContext context,
+    String label,
+    IconData icon,
+  ) {
     return InputDecoration(
       labelText: label,
       filled: true,
       fillColor: Theme.of(context).colorScheme.surface,
-      labelStyle: TextStyle(
-        color: Theme.of(context).colorScheme.primary,
-      ),
-      prefixIcon: Icon(
-        icon,
-        color: Theme.of(context).colorScheme.primary,
-      ),
+      labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+      prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
@@ -120,7 +117,7 @@ class _RegisterPageState extends State<RegisterPage> {
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
         ),
       ),
       focusedBorder: OutlineInputBorder(
@@ -135,69 +132,63 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
-        title: const Text("Kayıt Ol"),
+        title: Text(l10n.register),
         centerTitle: true,
       ),
-
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-
               TextField(
                 controller: nameController,
-                decoration:
-                inputDecoration(context, "Ad Soyad", Icons.person),
+                decoration: inputDecoration(
+                  context,
+                  l10n.fullName,
+                  Icons.person,
+                ),
               ),
-
               const SizedBox(height: 12),
-
               TextField(
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration:
-                inputDecoration(context, "Email", Icons.email),
+                decoration: inputDecoration(
+                  context,
+                  l10n.emailField,
+                  Icons.email,
+                ),
               ),
-
               const SizedBox(height: 12),
-
               TextField(
                 controller: passwordController,
                 obscureText: true,
-                decoration:
-                inputDecoration(context, "Şifre", Icons.lock),
+                decoration: inputDecoration(context, l10n.password, Icons.lock),
               ),
-
               const SizedBox(height: 24),
-
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
                   onPressed: _loading ? null : register,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                    Theme.of(context).colorScheme.primary,
-                    foregroundColor:
-                    Theme.of(context).colorScheme.onPrimary,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   child: _loading
-                      ? const CircularProgressIndicator(
-                    color: Colors.white,
-                  )
-                      : const Text(
-                    "Kayıt Ol",
-                    style: TextStyle(fontSize: 16),
-                  ),
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : Text(
+                          l10n.register,
+                          style: const TextStyle(fontSize: 16),
+                        ),
                 ),
               ),
             ],

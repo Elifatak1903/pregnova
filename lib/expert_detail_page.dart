@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import 'l10n/app_localizations.dart';
+
 class ExpertDetailPage extends StatelessWidget {
   final QueryDocumentSnapshot doc;
 
@@ -8,6 +10,7 @@ class ExpertDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final data = doc.data() as Map<String, dynamic>;
     final status = (data['status'] ?? 'pending').toString();
     final diplomaUrl = (data['documentUrl'] ?? data['diplomaUrl'] ?? '')
@@ -17,7 +20,7 @@ class ExpertDetailPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Başvuru Detayı'),
+        title: Text(l10n.applicationDetail),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: SingleChildScrollView(
@@ -60,7 +63,7 @@ class ExpertDetailPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          getRoleText(data['role']),
+                          getRoleText(l10n, data['role']),
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.w500,
@@ -73,11 +76,21 @@ class ExpertDetailPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 25),
-            _infoCard(context, Icons.badge, 'Lisans No', data['licenseNumber']),
-            _infoCard(context, Icons.work, 'Deneyim', data['experience']),
-            _infoCard(context, Icons.phone, 'Telefon', data['phone']),
-            _infoCard(context, Icons.local_hospital, 'Kurum', data['hospital']),
-            _infoCard(context, Icons.location_city, 'Şehir', data['city']),
+            _infoCard(
+              context,
+              Icons.badge,
+              l10n.licenseNumber,
+              data['licenseNumber'],
+            ),
+            _infoCard(context, Icons.work, l10n.experience, data['experience']),
+            _infoCard(context, Icons.phone, l10n.phone, data['phone']),
+            _infoCard(
+              context,
+              Icons.local_hospital,
+              l10n.institution,
+              data['hospital'],
+            ),
+            _infoCard(context, Icons.location_city, l10n.city, data['city']),
             const SizedBox(height: 25),
             if (diplomaUrl.isNotEmpty)
               Container(
@@ -85,7 +98,7 @@ class ExpertDetailPage extends StatelessWidget {
                 margin: const EdgeInsets.only(bottom: 20),
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.description),
-                  label: const Text('Diplomayı Gör'),
+                  label: Text(l10n.viewDiploma),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -99,19 +112,20 @@ class ExpertDetailPage extends StatelessWidget {
                       MaterialPageRoute(
                         builder: (_) => Scaffold(
                           appBar: AppBar(
-                            title: const Text('Diploma'),
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
+                            title: Text(l10n.diploma),
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
                           ),
                           body: Center(
                             child: InteractiveViewer(
                               child: Image.network(
                                 diplomaUrl,
                                 errorBuilder: (_, __, ___) {
-                                  return const Padding(
-                                    padding: EdgeInsets.all(20),
+                                  return Padding(
+                                    padding: const EdgeInsets.all(20),
                                     child: Text(
-                                      'Belge önizlenemedi. Dosya PDF ise web panelinden bağlantı olarak açılabilir.',
+                                      l10n.documentPreviewUnavailable,
                                       textAlign: TextAlign.center,
                                     ),
                                   );
@@ -126,11 +140,11 @@ class ExpertDetailPage extends StatelessWidget {
                 ),
               )
             else
-              const Padding(
-                padding: EdgeInsets.only(bottom: 20),
-                child: Text('Diploma/belge bulunamadı'),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Text(l10n.noDiplomaDocument),
               ),
-            _statusCard(context, status),
+            _statusCard(context, status, l10n),
             if (status == 'pending') ...[
               const SizedBox(height: 25),
               Row(
@@ -138,7 +152,7 @@ class ExpertDetailPage extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.close),
-                      label: const Text('Reddet'),
+                      label: Text(l10n.reject),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -153,7 +167,7 @@ class ExpertDetailPage extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.check),
-                      label: const Text('Onayla'),
+                      label: Text(l10n.approve),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -174,13 +188,15 @@ class ExpertDetailPage extends StatelessWidget {
   }
 
   Future<void> rejectExpert(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+
     await doc.reference.update({'status': 'rejected'});
 
     if (!context.mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Başvuru reddedildi')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.applicationRejected)));
 
     Navigator.pop(context);
   }
@@ -190,52 +206,48 @@ class ExpertDetailPage extends StatelessWidget {
     Map<String, dynamic> data,
     String diplomaUrl,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final uid = (data['uid'] ?? '').toString();
     if (uid.isEmpty) return;
 
     final batch = FirebaseFirestore.instance.batch();
 
-    batch.update(
-      FirebaseFirestore.instance.collection('users').doc(uid),
-      {
-        'role': data['role'],
-        'diplomaUrl': diplomaUrl,
-        'isApproved': true,
-      },
-    );
+    batch.update(FirebaseFirestore.instance.collection('users').doc(uid), {
+      'role': data['role'],
+      'diplomaUrl': diplomaUrl,
+      'isApproved': true,
+    });
 
-    batch.update(
-      doc.reference,
-      {
-        'status': 'approved',
-        'diplomaUrl': diplomaUrl,
-      },
-    );
+    batch.update(doc.reference, {
+      'status': 'approved',
+      'diplomaUrl': diplomaUrl,
+    });
 
-    batch.set(
-      FirebaseFirestore.instance.collection('notification').doc(),
-      {
-        'uid': uid,
-        'type': 'expert_application',
-        'title': 'Başvurun Onaylandı',
-        'message': 'Artık uzman olarak giriş yapabilirsin.',
-        'isRead': false,
-        'createdAt': FieldValue.serverTimestamp(),
-      },
-    );
+    batch.set(FirebaseFirestore.instance.collection('notification').doc(), {
+      'uid': uid,
+      'type': 'expert_application',
+      'title': l10n.applicationApprovedNotificationTitle,
+      'message': l10n.applicationApprovedNotificationMessage,
+      'isRead': false,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
 
     await batch.commit();
 
     if (!context.mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Uzman onaylandı')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.expertApproved)));
 
     Navigator.pop(context);
   }
 
-  Widget _statusCard(BuildContext context, String status) {
+  Widget _statusCard(
+    BuildContext context,
+    String status,
+    AppLocalizations l10n,
+  ) {
     final isApproved = status == 'approved';
     final isRejected = status == 'rejected';
 
@@ -245,8 +257,8 @@ class ExpertDetailPage extends StatelessWidget {
         color: isApproved
             ? Colors.green.withValues(alpha: 0.12)
             : isRejected
-                ? Colors.red.withValues(alpha: 0.12)
-                : Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
+            ? Colors.red.withValues(alpha: 0.12)
+            : Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -255,16 +267,16 @@ class ExpertDetailPage extends StatelessWidget {
             isApproved
                 ? Icons.check_circle
                 : isRejected
-                    ? Icons.cancel
-                    : Icons.hourglass_top,
+                ? Icons.cancel
+                : Icons.hourglass_top,
             color: isApproved
                 ? Colors.green
                 : isRejected
-                    ? Colors.red
-                    : Colors.orange,
+                ? Colors.red
+                : Colors.orange,
           ),
           const SizedBox(width: 8),
-          Text(getStatusText(status)),
+          Text(getStatusText(l10n, status)),
         ],
       ),
     );
@@ -279,9 +291,7 @@ class ExpertDetailPage extends StatelessWidget {
     return Card(
       color: Theme.of(context).colorScheme.surface,
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: ListTile(
         leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
         title: Text(title),
@@ -290,15 +300,15 @@ class ExpertDetailPage extends StatelessWidget {
     );
   }
 
-  String getRoleText(dynamic role) {
-    if (role == 'gynecologist') return 'Jinekolog';
-    if (role == 'dietitian') return 'Diyetisyen';
+  String getRoleText(AppLocalizations l10n, dynamic role) {
+    if (role == 'gynecologist') return l10n.gynecologist;
+    if (role == 'dietitian') return l10n.dietitian;
     return role?.toString() ?? '-';
   }
 
-  String getStatusText(String status) {
-    if (status == 'approved') return 'Başvuru onaylandı';
-    if (status == 'rejected') return 'Başvuru reddedildi';
-    return 'Başvuru beklemede';
+  String getStatusText(AppLocalizations l10n, String status) {
+    if (status == 'approved') return l10n.applicationApproved;
+    if (status == 'rejected') return l10n.applicationRejectedShort;
+    return l10n.applicationPending;
   }
 }

@@ -6,6 +6,8 @@ import 'admin_expert_request_page.dart';
 import 'user_management_page.dart';
 import 'system_reports_page.dart';
 import 'main.dart';
+import 'language_selector.dart';
+import 'l10n/app_localizations.dart';
 
 class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
@@ -41,9 +43,12 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
     final experts = expertSnapshot.docs;
 
-    activeExperts = experts
-        .where((e) => e.data()["status"] == "approved")
-        .length;
+    activeExperts = usersSnapshot.docs.where((doc) {
+      final data = doc.data();
+      final role = data["role"];
+      return (role == "dietitian" || role == "gynecologist") &&
+          data["isApproved"] == true;
+    }).length;
 
     pendingRequests = experts
         .where((e) => e.data()["status"] == "pending")
@@ -68,12 +73,15 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: const Text("Admin Panel"),
+        title: Text(l10n.adminPanel),
         backgroundColor: Theme.of(context).colorScheme.primary,
         actions: [
+          const LanguageActionButton(),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => signOut(context),
@@ -111,23 +119,23 @@ class _AdminHomePageState extends State<AdminHomePage> {
                             size: 30,
                           ),
                         ),
-                        SizedBox(width: 16),
+                        const SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "Welcome Admin 👑",
-                                style: TextStyle(
+                                l10n.welcomeAdmin,
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              SizedBox(height: 6),
+                              const SizedBox(height: 6),
                               Text(
-                                "Sistem takibi ve onay y?netimi",
-                                style: TextStyle(color: Colors.white70),
+                                l10n.systemTrackingApprovalManagement,
+                                style: const TextStyle(color: Colors.white70),
                               ),
                             ],
                           ),
@@ -141,7 +149,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   Row(
                     children: [
                       _statCard(
-                        title: "Bekleyen\nBa?vuru",
+                        title: l10n.pendingApplication,
                         value: pendingRequests.toString(),
                         icon: Icons.pending_actions,
                         color: Theme.of(
@@ -158,7 +166,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                       ),
                       const SizedBox(width: 12),
                       _statCard(
-                        title: "Toplam\nKullan?c?",
+                        title: l10n.totalUsers,
                         value: totalUsers.toString(),
                         icon: Icons.people,
                         color: Theme.of(
@@ -181,7 +189,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   Row(
                     children: [
                       _statCard(
-                        title: "Aktif\nUzman",
+                        title: l10n.activeExpert,
                         value: activeExperts.toString(),
                         icon: Icons.medical_services,
                         color: Theme.of(
@@ -190,7 +198,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                       ),
                       const SizedBox(width: 12),
                       _statCard(
-                        title: "Sistem\nRaporlar?",
+                        title: l10n.systemReports,
                         value: reports.toString(),
                         icon: Icons.bar_chart,
                         color: Theme.of(
@@ -211,7 +219,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   const SizedBox(height: 30),
 
                   Text(
-                    "Admin Actions",
+                    l10n.adminActions,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -222,8 +230,8 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   const SizedBox(height: 12),
 
                   _adminActionCard(
-                    title: "Uzman Ba?vurular?",
-                    subtitle: "Uzman ba?vurular?n? onayla veya reddet",
+                    title: l10n.expertApplications,
+                    subtitle: l10n.expertApplicationsActionSubtitle,
                     icon: Icons.health_and_safety,
                     color: Theme.of(context).colorScheme.primary,
                     onTap: () {
@@ -237,8 +245,8 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   ),
 
                   _adminActionCard(
-                    title: "Kullan?c? Y?netimi",
-                    subtitle: "T?m kullan?c?lar? g?r?nt?le",
+                    title: l10n.userManagement,
+                    subtitle: l10n.viewAllUsers,
                     icon: Icons.people_outline,
                     color: Theme.of(
                       context,

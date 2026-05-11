@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import 'language_selector.dart';
+import 'l10n/app_localizations.dart';
+
 class SystemReportsPage extends StatefulWidget {
   const SystemReportsPage({super.key});
 
@@ -56,8 +59,9 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
       final users = await firestore.collection('users').get();
       final risks = await firestore.collection('risk_olcumleri').get();
       final nutrition = await firestore.collection('besin_analizleri').get();
-      final applications =
-          await firestore.collection('expert_applications').get();
+      final applications = await firestore
+          .collection('expert_applications')
+          .get();
 
       totalUsers = users.docs.length;
       nutritionAnalyses = nutrition.docs.length;
@@ -121,11 +125,11 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
     }
   }
 
-  Widget riskChart() {
+  Widget riskChart(AppLocalizations l10n) {
     final total = high + medium + low;
 
     if (total == 0) {
-      return const Center(child: Text('Risk verisi yok'));
+      return Center(child: Text(l10n.noRiskData));
     }
 
     return Column(
@@ -163,12 +167,12 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
           ),
         ),
         const SizedBox(height: 10),
-        const Row(
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Text('Yüksek'),
-            Text('Orta'),
-            Text('Düşük'),
+            Text(l10n.highRisk),
+            Text(l10n.mediumRisk),
+            Text(l10n.lowRisk),
           ],
         ),
       ],
@@ -225,36 +229,36 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
           Flexible(child: Text(title)),
           Text(
             value,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: primary,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold, color: primary),
           ),
         ],
       ),
     );
   }
 
-  String getSystemComment() {
+  String getSystemComment(AppLocalizations l10n) {
     if (highPercent > 30) {
-      return 'Yüksek risk oranı dikkat gerektiriyor.';
+      return l10n.riskRateNeedsAttention;
     } else if (highPercent > 15) {
-      return 'Risk oranında artış gözlemleniyor.';
+      return l10n.riskRateIncreasing;
     } else {
-      return 'Sistem stabil durumda.';
+      return l10n.systemStable;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Sistem Raporları'),
+        title: Text(l10n.systemReports.replaceAll('\n', ' ')),
         backgroundColor: Theme.of(context).colorScheme.primary,
         actions: [
+          const LanguageActionButton(),
           IconButton(
-            tooltip: 'Yenile',
+            tooltip: l10n.refresh,
             onPressed: fetchData,
             icon: const Icon(Icons.refresh),
           ),
@@ -277,10 +281,9 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
                       gradient: LinearGradient(
                         colors: [
                           Theme.of(context).colorScheme.primary,
-                          Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withValues(alpha: 0.7),
+                          Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.7),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(16),
@@ -288,16 +291,16 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Sistem Özeti',
-                          style: TextStyle(
+                        Text(
+                          l10n.systemSummary,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          getSystemComment(),
+                          getSystemComment(l10n),
                           style: const TextStyle(color: Colors.white),
                         ),
                       ],
@@ -306,56 +309,60 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
                   const SizedBox(height: 20),
                   Row(
                     children: [
-                      bigCard('Toplam Kullanıcı', totalUsers.toString(), context),
+                      bigCard(
+                        l10n.totalUsers.replaceAll('\n', ' '),
+                        totalUsers.toString(),
+                        context,
+                      ),
                       const SizedBox(width: 10),
-                      bigCard('Hamile', pregnant.toString(), context),
+                      bigCard(l10n.pregnantRole, pregnant.toString(), context),
                     ],
                   ),
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      bigCard('Jinekolog', doctors.toString(), context),
+                      bigCard(l10n.gynecologist, doctors.toString(), context),
                       const SizedBox(width: 10),
-                      bigCard('Diyetisyen', dietitians.toString(), context),
+                      bigCard(l10n.dietitian, dietitians.toString(), context),
                     ],
                   ),
                   const SizedBox(height: 20),
                   infoCard(
-                    'Toplam risk ölçümü',
+                    l10n.totalRiskMeasurements,
                     riskMeasurements.toString(),
                     context,
                   ),
                   infoCard(
-                    'Toplam besin analizi',
+                    l10n.totalNutritionAnalyses,
                     nutritionAnalyses.toString(),
                     context,
                   ),
                   infoCard(
-                    'Bekleyen uzman başvurusu',
+                    l10n.pendingExpertApplications,
                     pendingApplications.toString(),
                     context,
                   ),
                   infoCard(
-                    'Onaylanan uzman başvurusu',
+                    l10n.approvedExpertApplications,
                     approvedApplications.toString(),
                     context,
                   ),
                   infoCard(
-                    'Reddedilen uzman başvurusu',
+                    l10n.rejectedExpertApplications,
                     rejectedApplications.toString(),
                     context,
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    'Risk Dağılımı',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  Text(
+                    l10n.riskDistribution,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  riskChart(),
+                  riskChart(l10n),
                   const SizedBox(height: 20),
-                  infoCard('Yüksek risk', high.toString(), context),
-                  infoCard('Orta risk', medium.toString(), context),
-                  infoCard('Düşük risk', low.toString(), context),
+                  infoCard(l10n.highRisk, high.toString(), context),
+                  infoCard(l10n.mediumRisk, medium.toString(), context),
+                  infoCard(l10n.lowRisk, low.toString(), context),
                   const SizedBox(height: 20),
                   Container(
                     padding: const EdgeInsets.all(14),
@@ -366,16 +373,16 @@ class _SystemReportsPageState extends State<SystemReportsPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Sistem İçgörüsü',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        Text(
+                          l10n.systemInsight,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Yüksek risk oranı: ${highPercent.toStringAsFixed(1)}%',
+                          l10n.highRiskPercent(highPercent.toStringAsFixed(1)),
                         ),
                         const SizedBox(height: 6),
-                        Text(getSystemComment()),
+                        Text(getSystemComment(l10n)),
                       ],
                     ),
                   ),

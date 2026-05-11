@@ -1,11 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+
+import 'l10n/app_localizations.dart';
 
 class UzmanBasvuruPage extends StatefulWidget {
-  const UzmanBasvuruPage({Key? key}) : super(key: key);
+  const UzmanBasvuruPage({super.key});
 
   @override
   State<UzmanBasvuruPage> createState() => _UzmanBasvuruPageState();
@@ -13,7 +15,6 @@ class UzmanBasvuruPage extends StatefulWidget {
 
 class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
   PlatformFile? selectedFile;
-  String? documentUrl;
   final _formKey = GlobalKey<FormState>();
 
   String role = 'dietitian';
@@ -33,7 +34,9 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
   }
 
   Future<void> pickFile() async {
-    final result = await FilePicker.platform.pickFiles();
+    final result = await FilePicker.platform.pickFiles(
+      withData: true,
+    );
 
     if (result != null) {
       setState(() {
@@ -46,14 +49,28 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
     if (selectedFile == null) return null;
 
     final file = selectedFile!;
-    final path = 'expert_documents/${DateTime.now().millisecondsSinceEpoch}_${file.name}';
 
-    final ref = FirebaseStorage.instance.ref().child(path);
+    if (file.bytes == null) {
+      throw Exception("Dosya verisi okunamadı. pickFiles içinde withData: true olmalı.");
+    }
 
-    await ref.putData(file.bytes!);
+    final safeFileName = file.name.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
 
-    final url = await ref.getDownloadURL();
-    return url;
+    final path =
+        'expert_documents/${FirebaseAuth.instance.currentUser!.uid}/${DateTime.now().millisecondsSinceEpoch}_$safeFileName';
+
+    final ref = FirebaseStorage.instance.ref(path);
+
+    final uploadTask = await ref.putData(
+      file.bytes!,
+      SettableMetadata(
+        contentType: file.extension == 'pdf'
+            ? 'application/pdf'
+            : 'image/jpeg',
+      ),
+    );
+
+    return await uploadTask.ref.getDownloadURL();
   }
 
   Future<void> checkApplicationStatus() async {
@@ -65,6 +82,8 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
         .doc(uid)
         .get();
 
+    if (!mounted) return;
+
     if (doc.exists && doc.data() != null) {
       setState(() {
         applicationStatus = doc['status'] ?? 'none';
@@ -73,12 +92,14 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
   }
 
   Future<void> submitApplication() async {
+    final l10n = AppLocalizations.of(context)!;
+
     if (isLoading) return;
 
     if (selectedFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Lütfen belge yükleyin 📄"),
+        SnackBar(
+          content: Text(l10n.uploadDocumentPrompt),
           backgroundColor: Colors.red,
         ),
       );
@@ -86,96 +107,131 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
     }
 
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Kullanıcı oturumu bulunamadı."),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     setState(() => isLoading = true);
 
-    final docRef = FirebaseFirestore.instance
-        .collection('expert_applications')
-        .doc(user.uid);
+    try {
+      final docRef = FirebaseFirestore.instance
+          .collection('expert_applications')
+          .doc(user.uid);
 
-    final existingDoc = await docRef.get();
+      final existingDoc = await docRef.get();
 
-    // Eğer pending ise tekrar başvuru engelle
-    if (existingDoc.exists &&
-        existingDoc.data() != null &&
-        existingDoc['status'] == 'pending') {
+      final existingData = existingDoc.data();
+
+      if (existingDoc.exists &&
+          existingData != null &&
+          existingData['status'] == 'pending') {
+        if (!mounted) return;
+
+        setState(() => isLoading = false);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.applicationAlreadyPending)),
+        );
+        return;
+      }
+
+      if (existingDoc.exists &&
+          existingData != null &&
+          existingData['status'] == 'approved') {
+        if (!mounted) return;
+
+        setState(() => isLoading = false);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.alreadyExpert)),
+        );
+        return;
+      }
+
+      final uploadedUrl = await uploadFile();
+
+      if (uploadedUrl == null) {
+        throw Exception("Dosya yüklenemedi. Lütfen tekrar deneyin.");
+      }
+
+      final data = <String, dynamic>{
+        'uid': user.uid,
+        'email': user.email ?? '',
+        'fullName': user.displayName ?? '',
+        'role': role,
+        'licenseNumber': licenseNo.trim(),
+        'experience': experience.trim(),
+        'phone': phone.trim(),
+        'hospital': hospital.trim(),
+        'city': city.trim(),
+        'documentUrl': uploadedUrl,
+        'status': 'pending',
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      if (!existingDoc.exists) {
+        data['createdAt'] = FieldValue.serverTimestamp();
+      }
+
+      await docRef.set(data, SetOptions(merge: true));
+
+      await FirebaseFirestore.instance.collection('notification').add({
+        'uid': user.uid,
+        'title': l10n.expertApplicationReceivedTitle,
+        'message': l10n.expertApplicationReceivedMessage,
+        'type': 'expert_application',
+        'isRead': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+        applicationStatus = 'pending';
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.applicationReceived),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      debugPrint("UZMAN BAŞVURU HATASI: $e");
+
+      if (!mounted) return;
+
       setState(() => isLoading = false);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Zaten başvurunuz inceleniyor ⏳"),
+        SnackBar(
+          content: Text("Başvuru gönderilirken hata oluştu: $e"),
+          backgroundColor: Colors.red,
         ),
       );
-      return;
     }
-
-    // Eğer approved ise tekrar başvuru engelle
-    if (existingDoc.exists &&
-        existingDoc.data() != null &&
-        existingDoc['status'] == 'approved') {
-      setState(() => isLoading = false);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Zaten uzmansınız!"),
-        ),
-      );
-      return;
-    }
-
-    // belge yükleme
-    final uploadedUrl = await uploadFile();
-
-    Map<String, dynamic> data = {
-      'uid': user.uid,
-      'email': user.email,
-      'fullName': user.displayName ?? '',
-      'role': role,
-      'licenseNumber': licenseNo,
-      'experience': experience,
-      'phone': phone,
-      'hospital': hospital,
-      'city': city,
-      'documentUrl': uploadedUrl,
-      'status': 'pending',
-    };
-
-    if (!existingDoc.exists) {
-      data['createdAt'] = FieldValue.serverTimestamp();
-    }
-
-    await docRef.set(data);
-
-    await FirebaseFirestore.instance.collection('notification').add({
-      'uid': user.uid,
-      'title': 'Uzman Başvurusu Alındı',
-      'message': 'Başvurun alındı. Admin onayı bekleniyor ⏳',
-      'isRead': false,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
-
-    setState(() {
-      isLoading = false;
-      applicationStatus = 'pending';
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text("Başvurun alındı 🙏"),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-      ),
-    );
-
-    Navigator.pop(context);
   }
 
   Widget buildStatusView() {
+    final l10n = AppLocalizations.of(context)!;
+
     if (applicationStatus == 'pending') {
       return Center(
         child: Text(
-          "⏳ Başvurunuz inceleniyor...",
-          style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.primary),
+          l10n.applicationPendingStatus,
+          style: TextStyle(
+            fontSize: 18,
+            color: Theme.of(context).colorScheme.primary,
+          ),
         ),
       );
     }
@@ -183,8 +239,11 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
     if (applicationStatus == 'approved') {
       return Center(
         child: Text(
-          "✅ Zaten uzmansınız!",
-          style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.primary),
+          l10n.applicationApprovedStatus,
+          style: TextStyle(
+            fontSize: 18,
+            color: Theme.of(context).colorScheme.primary,
+          ),
         ),
       );
     }
@@ -192,8 +251,11 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
     if (applicationStatus == 'rejected') {
       return Center(
         child: Text(
-          "❌ Başvurunuz reddedildi. Tekrar deneyebilirsiniz.",
-          style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.primary),
+          l10n.applicationRejectedStatus,
+          style: TextStyle(
+            fontSize: 18,
+            color: Theme.of(context).colorScheme.primary,
+          ),
         ),
       );
     }
@@ -201,13 +263,14 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
     return const SizedBox();
   }
 
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: const Text("Uzman Başvurusu"),
+        title: Text(l10n.expertApplication),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: SafeArea(
@@ -216,112 +279,121 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
           child: applicationStatus != 'none'
               ? buildStatusView()
               : Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  DropdownButtonFormField(
-                    value: role,
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'dietitian',
-                        child: Text("Diyetisyen"),
-                      ),
-                      DropdownMenuItem(
-                        value: 'gynecologist',
-                        child: Text("Jinekolog"),
-                      ),
-                    ],
-                    onChanged: (val) => setState(() => role = val!),
-                    decoration: buildInput(context, "Uzmanlık Alanı"),
-                  ),
-
-                  TextFormField(
-                    decoration: buildInput(context, "Lisans / Sicil No"),
-                    onChanged: (v) => licenseNo = v,
-                    validator: (v) =>
-                    v!.isEmpty ? "Zorunlu alan" : null,
-                  ),
-
-                  TextFormField(
-                    decoration: buildInput(context, "Deneyim"),
-                    onChanged: (v) => experience = v,
-                  ),
-
-                  TextFormField(
-                    decoration: buildInput(context, "Telefon"),
-                    keyboardType: TextInputType.phone,
-                    onChanged: (v) => phone = v,
-                  ),
-
-                  TextFormField(
-                    decoration: buildInput(context, "Çalıştığı Kurum"),
-                    onChanged: (v) => hospital = v,
-                  ),
-
-                  TextFormField(
-                    decoration: buildInput(context, "Şehir"),
-                    onChanged: (v) => city = v,
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  ElevatedButton.icon(
-                    onPressed: pickFile,
-                    icon: const Icon(Icons.upload_file),
-                    label: const Text("Belge Yükle"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        DropdownButtonFormField<String>(
+                          value: role,
+                          items: [
+                            DropdownMenuItem(
+                              value: 'dietitian',
+                              child: Text(l10n.dietitian),
+                            ),
+                            DropdownMenuItem(
+                              value: 'gynecologist',
+                              child: Text(l10n.gynecologist),
+                            ),
+                          ],
+                          onChanged: (val) {
+                            if (val == null) return;
+                            setState(() => role = val);
+                          },
+                          decoration: buildInput(context, l10n.expertiseArea),
+                        ),
+                        TextFormField(
+                          decoration: buildInput(
+                            context,
+                            l10n.licenseRegistryNumber,
+                          ),
+                          onChanged: (v) => licenseNo = v,
+                          validator: (v) => v == null || v.isEmpty
+                              ? l10n.requiredField
+                              : null,
+                        ),
+                        TextFormField(
+                          decoration: buildInput(context, l10n.experience),
+                          onChanged: (v) => experience = v,
+                        ),
+                        TextFormField(
+                          decoration: buildInput(context, l10n.phone),
+                          keyboardType: TextInputType.phone,
+                          onChanged: (v) => phone = v,
+                        ),
+                        TextFormField(
+                          decoration: buildInput(context, l10n.institution),
+                          onChanged: (v) => hospital = v,
+                        ),
+                        TextFormField(
+                          decoration: buildInput(context, l10n.city),
+                          onChanged: (v) => city = v,
+                        ),
+                        const SizedBox(height: 30),
+                        ElevatedButton.icon(
+                          onPressed: pickFile,
+                          icon: const Icon(Icons.upload_file),
+                          label: Text(l10n.uploadDocument),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
+                            foregroundColor: Theme.of(
+                              context,
+                            ).colorScheme.onPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        if (selectedFile != null)
+                          Text(
+                            l10n.selectedFileName(selectedFile!.name),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_formKey.currentState!.validate()) {
+                              submitApplication();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
+                            foregroundColor: Theme.of(
+                              context,
+                            ).colorScheme.onPrimary,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 40,
+                            ),
+                          ),
+                          child: isLoading
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : Text(
+                                  l10n.submitApplication,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                        ),
+                      ],
                     ),
                   ),
-
-                  const SizedBox(height: 10),
-
-                  if (selectedFile != null)
-                    Text(
-                      "Seçilen dosya: ${selectedFile!.name}",
-                      style: TextStyle(color: Theme.of(context).colorScheme.primary),
-                    ),
-
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        submitApplication();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 16, horizontal: 40),
-                    ),
-                    child: isLoading
-                        ? const CircularProgressIndicator(
-                      color: Colors.white,
-                    )
-                        : const Text(
-                      "Başvuruyu Gönder",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  )
-                ],
-              ),
-            ),
-          ),
+                ),
         ),
       ),
     );
   }
 }
+
 InputDecoration buildInput(BuildContext context, String label) {
   return InputDecoration(
     labelText: label,
     filled: true,
     fillColor: Theme.of(context).colorScheme.surface,
-    labelStyle: TextStyle(
-      color: Theme.of(context).colorScheme.primary,
-    ),
+    labelStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide.none,
@@ -329,7 +401,7 @@ InputDecoration buildInput(BuildContext context, String label) {
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide(
-        color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
       ),
     ),
     focusedBorder: OutlineInputBorder(

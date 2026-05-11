@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+
 import 'auth_redirect.dart';
+import 'l10n/app_localizations.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: Center(
@@ -21,23 +25,21 @@ class WelcomePage extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF673AB7).withOpacity(0.3),
+                      color: const Color(0xFF673AB7).withValues(alpha: 0.3),
                       blurRadius: 18,
                       offset: const Offset(0, 8),
                     ),
                   ],
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.pregnant_woman,
                   size: 64,
                   color: Colors.white,
                 ),
               ),
-
               const SizedBox(height: 32),
-
               Text(
-                "PregNova’ya Hoş Geldin",
+                l10n.welcomeTitle,
                 style: TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
@@ -45,12 +47,9 @@ class WelcomePage extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-
               const SizedBox(height: 16),
-
               Text(
-                "Hamilelik sürecini güvenle takip edebilmen için\n"
-                    "sağlık, beslenme ve egzersiz tek yerde 💕",
+                l10n.welcomeSubtitle,
                 style: TextStyle(
                   fontSize: 16,
                   color: Theme.of(context).colorScheme.onSurface,
@@ -58,9 +57,7 @@ class WelcomePage extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-
               const SizedBox(height: 42),
-
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF673AB7),
@@ -75,14 +72,12 @@ class WelcomePage extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => const AuthRedirect(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const AuthRedirect()),
                   );
                 },
-                child: const Text(
-                  "Kullanmaya Başla 💗",
-                  style: TextStyle(
+                child: Text(
+                  l10n.getStarted,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -95,4 +90,3 @@ class WelcomePage extends StatelessWidget {
     );
   }
 }
-

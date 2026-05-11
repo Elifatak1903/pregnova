@@ -1,18 +1,20 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
-String timeAgo(Timestamp? timestamp) {
+import 'l10n/app_localizations.dart';
+
+String timeAgo(Timestamp? timestamp, AppLocalizations l10n) {
   if (timestamp == null) return "";
 
   final now = DateTime.now();
   final date = timestamp.toDate();
   final diff = now.difference(date);
 
-  if (diff.inSeconds < 60) return "Az önce";
-  if (diff.inMinutes < 60) return "${diff.inMinutes} dk önce";
-  if (diff.inHours < 24) return "${diff.inHours} saat önce";
-  if (diff.inDays < 7) return "${diff.inDays} gün önce";
+  if (diff.inSeconds < 60) return l10n.justNow;
+  if (diff.inMinutes < 60) return l10n.minutesAgo(diff.inMinutes);
+  if (diff.inHours < 24) return l10n.hoursAgo(diff.inHours);
+  if (diff.inDays < 7) return l10n.daysAgo(diff.inDays);
 
   return "${date.day}.${date.month}.${date.year}";
 }
@@ -22,53 +24,42 @@ class NotificationPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final uid = FirebaseAuth.instance.currentUser?.uid;
 
     if (uid == null) {
       return Scaffold(
-        body: Center(child: Text(
-          "Giriş yapılmamış",
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
+        body: Center(
+          child: Text(
+            l10n.notLoggedIn,
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           ),
-        )),
+        ),
       );
     }
 
     return FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance
-          .collection("users")
-          .doc(uid)
-          .get(),
+      future: FirebaseFirestore.instance.collection("users").doc(uid).get(),
       builder: (context, userSnap) {
-
         if (!userSnap.hasData) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        final userData =
-        userSnap.data!.data() as Map<String, dynamic>?;
-
-        final role = userData?["role"] ?? "pregnant";
-
         final primaryColor = Theme.of(context).colorScheme.primary;
-
         final backgroundColor = Theme.of(context).colorScheme.surface;
 
         return Scaffold(
           backgroundColor: backgroundColor,
-
           appBar: AppBar(
             backgroundColor: primaryColor,
             title: Text(
-              "Bildirimler",
+              l10n.notifications,
               style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
             ),
             centerTitle: true,
           ),
-
           body: StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('notification')
@@ -76,22 +67,22 @@ class NotificationPanel extends StatelessWidget {
                 .orderBy('createdAt', descending: true)
                 .snapshots(),
             builder: (context, snapshot) {
-
-              if (snapshot.connectionState ==
-                  ConnectionState.waiting) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(
-                    child: CircularProgressIndicator(
-                      color: Theme.of(context).colorScheme.primary,
-                    ));
+                  child: CircularProgressIndicator(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                );
               }
 
-              if (!snapshot.hasData ||
-                  snapshot.data!.docs.isEmpty) {
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                 return Center(
                   child: Text(
-                    "Henüz bildirim yok",
+                    l10n.noNotificationsYet,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
                       fontSize: 16,
                     ),
                   ),
@@ -104,26 +95,22 @@ class NotificationPanel extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 itemCount: docs.length,
                 itemBuilder: (context, index) {
-
                   final doc = docs[index];
-                  final data =
-                  doc.data() as Map<String, dynamic>;
+                  final data = doc.data() as Map<String, dynamic>;
 
                   final isRead = data['isRead'] ?? false;
                   final type = data['type'] ?? "general";
                   final title = data['title'] ?? "";
                   final message = data['message'] ?? "";
-
-                  final createdAt =
-                  data['createdAt'] as Timestamp?;
-                  final timeText = timeAgo(createdAt);
+                  final createdAt = data['createdAt'] as Timestamp?;
+                  final timeText = timeAgo(createdAt, l10n);
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
                       color: isRead
                           ? Theme.of(context).colorScheme.surface
-                          : primaryColor.withOpacity(0.15),
+                          : primaryColor.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isRead
@@ -154,25 +141,24 @@ class NotificationPanel extends StatelessWidget {
                             ),
                         ],
                       ),
-
                       title: Text(
                         title,
                         style: TextStyle(
                           fontWeight: isRead
                               ? FontWeight.w500
                               : FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-
                       subtitle: Column(
-                        crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             message,
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.7),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -180,22 +166,23 @@ class NotificationPanel extends StatelessWidget {
                             timeText,
                             style: TextStyle(
                               fontSize: 12,
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.5),
                             ),
                           ),
                         ],
                       ),
-
                       trailing: Icon(
                         Icons.arrow_forward_ios,
                         size: 16,
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.5),
                       ),
-
                       onTap: () async {
                         if (!isRead) {
-                          await doc.reference
-                              .update({'isRead': true});
+                          await doc.reference.update({'isRead': true});
                         }
                       },
                     ),

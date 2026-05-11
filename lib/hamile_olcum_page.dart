@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
+import 'l10n/app_localizations.dart';
 import 'risk_engine.dart';
 
 class RiskTakipFormuPage extends StatefulWidget {
@@ -22,16 +24,12 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
   bool basAgrisi = false;
   bool gormeBozuklugu = false;
   bool sislik = false;
-
   bool asiriSusama = false;
   bool sikIdrar = false;
-
   bool karinKasilma = false;
   bool akinti = false;
   bool belAgrisi = false;
-
   double stresSeviyesi = 1;
-
   bool _loading = false;
 
   @override
@@ -45,6 +43,8 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
   }
 
   Future<void> kaydet() async {
+    final l10n = AppLocalizations.of(context)!;
+
     try {
       if (!_formKey.currentState!.validate()) return;
 
@@ -61,10 +61,12 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
       final diastolik = int.tryParse(diastolikController.text) ?? 0;
 
       if (diastolik >= sistolik) {
-        setState(() => _loading = false);
+        if (mounted) setState(() => _loading = false);
+        if (!mounted) return;
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text("Küçük tansiyon büyükten küçük olmalıdır"),
+            content: Text(l10n.diastolicMustBeLower),
             backgroundColor: Theme.of(context).colorScheme.primary,
           ),
         );
@@ -83,6 +85,7 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
         sislik: sislik,
         chronicHypertension: userData["chronicHypertension"] ?? false,
       );
+
       final diyabetRisk = RiskEngine.calculateDiyabet(
         aclik: aclik,
         tokluk: tokluk,
@@ -90,6 +93,7 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
         sikIdrar: sikIdrar,
         diabetes: userData["diabetes"] ?? false,
       );
+
       final pretermRisk = RiskEngine.calculatePreterm(
         karinKasilma: karinKasilma,
         akinti: akinti,
@@ -99,24 +103,20 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
         multiplePregnancy: userData["multiplePregnancy"] ?? false,
       );
 
-      String overallRisk = "low";
-
+      var overallRisk = "low";
       if (preeklampsiRisk == "HIGH" ||
           diyabetRisk == "HIGH" ||
           pretermRisk == "HIGH") {
         overallRisk = "high";
-      }
-      else if (preeklampsiRisk == "MEDIUM" ||
+      } else if (preeklampsiRisk == "MEDIUM" ||
           diyabetRisk == "MEDIUM" ||
           pretermRisk == "MEDIUM") {
         overallRisk = "medium";
       }
 
-      await FirebaseFirestore.instance
-          .collection("users")
-          .doc(uid)
-          .set({
+      await FirebaseFirestore.instance.collection("users").doc(uid).set({
         "riskLevel": overallRisk,
+        "kilo": double.tryParse(kiloController.text),
       }, SetOptions(merge: true));
 
       await RiskEngine.sendRiskNotification(
@@ -137,87 +137,77 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
         riskLevel: pretermRisk,
       );
 
-      await showDialog(
+      if (!mounted) return;
+
+      await showDialog<void>(
         context: context,
-        builder: (context){
-          Color color(String risk){
+        builder: (dialogContext) {
+          Color color(String risk) {
             if (risk == "HIGH") return Colors.red;
             if (risk == "MEDIUM") return Colors.orange;
             return Colors.green;
           }
+
           return AlertDialog(
             backgroundColor: Theme.of(context).colorScheme.surface,
-            title: const Text("Risk Sonucu"),
+            title: Text(l10n.riskResult),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 _riskRow("Preeklampsi", preeklampsiRisk, color),
-                _riskRow("Diyabet", diyabetRisk, color),
-                _riskRow("Preterm", pretermRisk, color),
+                _riskRow(l10n.diabetes, diyabetRisk, color),
+                _riskRow(l10n.preterm, pretermRisk, color),
               ],
             ),
             actions: [
               TextButton(
-                onPressed: (){
-                  Navigator.pop(context);
-                },
-                child: const Text("Tamam"),
-              )
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(l10n.ok),
+              ),
             ],
           );
         },
       );
 
-      await FirebaseFirestore.instance
-          .collection("users")
-          .doc(uid)
-          .set({
-        "kilo": double.tryParse(kiloController.text),
-      }, SetOptions(merge: true));
-
       await FirebaseFirestore.instance.collection('risk_olcumleri').add({
         'uid': uid,
         'tarih': Timestamp.now(),
         'kilo': double.tryParse(kiloController.text),
-
         'sistolik': int.tryParse(sistolikController.text),
         'diastolik': int.tryParse(diastolikController.text),
         'basAgrisi': basAgrisi,
         'gormeBozuklugu': gormeBozuklugu,
         'sislik': sislik,
-
         'aclikSeker': aclik,
         'toklukSeker': tokluk,
         'asiriSusama': asiriSusama,
         'sikIdrar': sikIdrar,
-
         'karinKasilma': karinKasilma,
         'akinti': akinti,
         'belAgrisi': belAgrisi,
         'stresSeviyesi': stresSeviyesi,
-
         'preeklampsiRisk': preeklampsiRisk,
         'diyabetRisk': diyabetRisk,
         'pretermRisk': pretermRisk,
       });
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+
+      if (mounted) setState(() => _loading = false);
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text("Risk verileri kaydedildi 💗"),
+          content: Text(l10n.riskDataSaved),
           backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
       Navigator.pop(context);
     } catch (e) {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+      if (mounted) setState(() => _loading = false);
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Hata: $e"),
+          content: Text(l10n.errorWithMessage(e)),
           backgroundColor: Colors.red,
         ),
       );
@@ -233,11 +223,8 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
           Text(title),
           Text(
             risk,
-            style: TextStyle(
-              color: color(risk),
-              fontWeight: FontWeight.bold,
-            ),
-          )
+            style: TextStyle(color: color(risk), fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );
@@ -245,10 +232,12 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: const Text("Risk Takip Formu"),
+        title: Text(l10n.riskTrackingForm),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: SingleChildScrollView(
@@ -258,73 +247,156 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
           child: Column(
             children: [
 
-              _textInput("Güncel Kilo (kg)", kiloController),
+              // KİLO
+              _modernCard(
+                child: _textInput(
+                  l10n.currentWeightKg,
+                  kiloController,
+                ),
+              ),
 
               const SizedBox(height: 20),
 
-              _sectionTitle("Preeklampsi Takibi"),
+              // PREEKLAMPSI
+              _modernCard(
+                child: Column(
+                  children: [
+                    _sectionTitle(l10n.preeklampsiTracking),
 
-              _textInput("Sistolik (Örnek: 120)", sistolikController),
-              _textInput("Diastolik (Örnek: 80)", diastolikController),
+                    _textInput(
+                      l10n.systolicExample,
+                      sistolikController,
+                      min: 80,
+                      max: 250,
+                      example: 120,
+                    ),
 
-              _switchTile("Şiddetli baş ağrısı", basAgrisi,
-                      (v) => setState(() => basAgrisi = v)),
+                    _textInput(
+                      l10n.diastolicExample,
+                      diastolikController,
+                      min: 50,
+                      max: 150,
+                      example: 80,
+                    ),
 
-              _switchTile("Görme bozukluğu", gormeBozuklugu,
-                      (v) => setState(() => gormeBozuklugu = v)),
+                    _switchTile(
+                      l10n.severeHeadache,
+                      basAgrisi,
+                          (v) => setState(() => basAgrisi = v),
+                    ),
 
-              _switchTile("El/Yüz şişmesi", sislik,
-                      (v) => setState(() => sislik = v)),
+                    _switchTile(
+                      l10n.visionProblem,
+                      gormeBozuklugu,
+                          (v) => setState(() => gormeBozuklugu = v),
+                    ),
+
+                    _switchTile(
+                      l10n.handFaceSwelling,
+                      sislik,
+                          (v) => setState(() => sislik = v),
+                    ),
+                  ],
+                ),
+              ),
 
               const SizedBox(height: 20),
 
-              _sectionTitle("Gestasyonel Diyabet"),
+              // DIYABET
+              _modernCard(
+                child: Column(
+                  children: [
+                    _sectionTitle(l10n.gestationalDiabetes),
 
-              _textInput("Açlık kan şekeri", aclikSekerController),
-              _textInput("Tokluk kan şekeri", toklukSekerController),
+                    _textInput(
+                      l10n.fastingBloodSugar,
+                      aclikSekerController,
+                    ),
 
-              _switchTile("Aşırı susama", asiriSusama,
-                      (v) => setState(() => asiriSusama = v)),
+                    _textInput(
+                      l10n.postMealBloodSugar,
+                      toklukSekerController,
+                    ),
 
-              _switchTile("Sık idrar", sikIdrar,
-                      (v) => setState(() => sikIdrar = v)),
+                    _switchTile(
+                      l10n.excessiveThirst,
+                      asiriSusama,
+                          (v) => setState(() => asiriSusama = v),
+                    ),
+
+                    _switchTile(
+                      l10n.frequentUrination,
+                      sikIdrar,
+                          (v) => setState(() => sikIdrar = v),
+                    ),
+                  ],
+                ),
+              ),
 
               const SizedBox(height: 20),
 
-              _sectionTitle("Preterm Riski"),
+              // PRETERM
+              _modernCard(
+                child: Column(
+                  children: [
+                    _sectionTitle(l10n.pretermRisk),
 
-              _switchTile("Karın kasılması", karinKasilma,
-                      (v) => setState(() => karinKasilma = v)),
+                    _switchTile(
+                      l10n.contraction,
+                      karinKasilma,
+                          (v) => setState(() => karinKasilma = v),
+                    ),
 
-              _switchTile("Akıntı artışı", akinti,
-                      (v) => setState(() => akinti = v)),
+                    _switchTile(
+                      l10n.increasedDischarge,
+                      akinti,
+                          (v) => setState(() => akinti = v),
+                    ),
 
-              _switchTile("Bel ağrısı", belAgrisi,
-                      (v) => setState(() => belAgrisi = v)),
+                    _switchTile(
+                      l10n.backPain,
+                      belAgrisi,
+                          (v) => setState(() => belAgrisi = v),
+                    ),
 
-              const SizedBox(height: 10),
+                    const SizedBox(height: 10),
 
-              const Text("Stres Seviyesi"),
+                    Text(l10n.stressLevel),
 
-              Slider(
-                value: stresSeviyesi,
-                min: 1,
-                max: 5,
-                divisions: 4,
-                label: stresSeviyesi.round().toString(),
-                onChanged: (value) {
-                  setState(() => stresSeviyesi = value);
-                },
+                    Slider(
+                      value: stresSeviyesi,
+                      min: 1,
+                      max: 5,
+                      divisions: 4,
+                      label: stresSeviyesi.round().toString(),
+                      onChanged: (value) {
+                        setState(() => stresSeviyesi = value);
+                      },
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 30),
 
-              SizedBox(
+              // BUTTON
+              Container(
                 width: double.infinity,
                 height: 55,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: ElevatedButton(
                   onPressed: _loading ? null : kaydet,
                   style: ElevatedButton.styleFrom(
+                    elevation: 0,
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     shape: RoundedRectangleBorder(
@@ -335,13 +407,38 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
                       ? CircularProgressIndicator(
                     color: Theme.of(context).colorScheme.onPrimary,
                   )
-                      : const Text("Kaydet"),
+                      : Text(l10n.save),
                 ),
-              )
+              ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _modernCard({required Widget child}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Theme.of(context)
+              .colorScheme
+              .primary
+              .withValues(alpha: 0.12),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
     );
   }
 
@@ -359,32 +456,51 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
     );
   }
 
-  Widget _textInput(String label, TextEditingController controller) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+  Widget _textInput(
+      String label,
+      TextEditingController controller, {
+        int? min,
+        int? max,
+        int? example,
+      }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            spreadRadius: 1,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: TextFormField(
         controller: controller,
         keyboardType: TextInputType.number,
         validator: (value) {
+          final l10n = AppLocalizations.of(context)!;
+
           if (value == null || value.trim().isEmpty) {
-            return "Bu alan boş bırakılamaz";
+            return l10n.requiredField;
           }
 
-          final v = int.tryParse(value);
-          if (v == null) {
-            return "Geçerli sayı giriniz";
+          final parsed = int.tryParse(value);
+
+          if (parsed == null) {
+            return l10n.enterValidNumber;
           }
 
-          if (label.contains("Sistolik")) {
-            if (v < 80 || v > 250) {
-              return "Geçerli bir değer giriniz (örn: 120)";
-            }
-          }
-
-          if (label.contains("Diastolik")) {
-            if (v < 50 || v > 150) {
-              return "Geçerli biir değer giriniz (örn: 80)";
-            }
+          if (min != null &&
+              max != null &&
+              (parsed < min || parsed > max)) {
+            return l10n.enterValidValueExample(example ?? min);
           }
 
           return null;
@@ -393,7 +509,15 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
           labelText: label,
           filled: true,
           fillColor: Theme.of(context).colorScheme.surface,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 18,
+          ),
           border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide.none,
           ),
@@ -401,6 +525,7 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
             borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide(
               color: Theme.of(context).colorScheme.primary,
+              width: 2,
             ),
           ),
         ),
@@ -408,7 +533,7 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
     );
   }
 
-  Widget _switchTile(String title, bool value, Function(bool) onChanged) {
+  Widget _switchTile(String title, bool value, ValueChanged<bool> onChanged) {
     return SwitchListTile(
       value: value,
       title: Text(title),

@@ -1,0 +1,551 @@
+{
+  "@@locale": "en",
+  "appName": "PregNova",
+  "home": "Home",
+  "messages": "Messages",
+  "message": "Message",
+  "account": "Account",
+  "accountSettingsSubtitle": "You can manage your account settings here",
+  "accountShort": "Account",
+  "logout": "Logout",
+  "logoutAction": "Log Out",
+  "save": "Save",
+  "cancel": "Cancel",
+  "loading": "Loading...",
+  "searchExpert": "Find Expert",
+  "diet": "Diet",
+  "clients": "Clients",
+  "requests": "Requests",
+  "changePassword": "Change Password",
+  "editInfo": "Edit Information",
+  "expertiseInfo": "Professional Information",
+  "expertiseArea": "Specialty",
+  "experience": "Experience",
+  "institution": "Institution",
+  "licenseNumber": "License No",
+  "diplomaDocuments": "Diploma / Documents",
+  "diplomaUploaded": "Diploma uploaded",
+  "noDiplomaAdded": "No diploma has been added yet",
+  "settings": "Settings",
+  "language": "Language",
+  "systemLanguage": "System language",
+  "turkish": "Turkish",
+  "english": "English",
+  "selectLanguage": "Select Language",
+  "languageUpdated": "Language updated",
+  "pregnancyInfoTitle": "Pregnancy Information",
+  "pregnancyInfoPrompt": "Would you like to fill in your pregnancy information?\n\nThis helps us provide more accurate recommendations for you.",
+  "later": "Later",
+  "fillNow": "Fill Now",
+  "weeklyInfoTitle": "Week {week} Information",
+  "@weeklyInfoTitle": {
+    "placeholders": {
+      "week": {
+        "type": "int"
+      }
+    }
+  },
+  "weeklyInfoMessage": "Your need for iron and protein increases this week. Pay attention to your nutrition.",
+  "welcomeMother": "Welcome, mom",
+  "pregnantHomeSubtitle": "You can easily track your health and nutrition.",
+  "current": "Current",
+  "pregnancyWeek": "Week {week}",
+  "@pregnancyWeek": {
+    "placeholders": {
+      "week": {
+        "type": "Object"
+      }
+    }
+  },
+  "riskMeasurement": "Risk Measurement",
+  "nutritionAnalysis": "Nutrition Analysis",
+  "lastMeasurementHistory": "Measurement History",
+  "nutritionSupplementHistory": "Nutrition & Supplement History",
+  "latestRiskStatus": "Latest Risk Status",
+  "diabetes": "Diabetes",
+  "riskTrackingForm": "Risk Tracking Form",
+  "riskResult": "Risk Result",
+  "ok": "OK",
+  "saved": "Saved",
+  "errorWithMessage": "Error: {message}",
+  "@errorWithMessage": {
+    "placeholders": {
+      "message": {
+        "type": "Object"
+      }
+    }
+  },
+  "diastolicMustBeLower": "Diastolic pressure must be lower than systolic pressure",
+  "riskDataSaved": "Risk data saved",
+  "currentWeightKg": "Current Weight (kg)",
+  "preeklampsiTracking": "Preeclampsia Tracking",
+  "systolicExample": "Systolic (Example: 120)",
+  "diastolicExample": "Diastolic (Example: 80)",
+  "severeHeadache": "Severe headache",
+  "visionProblem": "Vision problem",
+  "handFaceSwelling": "Hand/face swelling",
+  "gestationalDiabetes": "Gestational Diabetes",
+  "fastingBloodSugar": "Fasting blood sugar",
+  "postMealBloodSugar": "Post-meal blood sugar",
+  "excessiveThirst": "Excessive thirst",
+  "frequentUrination": "Frequent urination",
+  "pretermRisk": "Preterm Risk",
+  "contraction": "Abdominal contraction",
+  "increasedDischarge": "Increased discharge",
+  "backPain": "Back pain",
+  "stressLevel": "Stress Level",
+  "requiredField": "This field cannot be empty",
+  "enterValidNumber": "Enter a valid number",
+  "enterValidValueExample": "Enter a valid value (example: {example})",
+  "@enterValidValueExample": {
+    "placeholders": {
+      "example": {
+        "type": "Object"
+      }
+    }
+  },
+  "riskHistory": "Risk History",
+  "noRiskRecordYet": "No risk record yet",
+  "bloodPressure": "Blood Pressure",
+  "riskOutcome": "Risk Result",
+  "fasting": "Fasting",
+  "postMeal": "Post-meal",
+  "preterm": "Preterm",
+  "stress": "Stress",
+  "yes": "Yes",
+  "no": "No",
+  "nutritionSupplementAnalysis": "Nutrition and Supplement Analysis",
+  "foodEntry": "Food Entry",
+  "foodName": "Food Name",
+  "amount": "Amount",
+  "addFood": "Add Food",
+  "supplementEntry": "Supplement Entry",
+  "supplementName": "Supplement Name",
+  "addSupplement": "Add Supplement",
+  "enteredFoods": "Entered Foods",
+  "enteredSupplements": "Entered Supplements",
+  "saveDay": "Save Day",
+  "noDietitianAssigned": "No dietitian has been assigned yet",
+  "consumedNutrients": "Consumed Nutrients",
+  "missingNutrients": "Missing Nutrients",
+  "excessNutrients": "Excess Nutrients",
+  "noItemsYet": "No items added yet",
+  "noRecordYet": "No records yet",
+  "dailyTotalAnalysisResult": "Daily Total Analysis Result",
+  "totalCalories": "Total Calories: {calories} kcal",
+  "@totalCalories": {
+    "placeholders": {
+      "calories": {
+        "type": "Object"
+      }
+    }
+  },
+  "analysisWithTime": "{index}. Analysis - {time}",
+  "@analysisWithTime": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "calories": "Calories: {calories} kcal",
+  "@calories": {
+    "placeholders": {
+      "calories": {
+        "type": "Object"
+      }
+    }
+  },
+  "profileInfo": "Profile Information",
+  "personalInfo": "Personal Information",
+  "age": "Age",
+  "ageRangeValidation": "Enter an age between 15 and 50",
+  "pregnancyWeekInput": "Pregnancy Week",
+  "pregnancyWeekRangeValidation": "Enter a week between 1 and 42",
+  "heightCm": "Height (cm)",
+  "allergies": "Allergies",
+  "allergiesExample": "Allergies (e.g. peanuts, milk)",
+  "riskFactors": "Risk Factors",
+  "chronicRiskFactors": "Chronic / Risk Factors",
+  "chronicHypertension": "Chronic Hypertension",
+  "thyroidDisease": "Thyroid Disease",
+  "previousPretermBirth": "Previous Preterm Birth",
+  "previousPreterm": "Previous Preterm",
+  "multiplePregnancy": "Multiple Pregnancy",
+  "multiplePregnancyDetail": "Multiple Pregnancy (twins, etc.)",
+  "smoking": "Smoking",
+  "smokingUse": "Smoking",
+  "saveAndContinue": "Save and Continue",
+  "infoUpdated": "Information updated",
+  "errorOccurredWithMessage": "An error occurred: {message}",
+  "@errorOccurredWithMessage": {
+    "placeholders": {
+      "message": {
+        "type": "Object"
+      }
+    }
+  },
+  "dataNotFound": "Data not found",
+  "exists": "Yes",
+  "notExists": "No",
+  "notSpecified": "Not specified",
+  "chooseSuitableExpert": "Choose the expert that fits you",
+  "searchNameHint": "Search by name...",
+  "all": "All",
+  "dietitian": "Dietitian",
+  "gynecologist": "Gynecologist",
+  "expert": "Expert",
+  "noInstitutionInfo": "No institution information",
+  "assignedClient": "Client",
+  "pending": "Pending",
+  "request": "Request",
+  "requestSent": "Request sent",
+  "noExpertYet": "No expert assigned yet",
+  "doctor": "Doctor",
+  "writeMessage": "Write a message...",
+  "notifications": "Notifications",
+  "notLoggedIn": "Not logged in",
+  "noNotificationsYet": "No notifications yet",
+  "justNow": "Just now",
+  "minutesAgo": "{count} min ago",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{count} hours ago",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "daysAgo": "{count} days ago",
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "secondsAgo": "{count} sec ago",
+  "@secondsAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "selectClient": "Select Client",
+  "noClientFound": "No client found",
+  "recentAnalyses": "Recent Analyses",
+  "noAnalysisLast7Days": "No analyses in the last 7 days",
+  "recentMeasurements": "Recent Measurements",
+  "noRecords": "No records",
+  "detailedReview": "Review Details",
+  "noData": "No data",
+  "noPendingRequests": "No pending requests",
+  "pendingRequest": "Pending Request",
+  "patientId": "Patient ID",
+  "requestId": "Request ID",
+  "email": "Email",
+  "phone": "Phone",
+  "heightWeight": "Height/Weight",
+  "bmi": "BMI",
+  "risk": "Risk",
+  "allergy": "Allergy",
+  "weekLabel": "Week {week}",
+  "@weekLabel": {
+    "placeholders": {
+      "week": {
+        "type": "Object"
+      }
+    }
+  },
+  "accept": "Accept",
+  "reject": "Reject",
+  "welcomeTitle": "Welcome to PregNova",
+  "welcomeSubtitle": "Track your pregnancy journey with confidence.\nHealth, nutrition, and exercise in one place",
+  "getStarted": "Get Started",
+  "login": "Log In",
+  "register": "Register",
+  "emailField": "Email",
+  "password": "Password",
+  "noAccountRegister": "Don't have an account? Register",
+  "loginError": "Login error",
+  "fullName": "Full Name",
+  "fillAllFields": "Please fill in all fields",
+  "passwordMinLength": "Password must be at least 6 characters",
+  "emailAlreadyInUse": "This email is already registered",
+  "invalidEmail": "Invalid email address",
+  "weakPassword": "Password is too weak",
+  "registerFailed": "Registration failed",
+  "unexpectedError": "An unexpected error occurred",
+  "gynecologistPanel": "Gynecologist Panel",
+  "highRisk": "High Risk",
+  "mediumRisk": "Medium Risk",
+  "normalRisk": "Normal",
+  "riskStatus": "Risk Status",
+  "highRiskPatientWarning": "High-risk patient alert",
+  "highRiskPatientCount": "High risk detected in {count} patient(s).",
+  "@highRiskPatientCount": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "review": "Review",
+  "last7Days": "Last 7 Days",
+  "activeThisWeekSummary": "{measurements} measurement(s)\n{patients} patient(s)",
+  "@activeThisWeekSummary": {
+    "placeholders": {
+      "measurements": {
+        "type": "Object"
+      },
+      "patients": {
+        "type": "Object"
+      }
+    }
+  },
+  "consultationRequests": "Consultation Requests",
+  "recentActivities": "Recent Activities",
+  "noActivityYet": "No activity yet",
+  "newMeasurementSent": "{name} sent a new measurement",
+  "@newMeasurementSent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noClientsYet": "No clients yet",
+  "riskDistribution": "Risk Distribution",
+  "documentPreviewUnavailable": "Document preview is unavailable. If the file is a PDF, it can be opened as a link from the web panel.",
+  "dietitianPanel": "Dietitian Panel",
+  "activeLast7Days": "Active Last 7 Days",
+  "nutritionModule": "Nutrition Module",
+  "open": "Open",
+  "newAnalysisSent": "{name} sent a new analysis",
+  "@newAnalysisSent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noDate": "No date",
+  "currentPassword": "Current Password",
+  "newPassword": "New Password",
+  "confirmNewPassword": "New Password (Confirm)",
+  "enterCurrentPassword": "Enter your current password",
+  "enterNewPassword": "Enter your new password",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "updatePassword": "Update Password",
+  "passwordUpdated": "Password updated successfully",
+  "userNotFound": "User not found.",
+  "genericError": "An error occurred.",
+  "wrongCurrentPassword": "Current password is incorrect.",
+  "newPasswordWeak": "New password is too weak.",
+  "recentLoginRequired": "Please log in again.",
+  "expertApplication": "Expert Application",
+  "uploadDocumentPrompt": "Please upload a document",
+  "applicationAlreadyPending": "Your application is already under review",
+  "alreadyExpert": "You are already an expert!",
+  "expertApplicationReceivedTitle": "Expert Application Received",
+  "expertApplicationReceivedMessage": "Your application has been received. Waiting for admin approval",
+  "applicationReceived": "Your application has been received",
+  "applicationPendingStatus": "Your application is under review...",
+  "applicationApprovedStatus": "You are already an expert!",
+  "applicationRejectedStatus": "Your application was rejected. You can try again.",
+  "licenseRegistryNumber": "License / Registry No",
+  "city": "City",
+  "uploadDocument": "Upload Document",
+  "selectedFileName": "Selected file: {fileName}",
+  "@selectedFileName": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "submitApplication": "Submit Application",
+  "expertApplications": "Expert Applications",
+  "applicationDetail": "Application Detail",
+  "viewDiploma": "View Diploma",
+  "diploma": "Diploma",
+  "noDiplomaDocument": "No diploma/document found",
+  "approve": "Approve",
+  "applicationRejected": "Application rejected",
+  "expertApproved": "Expert approved",
+  "applicationApprovedNotificationTitle": "Your Application Was Approved",
+  "applicationApprovedNotificationMessage": "You can now log in to PregNova as an expert.",
+  "noApplicationFound": "No application found",
+  "noApplicationsWithStatus": "No {status} applications",
+  "@noApplicationsWithStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "approvedStatus": "Approved",
+  "rejectedStatus": "Rejected",
+  "pendingStatus": "Pending",
+  "role": "Role",
+  "status": "Status",
+  "applicationApproved": "Application approved",
+  "applicationRejectedShort": "Application rejected",
+  "applicationPending": "Application pending",
+  "approvalError": "Approval error: {message}",
+  "@approvalError": {
+    "placeholders": {
+      "message": {
+        "type": "Object"
+      }
+    }
+  },
+  "adminPanel": "Admin Panel",
+  "welcomeAdmin": "Welcome, Admin",
+  "systemTrackingApprovalManagement": "System tracking and approval management",
+  "pendingApplication": "Pending\nApplication",
+  "totalUsers": "Total\nUsers",
+  "activeExpert": "Active\nExperts",
+  "systemReports": "System\nReports",
+  "adminActions": "Admin Actions",
+  "expertApplicationsActionSubtitle": "Approve or reject expert applications",
+  "userManagement": "User Management",
+  "viewAllUsers": "View all users",
+  "users": "Users",
+  "searchUser": "Search users...",
+  "pregnantRole": "Pregnant",
+  "doctorRole": "Doctor",
+  "userFallback": "User",
+  "createdAt": "Created At",
+  "refresh": "Refresh",
+  "systemSummary": "System Summary",
+  "noRiskData": "No risk data",
+  "riskRateNeedsAttention": "High-risk rate requires attention.",
+  "riskRateIncreasing": "An increase in risk rate is observed.",
+  "systemStable": "The system is stable.",
+  "totalRiskMeasurements": "Total risk measurements",
+  "totalNutritionAnalyses": "Total nutrition analyses",
+  "pendingExpertApplications": "Pending expert applications",
+  "approvedExpertApplications": "Approved expert applications",
+  "rejectedExpertApplications": "Rejected expert applications",
+  "lowRisk": "Low Risk",
+  "systemInsight": "System Insight",
+  "highRiskPercent": "High-risk rate: {percent}%",
+  "@highRiskPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "createDietPlan": "Create Diet Plan",
+  "dietPlanSaved": "Diet plan saved",
+  "breakfast": "Breakfast",
+  "snack1": "Snack 1",
+  "lunch": "Lunch",
+  "snack2": "Snack 2",
+  "dinner": "Dinner",
+  "nightSnack": "Night Snack",
+  "notes": "Notes",
+  "writeFieldHint": "Write {field}...",
+  "@writeFieldHint": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "patientDetail": "Patient Detail",
+  "clientDetail": "Client Detail",
+  "last7DaysMeasurementCharts": "Last 7 Days Measurement Charts",
+  "noMeasurementFound": "No measurements found",
+  "viewDetailedClinicalAnalysis": "View Detailed Clinical Analysis",
+  "bloodPressureChartSystolic": "Blood Pressure Chart (Systolic)",
+  "bloodSugarFastingPostMeal": "Blood Sugar (Fasting / Post-meal)",
+  "weightChangeChart": "Weight Change Chart",
+  "personalHealthInfo": "Personal Health Information",
+  "chronicDisease": "Chronic Disease",
+  "hypertension": "Hypertension",
+  "swelling": "Swelling",
+  "discharge": "Discharge",
+  "weightChart": "Weight Chart",
+  "calorieChart": "Calorie Chart",
+  "analysisHistory": "Analysis History",
+  "noAnalysisYet": "No analysis yet",
+  "dataCouldNotBeLoaded": "Data could not be loaded",
+  "dailyTotalCalories": "Daily Total: {calories} kcal",
+  "@dailyTotalCalories": {
+    "placeholders": {
+      "calories": {
+        "type": "Object"
+      }
+    }
+  },
+  "supplements": "Supplements",
+  "nutritionAnalysisDetail": "Nutrition Analysis Detail",
+  "analysisNotFound": "Analysis not found",
+  "consumedFoods": "Consumed Foods",
+  "noDietPlanYet": "You do not have a diet plan yet",
+  "myDietPlan": "My Diet Plan",
+  "viewCurrentDietPlan": "View your current diet plan",
+  "viewDietPlanButton": "{date} - View Diet",
+  "@viewDietPlanButton": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dietDetailWithDate": "Diet Detail - {date}",
+  "@dietDetailWithDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadDiploma": "Upload Diploma",
+  "uploadError": "Upload failed",
+  "enterFieldHint": "Enter {field}...",
+  "@enterFieldHint": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "noMessagesYet": "No messages yet",
+  "enterWeekInfo": "Enter Week Information",
+  "whichPregnancyWeek": "Which pregnancy week are you in?",
+  "pregnancyStart": "Pregnancy Start",
+  "welcomeUser": "Welcome, {user}",
+  "@welcomeUser": {
+    "placeholders": {
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "welcomeExpert": "Welcome",
+  "missingNutrition": "Missing Nutrition",
+  "riskyPatient": "Risky Patient",
+  "clientUid": "Client UID: {uid}",
+  "@clientUid": {
+    "placeholders": {
+      "uid": {
+        "type": "String"
+      }
+    }
+  }
+}

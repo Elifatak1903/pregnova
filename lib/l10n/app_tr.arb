@@ -1,0 +1,551 @@
+{
+  "@@locale": "tr",
+  "appName": "PregNova",
+  "home": "Ana Sayfa",
+  "messages": "Mesajlar",
+  "message": "Mesaj",
+  "account": "Hesabım",
+  "accountSettingsSubtitle": "Hesap ayarlarını buradan yönetebilirsin",
+  "accountShort": "Hesap",
+  "logout": "Çıkış",
+  "logoutAction": "Çıkış Yap",
+  "save": "Kaydet",
+  "cancel": "İptal",
+  "loading": "Yükleniyor...",
+  "searchExpert": "Uzman Ara",
+  "diet": "Diyet",
+  "clients": "Danışanlar",
+  "requests": "İstekler",
+  "changePassword": "Şifre Değiştir",
+  "editInfo": "Bilgileri Düzenle",
+  "expertiseInfo": "Uzmanlık Bilgileri",
+  "expertiseArea": "Uzmanlık Alanı",
+  "experience": "Deneyim",
+  "institution": "Çalıştığı Kurum",
+  "licenseNumber": "Lisans No",
+  "diplomaDocuments": "Diploma / Belgeler",
+  "diplomaUploaded": "Diploma yüklendi",
+  "noDiplomaAdded": "Henüz diploma eklenmemiş",
+  "settings": "Ayarlar",
+  "language": "Dil",
+  "systemLanguage": "Sistem dili",
+  "turkish": "Türkçe",
+  "english": "İngilizce",
+  "selectLanguage": "Dil Seç",
+  "languageUpdated": "Dil güncellendi",
+  "pregnancyInfoTitle": "Gebelik Bilgileri",
+  "pregnancyInfoPrompt": "Gebelik bilgilerini doldurmak ister misin?\n\nBu bilgiler sana daha doğru öneriler sunmamızı sağlar.",
+  "later": "Daha Sonra",
+  "fillNow": "Şimdi Doldur",
+  "weeklyInfoTitle": "Hafta {week} Bilgilendirmesi",
+  "@weeklyInfoTitle": {
+    "placeholders": {
+      "week": {
+        "type": "int"
+      }
+    }
+  },
+  "weeklyInfoMessage": "Bu haftada demir ve protein ihtiyacın artıyor. Beslenmene dikkat et.",
+  "welcomeMother": "Hoş geldin anne",
+  "pregnantHomeSubtitle": "Sağlık ve beslenme takibini kolayca yapabilirsin.",
+  "current": "Şu an",
+  "pregnancyWeek": "{week}. Hafta",
+  "@pregnancyWeek": {
+    "placeholders": {
+      "week": {
+        "type": "Object"
+      }
+    }
+  },
+  "riskMeasurement": "Risk Ölçüm",
+  "nutritionAnalysis": "Besin Analizi",
+  "lastMeasurementHistory": "Son Ölçüm Geçmişi",
+  "nutritionSupplementHistory": "Besin & Takviye Geçmişi",
+  "latestRiskStatus": "Son Risk Durumu",
+  "diabetes": "Diyabet",
+  "riskTrackingForm": "Risk Takip Formu",
+  "riskResult": "Risk Sonucu",
+  "ok": "Tamam",
+  "saved": "Kaydedildi",
+  "errorWithMessage": "Hata: {message}",
+  "@errorWithMessage": {
+    "placeholders": {
+      "message": {
+        "type": "Object"
+      }
+    }
+  },
+  "diastolicMustBeLower": "Küçük tansiyon büyükten küçük olmalıdır",
+  "riskDataSaved": "Risk verileri kaydedildi",
+  "currentWeightKg": "Güncel Kilo (kg)",
+  "preeklampsiTracking": "Preeklampsi Takibi",
+  "systolicExample": "Sistolik (Örnek: 120)",
+  "diastolicExample": "Diastolik (Örnek: 80)",
+  "severeHeadache": "Şiddetli baş ağrısı",
+  "visionProblem": "Görme bozukluğu",
+  "handFaceSwelling": "El/Yüz şişmesi",
+  "gestationalDiabetes": "Gestasyonel Diyabet",
+  "fastingBloodSugar": "Açlık kan şekeri",
+  "postMealBloodSugar": "Tokluk kan şekeri",
+  "excessiveThirst": "Aşırı susama",
+  "frequentUrination": "Sık idrar",
+  "pretermRisk": "Preterm Riski",
+  "contraction": "Karın kasılması",
+  "increasedDischarge": "Akıntı artışı",
+  "backPain": "Bel ağrısı",
+  "stressLevel": "Stres Seviyesi",
+  "requiredField": "Bu alan boş bırakılamaz",
+  "enterValidNumber": "Geçerli sayı giriniz",
+  "enterValidValueExample": "Geçerli bir değer giriniz (örn: {example})",
+  "@enterValidValueExample": {
+    "placeholders": {
+      "example": {
+        "type": "Object"
+      }
+    }
+  },
+  "riskHistory": "Risk Geçmişi",
+  "noRiskRecordYet": "Henüz risk kaydı yok",
+  "bloodPressure": "Tansiyon",
+  "riskOutcome": "Risk Sonucu",
+  "fasting": "Açlık",
+  "postMeal": "Tokluk",
+  "preterm": "Preterm",
+  "stress": "Stres",
+  "yes": "Evet",
+  "no": "Hayır",
+  "nutritionSupplementAnalysis": "Besin ve Takviye Analizi",
+  "foodEntry": "Besin Girişi",
+  "foodName": "Besin Adı",
+  "amount": "Miktar",
+  "addFood": "Besin Ekle",
+  "supplementEntry": "Takviye Girişi",
+  "supplementName": "Takviye Adı",
+  "addSupplement": "Takviye Ekle",
+  "enteredFoods": "Girilen Besinler",
+  "enteredSupplements": "Girilen Takviyeler",
+  "saveDay": "Günü Kaydet",
+  "noDietitianAssigned": "Henüz diyetisyen atanmadı",
+  "consumedNutrients": "Alınan Besin Öğeleri",
+  "missingNutrients": "Eksik Besin Öğeleri",
+  "excessNutrients": "Fazla Besin Öğeleri",
+  "noItemsYet": "Henüz ekleme yok",
+  "noRecordYet": "Henüz kayıt yok",
+  "dailyTotalAnalysisResult": "Günlük Toplam Analiz Sonucu",
+  "totalCalories": "Toplam Kalori: {calories} kcal",
+  "@totalCalories": {
+    "placeholders": {
+      "calories": {
+        "type": "Object"
+      }
+    }
+  },
+  "analysisWithTime": "{index}. Analiz - {time}",
+  "@analysisWithTime": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "calories": "Kalori: {calories} kcal",
+  "@calories": {
+    "placeholders": {
+      "calories": {
+        "type": "Object"
+      }
+    }
+  },
+  "profileInfo": "Profil Bilgileri",
+  "personalInfo": "Kişisel Bilgiler",
+  "age": "Yaş",
+  "ageRangeValidation": "15-50 arası yaş giriniz",
+  "pregnancyWeekInput": "Hamilelik Haftası",
+  "pregnancyWeekRangeValidation": "1-42 arası hafta giriniz",
+  "heightCm": "Boy (cm)",
+  "allergies": "Alerjiler",
+  "allergiesExample": "Alerjiler (örn: fıstık, süt)",
+  "riskFactors": "Risk Faktörleri",
+  "chronicRiskFactors": "Kronik / Risk Faktörleri",
+  "chronicHypertension": "Kronik Hipertansiyon",
+  "thyroidDisease": "Tiroid Hastalığı",
+  "previousPretermBirth": "Önceki Preterm Doğum",
+  "previousPreterm": "Önceki Preterm",
+  "multiplePregnancy": "Çoğul Gebelik",
+  "multiplePregnancyDetail": "Çoğul Gebelik (İkiz vb.)",
+  "smoking": "Sigara",
+  "smokingUse": "Sigara Kullanımı",
+  "saveAndContinue": "Kaydet ve Devam Et",
+  "infoUpdated": "Bilgiler güncellendi",
+  "errorOccurredWithMessage": "Hata oluştu: {message}",
+  "@errorOccurredWithMessage": {
+    "placeholders": {
+      "message": {
+        "type": "Object"
+      }
+    }
+  },
+  "dataNotFound": "Veri bulunamadı",
+  "exists": "Var",
+  "notExists": "Yok",
+  "notSpecified": "Belirtilmemiş",
+  "chooseSuitableExpert": "Size uygun uzmanı seçin",
+  "searchNameHint": "İsim ara...",
+  "all": "Tümü",
+  "dietitian": "Diyetisyen",
+  "gynecologist": "Jinekolog",
+  "expert": "Uzman",
+  "noInstitutionInfo": "Kurum bilgisi yok",
+  "assignedClient": "Danışan",
+  "pending": "Beklemede",
+  "request": "İstek",
+  "requestSent": "İstek gönderildi",
+  "noExpertYet": "Henüz uzman yok",
+  "doctor": "Doktor",
+  "writeMessage": "Mesaj yaz...",
+  "notifications": "Bildirimler",
+  "notLoggedIn": "Giriş yapılmamış",
+  "noNotificationsYet": "Henüz bildirim yok",
+  "justNow": "Az önce",
+  "minutesAgo": "{count} dk önce",
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{count} saat önce",
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "daysAgo": "{count} gün önce",
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "secondsAgo": "{count} sn önce",
+  "@secondsAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "selectClient": "Danışan Seç",
+  "noClientFound": "Danışan bulunamadı",
+  "recentAnalyses": "Son Analizler",
+  "noAnalysisLast7Days": "Son 7 günde analiz yok",
+  "recentMeasurements": "Son Ölçümler",
+  "noRecords": "Kayıt yok",
+  "detailedReview": "Detaylı İncele",
+  "noData": "Veri yok",
+  "noPendingRequests": "Bekleyen istek yok",
+  "pendingRequest": "Bekleyen İstek",
+  "patientId": "Hasta ID",
+  "requestId": "İstek ID",
+  "email": "E-posta",
+  "phone": "Telefon",
+  "heightWeight": "Boy/Kilo",
+  "bmi": "BMI",
+  "risk": "Risk",
+  "allergy": "Alerji",
+  "weekLabel": "Hafta {week}",
+  "@weekLabel": {
+    "placeholders": {
+      "week": {
+        "type": "Object"
+      }
+    }
+  },
+  "accept": "Kabul",
+  "reject": "Reddet",
+  "welcomeTitle": "PregNova'ya Hoş Geldin",
+  "welcomeSubtitle": "Hamilelik sürecini güvenle takip edebilmen için\nsağlık, beslenme ve egzersiz tek yerde",
+  "getStarted": "Kullanmaya Başla",
+  "login": "Giriş Yap",
+  "register": "Kayıt Ol",
+  "emailField": "Email",
+  "password": "Şifre",
+  "noAccountRegister": "Hesabınız yok mu? Kayıt olun",
+  "loginError": "Giriş hatası",
+  "fullName": "Ad Soyad",
+  "fillAllFields": "Lütfen tüm alanları doldurun",
+  "passwordMinLength": "Şifre en az 6 karakter olmalı",
+  "emailAlreadyInUse": "Bu email zaten kayıtlı",
+  "invalidEmail": "Geçersiz email adresi",
+  "weakPassword": "Şifre çok zayıf",
+  "registerFailed": "Kayıt başarısız",
+  "unexpectedError": "Beklenmeyen bir hata oluştu",
+  "gynecologistPanel": "Jinekolog Paneli",
+  "highRisk": "Yüksek Risk",
+  "mediumRisk": "Orta Risk",
+  "normalRisk": "Normal",
+  "riskStatus": "Risk Durumu",
+  "highRiskPatientWarning": "Yüksek riskli hasta uyarısı",
+  "highRiskPatientCount": "{count} hastada yüksek risk tespit edildi.",
+  "@highRiskPatientCount": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "review": "İncele",
+  "last7Days": "Son 7 Gün",
+  "activeThisWeekSummary": "{measurements} ölçüm\n{patients} hasta",
+  "@activeThisWeekSummary": {
+    "placeholders": {
+      "measurements": {
+        "type": "Object"
+      },
+      "patients": {
+        "type": "Object"
+      }
+    }
+  },
+  "consultationRequests": "Danışma İstekleri",
+  "recentActivities": "Son Aktiviteler",
+  "noActivityYet": "Henüz aktivite yok",
+  "newMeasurementSent": "{name} yeni ölçüm gönderdi",
+  "@newMeasurementSent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noClientsYet": "Henüz danışan bulunmuyor",
+  "riskDistribution": "Risk Dağılımı",
+  "documentPreviewUnavailable": "Belge önizlenemedi. Dosya PDF ise web panelinden bağlantı olarak açılabilir.",
+  "dietitianPanel": "Diyetisyen Paneli",
+  "activeLast7Days": "Son 7 Gün Aktif",
+  "nutritionModule": "Beslenme Modülü",
+  "open": "Aç",
+  "newAnalysisSent": "{name} yeni analiz gönderdi",
+  "@newAnalysisSent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noDate": "Tarih yok",
+  "currentPassword": "Mevcut Şifre",
+  "newPassword": "Yeni Şifre",
+  "confirmNewPassword": "Yeni Şifre (Tekrar)",
+  "enterCurrentPassword": "Mevcut şifre giriniz",
+  "enterNewPassword": "Yeni şifre giriniz",
+  "passwordsDoNotMatch": "Şifreler eşleşmiyor",
+  "updatePassword": "Şifreyi Güncelle",
+  "passwordUpdated": "Şifre başarıyla değiştirildi",
+  "userNotFound": "Kullanıcı bulunamadı.",
+  "genericError": "Bir hata oluştu.",
+  "wrongCurrentPassword": "Mevcut şifre yanlış.",
+  "newPasswordWeak": "Yeni şifre çok zayıf.",
+  "recentLoginRequired": "Lütfen tekrar giriş yapın.",
+  "expertApplication": "Uzman Başvurusu",
+  "uploadDocumentPrompt": "Lütfen belge yükleyin",
+  "applicationAlreadyPending": "Zaten başvurunuz inceleniyor",
+  "alreadyExpert": "Zaten uzmansınız!",
+  "expertApplicationReceivedTitle": "Uzman Başvurusu Alındı",
+  "expertApplicationReceivedMessage": "Başvurun alındı. Admin onayı bekleniyor",
+  "applicationReceived": "Başvurun alındı",
+  "applicationPendingStatus": "Başvurunuz inceleniyor...",
+  "applicationApprovedStatus": "Zaten uzmansınız!",
+  "applicationRejectedStatus": "Başvurunuz reddedildi. Tekrar deneyebilirsiniz.",
+  "licenseRegistryNumber": "Lisans / Sicil No",
+  "city": "Şehir",
+  "uploadDocument": "Belge Yükle",
+  "selectedFileName": "Seçilen dosya: {fileName}",
+  "@selectedFileName": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "submitApplication": "Başvuruyu Gönder",
+  "expertApplications": "Uzman Başvuruları",
+  "applicationDetail": "Başvuru Detayı",
+  "viewDiploma": "Diplomayı Gör",
+  "diploma": "Diploma",
+  "noDiplomaDocument": "Diploma/belge bulunamadı",
+  "approve": "Onayla",
+  "applicationRejected": "Başvuru reddedildi",
+  "expertApproved": "Uzman onaylandı",
+  "applicationApprovedNotificationTitle": "Başvurun Onaylandı",
+  "applicationApprovedNotificationMessage": "Artık PregNova’da uzman olarak giriş yapabilirsin.",
+  "noApplicationFound": "Başvuru bulunamadı",
+  "noApplicationsWithStatus": "{status} başvuru yok",
+  "@noApplicationsWithStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "approvedStatus": "Onaylanan",
+  "rejectedStatus": "Reddedilen",
+  "pendingStatus": "Bekleyen",
+  "role": "Rol",
+  "status": "Durum",
+  "applicationApproved": "Başvuru onaylandı",
+  "applicationRejectedShort": "Başvuru reddedildi",
+  "applicationPending": "Başvuru beklemede",
+  "approvalError": "Onay hatası: {message}",
+  "@approvalError": {
+    "placeholders": {
+      "message": {
+        "type": "Object"
+      }
+    }
+  },
+  "adminPanel": "Admin Panel",
+  "welcomeAdmin": "Hoş geldin Admin",
+  "systemTrackingApprovalManagement": "Sistem takibi ve onay yönetimi",
+  "pendingApplication": "Bekleyen\nBaşvuru",
+  "totalUsers": "Toplam\nKullanıcı",
+  "activeExpert": "Aktif\nUzman",
+  "systemReports": "Sistem\nRaporları",
+  "adminActions": "Admin İşlemleri",
+  "expertApplicationsActionSubtitle": "Uzman başvurularını onayla veya reddet",
+  "userManagement": "Kullanıcı Yönetimi",
+  "viewAllUsers": "Tüm kullanıcıları görüntüle",
+  "users": "Kullanıcılar",
+  "searchUser": "Kullanıcı ara...",
+  "pregnantRole": "Hamile",
+  "doctorRole": "Doktor",
+  "userFallback": "Kullanıcı",
+  "createdAt": "Kayıt Tarihi",
+  "refresh": "Yenile",
+  "systemSummary": "Sistem Özeti",
+  "noRiskData": "Risk verisi yok",
+  "riskRateNeedsAttention": "Yüksek risk oranı dikkat gerektiriyor.",
+  "riskRateIncreasing": "Risk oranında artış gözlemleniyor.",
+  "systemStable": "Sistem stabil durumda.",
+  "totalRiskMeasurements": "Toplam risk ölçümü",
+  "totalNutritionAnalyses": "Toplam besin analizi",
+  "pendingExpertApplications": "Bekleyen uzman başvurusu",
+  "approvedExpertApplications": "Onaylanan uzman başvurusu",
+  "rejectedExpertApplications": "Reddedilen uzman başvurusu",
+  "lowRisk": "Düşük Risk",
+  "systemInsight": "Sistem İçgörüsü",
+  "highRiskPercent": "Yüksek risk oranı: {percent}%",
+  "@highRiskPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "createDietPlan": "Diyet Planı Oluştur",
+  "dietPlanSaved": "Diyet planı kaydedildi",
+  "breakfast": "Kahvaltı",
+  "snack1": "Ara Öğün 1",
+  "lunch": "Öğle",
+  "snack2": "Ara Öğün 2",
+  "dinner": "Akşam",
+  "nightSnack": "Gece",
+  "notes": "Notlar",
+  "writeFieldHint": "{field} yaz...",
+  "@writeFieldHint": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "patientDetail": "Hasta Detayı",
+  "clientDetail": "Danışan Detayı",
+  "last7DaysMeasurementCharts": "Son 7 Gün Ölçüm Grafikleri",
+  "noMeasurementFound": "Ölçüm bulunamadı",
+  "viewDetailedClinicalAnalysis": "Detaylı Klinik Analizi Gör",
+  "bloodPressureChartSystolic": "Tansiyon Grafiği (Sistolik)",
+  "bloodSugarFastingPostMeal": "Kan Şekeri (Açlık / Tokluk)",
+  "weightChangeChart": "Kilo Değişim Grafiği",
+  "personalHealthInfo": "Kişi Sağlık Bilgileri",
+  "chronicDisease": "Kronik Hastalık",
+  "hypertension": "Hipertansiyon",
+  "swelling": "Şişlik",
+  "discharge": "Akıntı",
+  "weightChart": "Kilo Grafiği",
+  "calorieChart": "Kalori Grafiği",
+  "analysisHistory": "Analiz Geçmişi",
+  "noAnalysisYet": "Henüz analiz yok",
+  "dataCouldNotBeLoaded": "Veri alınamadı",
+  "dailyTotalCalories": "Günlük Toplam: {calories} kcal",
+  "@dailyTotalCalories": {
+    "placeholders": {
+      "calories": {
+        "type": "Object"
+      }
+    }
+  },
+  "supplements": "Takviyeler",
+  "nutritionAnalysisDetail": "Besin Analizi Detayı",
+  "analysisNotFound": "Analiz bulunamadı",
+  "consumedFoods": "Tüketilen Besinler",
+  "noDietPlanYet": "Henüz diyet planın yok",
+  "myDietPlan": "Diyet Planım",
+  "viewCurrentDietPlan": "Güncel diyet planını görüntüle",
+  "viewDietPlanButton": "{date} - Diyeti Gör",
+  "@viewDietPlanButton": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dietDetailWithDate": "Diyet Detayı - {date}",
+  "@dietDetailWithDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadDiploma": "Diploma Yükle",
+  "uploadError": "Yükleme hatası",
+  "enterFieldHint": "{field} gir...",
+  "@enterFieldHint": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "noMessagesYet": "Henüz mesaj yok",
+  "enterWeekInfo": "Hafta Bilgisi Gir",
+  "whichPregnancyWeek": "Kaçıncı haftadasın?",
+  "pregnancyStart": "Gebelik Başlangıç",
+  "welcomeUser": "Hoş geldiniz, {user}",
+  "@welcomeUser": {
+    "placeholders": {
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "welcomeExpert": "Hoş geldin",
+  "missingNutrition": "Eksik Besin",
+  "riskyPatient": "Riskli Hasta",
+  "clientUid": "Danışan UID: {uid}",
+  "@clientUid": {
+    "placeholders": {
+      "uid": {
+        "type": "String"
+      }
+    }
+  }
+}

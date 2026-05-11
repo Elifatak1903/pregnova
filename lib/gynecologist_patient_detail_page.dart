@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+
 import 'hasta_klinik_detay_page.dart';
+import 'l10n/app_localizations.dart';
 
 class HastaDetayPage extends StatelessWidget {
   final String clientId;
@@ -17,23 +19,23 @@ class HastaDetayPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
-        title: const Text("Hasta Detayı"),
+        title: Text(l10n.patientDetail),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-
             FutureBuilder<DocumentSnapshot>(
               future: FirebaseFirestore.instance
                   .collection("users")
                   .doc(clientId)
                   .get(),
               builder: (context, snapshot) {
-
                 if (!snapshot.hasData) {
                   return const Padding(
                     padding: EdgeInsets.all(20),
@@ -41,47 +43,32 @@ class HastaDetayPage extends StatelessWidget {
                   );
                 }
 
-                final data =
-                snapshot.data!.data() as Map<String, dynamic>?;
-
+                final data = snapshot.data!.data() as Map<String, dynamic>?;
                 final hafta = data?["hafta"] ?? "-";
                 final risk = data?["riskLevel"] ?? "normal";
-
-                Color riskColor =
-                risk == "high"
-                    ? Colors.red
-                    : risk == "medium"
-                    ? Colors.orange
-                    : Colors.green;
-
-                String riskText =
-                risk == "high"
-                    ? "Yüksek Risk"
-                    : risk == "medium"
-                    ? "Orta Risk"
-                    : "Normal";
+                final riskColor = _riskColor(context, risk);
+                final riskText = _riskText(l10n, risk);
 
                 return Container(
                   margin: const EdgeInsets.all(16),
                   padding: const EdgeInsets.all(16),
                   decoration: _cardDecoration(context),
                   child: Row(
-                    mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Column(
-                        crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             "$name $surname",
                             style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            "Gebelik Haftası: $hafta",
+                            "${l10n.pregnancyWeekInput}: $hafta",
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
@@ -90,38 +77,36 @@ class HastaDetayPage extends StatelessWidget {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: riskColor,
-                          borderRadius:
-                          BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           riskText,
                           style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 );
               },
             ),
-
             const SizedBox(height: 20),
-
             Text(
-              "Son 7 Gün Ölçüm Grafikleri",
+              l10n.last7DaysMeasurementCharts,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.primary,
               ),
             ),
-
             const SizedBox(height: 20),
-
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection("risk_olcumleri")
@@ -130,9 +115,8 @@ class HastaDetayPage extends StatelessWidget {
                   .limit(7)
                   .snapshots(),
               builder: (context, snapshot) {
-
                 if (snapshot.hasError) {
-                  return Text("Hata: ${snapshot.error}");
+                  return Text(l10n.errorWithMessage(snapshot.error ?? ""));
                 }
 
                 if (!snapshot.hasData) {
@@ -146,7 +130,7 @@ class HastaDetayPage extends StatelessWidget {
 
                 if (docs.isEmpty) {
                   return Text(
-                    "Ölçüm bulunamadı",
+                    l10n.noMeasurementFound,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
@@ -164,45 +148,39 @@ class HastaDetayPage extends StatelessWidget {
                 );
               },
             ),
-
             const SizedBox(height: 30),
-
             Padding(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  minimumSize:
-                  const Size(double.infinity, 50),
+                  minimumSize: const Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                    BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) =>
-                          HastaKlinikDetayPage(
-                            clientId: clientId,
-                            name: name,
-                            surname: surname,
-                            initialIndex: 0,
-                          ),
+                      builder: (_) => HastaKlinikDetayPage(
+                        clientId: clientId,
+                        name: name,
+                        surname: surname,
+                        initialIndex: 0,
+                      ),
                     ),
                   );
                 },
                 child: Text(
-                  "Detaylı Klinik Analizi Gör",
-                  style:
-                  TextStyle(color: Theme.of(context).colorScheme.surface,),
+                  l10n.viewDetailedClinicalAnalysis,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.surface,
+                  ),
                 ),
               ),
             ),
-
             const SizedBox(height: 30),
           ],
         ),
@@ -210,39 +188,33 @@ class HastaDetayPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTansiyonChart(BuildContext context,
-      List<QueryDocumentSnapshot> docs) {
+  Widget _buildTansiyonChart(
+    BuildContext context,
+    List<QueryDocumentSnapshot> docs,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
-        const Padding(
-          padding: EdgeInsets.only(left: 16),
+        Padding(
+          padding: const EdgeInsets.only(left: 16),
           child: Text(
-            "Tansiyon Grafiği (Sistolik)",
-            style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold),
+            l10n.bloodPressureChartSystolic,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
-
         const SizedBox(height: 15),
-
         SizedBox(
           height: 220,
           child: BarChart(
             BarChartData(
               minY: 80,
               maxY: 200,
-              barGroups:
-              List.generate(docs.length, (i) {
-
+              barGroups: List.generate(docs.length, (i) {
                 final data = docs[i].data() as Map<String, dynamic>;
-
                 final sistolik =
                     double.tryParse(data["sistolik"]?.toString() ?? "0") ?? 0;
-
                 final diastolik =
                     double.tryParse(data["diastolik"]?.toString() ?? "0") ?? 0;
 
@@ -270,50 +242,36 @@ class HastaDetayPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSekerChart(BuildContext context,
-      List<QueryDocumentSnapshot> docs) {
+  Widget _buildSekerChart(
+    BuildContext context,
+    List<QueryDocumentSnapshot> docs,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
-        const Padding(
-          padding: EdgeInsets.only(left: 16),
+        Padding(
+          padding: const EdgeInsets.only(left: 16),
           child: Text(
-            "Kan Şekeri (Açlık / Tokluk)",
-            style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold),
+            l10n.bloodSugarFastingPostMeal,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
-
         const SizedBox(height: 15),
-
         SizedBox(
           height: 220,
           child: BarChart(
             BarChartData(
               minY: 60,
               maxY: 200,
-              barGroups:
-              List.generate(docs.length, (i) {
-
-                final data =
-                docs[i].data() as Map<String, dynamic>;
-
+              barGroups: List.generate(docs.length, (i) {
+                final data = docs[i].data() as Map<String, dynamic>;
                 final aclik =
-                    double.tryParse(
-                        data["aclikSeker"]
-                            ?.toString() ??
-                            "0") ??
-                        0;
-
+                    double.tryParse(data["aclikSeker"]?.toString() ?? "0") ?? 0;
                 final tokluk =
-                    double.tryParse(
-                        data["toklukSeker"]
-                            ?.toString() ??
-                            "0") ??
-                        0;
+                    double.tryParse(data["toklukSeker"]?.toString() ?? "0") ??
+                    0;
 
                 return BarChartGroupData(
                   x: i,
@@ -338,24 +296,23 @@ class HastaDetayPage extends StatelessWidget {
     );
   }
 
-  Widget _buildKiloChart(BuildContext context, List<QueryDocumentSnapshot> docs) {
+  Widget _buildKiloChart(
+    BuildContext context,
+    List<QueryDocumentSnapshot> docs,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
-        const Padding(
-          padding: EdgeInsets.only(left: 16),
+        Padding(
+          padding: const EdgeInsets.only(left: 16),
           child: Text(
-            "Kilo Değişim Grafiği",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            l10n.weightChangeChart,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
-
         const SizedBox(height: 15),
-
         SizedBox(
           height: 220,
           child: BarChart(
@@ -363,10 +320,7 @@ class HastaDetayPage extends StatelessWidget {
               minY: 40,
               maxY: 120,
               barGroups: List.generate(docs.length, (i) {
-
-                final data =
-                docs[i].data() as Map<String, dynamic>;
-
+                final data = docs[i].data() as Map<String, dynamic>;
                 final kilo =
                     double.tryParse(data["kilo"]?.toString() ?? "0") ?? 0;
 
@@ -388,15 +342,27 @@ class HastaDetayPage extends StatelessWidget {
     );
   }
 
+  Color _riskColor(BuildContext context, dynamic risk) {
+    if (risk == "high") return Colors.red;
+    if (risk == "medium") return Colors.orange;
+    return Colors.green;
+  }
+
+  String _riskText(AppLocalizations l10n, dynamic risk) {
+    if (risk == "high") return l10n.highRisk;
+    if (risk == "medium") return l10n.mediumRisk;
+    return l10n.normalRisk;
+  }
+
   BoxDecoration _cardDecoration(BuildContext context) {
     return BoxDecoration(
       color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(18),
       boxShadow: [
         BoxShadow(
-          color: Theme.of(context).shadowColor.withOpacity(0.2),
+          color: Theme.of(context).shadowColor.withValues(alpha: 0.2),
           blurRadius: 6,
-        )
+        ),
       ],
     );
   }

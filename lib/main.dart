@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-import 'welcome_page.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'app_theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+import 'app_theme.dart';
+import 'firebase_options.dart';
+import 'l10n/app_localizations.dart';
+import 'locale_controller.dart';
+import 'welcome_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initializeDateFormatting('tr_TR', null);
+  await initializeDateFormatting('en_US', null);
+  await localeController.load();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(const RoleLoaderPage());
 }
@@ -27,15 +29,23 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-
-      theme: AppTheme.getTheme(role),
-
-      home: const WelcomePage(),
+    return AnimatedBuilder(
+      animation: localeController,
+      builder: (context, _) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          locale: localeController.locale,
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localeResolutionCallback: _resolveLocale,
+          theme: AppTheme.getTheme(role),
+          home: const WelcomePage(),
+        );
+      },
     );
   }
 }
+
 class RoleLoaderPage extends StatefulWidget {
   const RoleLoaderPage({super.key});
 
@@ -79,19 +89,38 @@ class _RoleLoaderPageState extends State<RoleLoaderPage> {
   @override
   Widget build(BuildContext context) {
     if (role == null) {
-      return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.getTheme("pregnant"), // geçici
-        home: Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(
-              color: Colors.deepPurple,
+      return AnimatedBuilder(
+        animation: localeController,
+        builder: (context, _) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            locale: localeController.locale,
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localeResolutionCallback: _resolveLocale,
+            theme: AppTheme.getTheme("pregnant"),
+            home: const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(color: Colors.deepPurple),
+              ),
             ),
-          ),
-        ),
+          );
+        },
       );
     }
 
     return MyApp(role: role!);
   }
+}
+
+Locale _resolveLocale(Locale? locale, Iterable<Locale> supportedLocales) {
+  if (locale == null) return const Locale('tr');
+
+  for (final supportedLocale in supportedLocales) {
+    if (supportedLocale.languageCode == locale.languageCode) {
+      return supportedLocale;
+    }
+  }
+
+  return const Locale('tr');
 }

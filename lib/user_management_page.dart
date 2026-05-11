@@ -1,5 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+
+import 'language_selector.dart';
+import 'l10n/app_localizations.dart';
 
 class UserManagementPage extends StatefulWidget {
   const UserManagementPage({super.key});
@@ -9,22 +12,22 @@ class UserManagementPage extends StatefulWidget {
 }
 
 class _UserManagementPageState extends State<UserManagementPage> {
-
   String searchText = "";
   String roleFilter = "all";
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: const Text("Kullanıcılar"),
+        title: Text(l10n.users),
         backgroundColor: Theme.of(context).colorScheme.primary,
+        actions: const [LanguageActionButton()],
       ),
-
       body: Column(
         children: [
-
           Padding(
             padding: const EdgeInsets.all(12),
             child: TextField(
@@ -34,7 +37,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                 });
               },
               decoration: InputDecoration(
-                hintText: "Kullanıcı ara...",
+                hintText: l10n.searchUser,
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
@@ -42,34 +45,29 @@ class _UserManagementPageState extends State<UserManagementPage> {
               ),
             ),
           ),
-
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                filterBtn("all", "Tümü"),
-                filterBtn("pregnant", "Hamile"),
-                filterBtn("gynecologist", "Doktor"),
-                filterBtn("dietitian", "Diyetisyen"),
+                filterBtn("all", l10n.all),
+                filterBtn("pregnant", l10n.pregnantRole),
+                filterBtn("gynecologist", l10n.doctorRole),
+                filterBtn("dietitian", l10n.dietitian),
               ],
             ),
           ),
-
           const SizedBox(height: 10),
-
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection("users")
                   .snapshots(),
               builder: (context, snapshot) {
-
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
                 final users = snapshot.data!.docs.where((doc) {
-
                   final data = doc.data() as Map<String, dynamic>;
 
                   if (roleFilter != "all" && data["role"] != roleFilter) {
@@ -81,17 +79,15 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
                   return email.contains(searchText) ||
                       name.contains(searchText);
-
                 }).toList();
 
                 if (users.isEmpty) {
-                  return const Center(child: Text("Kullanıcı bulunamadı"));
+                  return Center(child: Text(l10n.userNotFound));
                 }
 
                 return ListView.builder(
                   itemCount: users.length,
                   itemBuilder: (context, index) {
-
                     final doc = users[index];
                     final data = doc.data() as Map<String, dynamic>;
 
@@ -107,19 +103,21 @@ class _UserManagementPageState extends State<UserManagementPage> {
   }
 
   Widget userCard(String userId, Map<String, dynamic> data) {
+    final l10n = AppLocalizations.of(context)!;
+
     return FutureBuilder<QuerySnapshot>(
       future: FirebaseFirestore.instance
           .collection("expert_applications")
           .where("uid", isEqualTo: userId)
           .get(),
-
       builder: (context, snapshot) {
-
         String status = "none";
 
         if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
           status = snapshot.data!.docs.first["status"] ?? "pending";
         }
+
+        final displayName = data["name"] ?? l10n.userFallback;
 
         return Card(
           shape: RoundedRectangleBorder(
@@ -131,55 +129,42 @@ class _UserManagementPageState extends State<UserManagementPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CircleAvatar(
-                      child: Text(
-                        (data["name"] ?? "U")[0].toUpperCase(),
-                      ),
+                      child: Text(displayName.toString()[0].toUpperCase()),
                     ),
                     Chip(label: Text(getRoleText(data["role"]))),
                   ],
                 ),
-
                 const SizedBox(height: 10),
-
                 Text(
-                  data["name"] ?? "Kullanıcı",
+                  displayName,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-
                 Text("📧 ${data["email"] ?? "-"}"),
-                Text("📅 ${formatDate(data["createdAt"])}"),
-
+                Text("${l10n.createdAt}: ${formatDate(data["createdAt"])}"),
                 const SizedBox(height: 10),
-
                 if (data["role"] != "pregnant")
                   Text(
-                    "Durum: $status",
+                    "${l10n.status}: ${getStatusText(status)}",
                     style: TextStyle(
                       color: status == "approved"
                           ? Colors.green
                           : Colors.orange,
                     ),
                   ),
-
                 const SizedBox(height: 10),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
-
-                        /// APPROVE
                         if (status != "approved" && data["role"] != "pregnant")
                           IconButton(
                             icon: const Icon(Icons.check, color: Colors.green),
                             onPressed: () async {
-
                               final snap = await FirebaseFirestore.instance
                                   .collection("expert_applications")
                                   .where("uid", isEqualTo: userId)
@@ -198,8 +183,6 @@ class _UserManagementPageState extends State<UserManagementPage> {
                                   .update({"isApproved": true});
                             },
                           ),
-
-                        /// DELETE
                         IconButton(
                           icon: const Icon(Icons.delete, color: Colors.red),
                           onPressed: () async {
@@ -236,11 +219,22 @@ class _UserManagementPageState extends State<UserManagementPage> {
   }
 
   String getRoleText(String? role) {
-    if (role == "pregnant") return "Hamile";
-    if (role == "dietitian") return "Diyetisyen";
-    if (role == "gynecologist") return "Doktor";
-    if (role == "admin") return "Admin";
+    final l10n = AppLocalizations.of(context)!;
+
+    if (role == "pregnant") return l10n.pregnantRole;
+    if (role == "dietitian") return l10n.dietitian;
+    if (role == "gynecologist") return l10n.doctorRole;
+    if (role == "admin") return l10n.adminPanel;
     return role ?? "-";
+  }
+
+  String getStatusText(String? status) {
+    final l10n = AppLocalizations.of(context)!;
+
+    if (status == "approved") return l10n.approvedStatus;
+    if (status == "rejected") return l10n.rejectedStatus;
+    if (status == "pending") return l10n.pendingStatus;
+    return "-";
   }
 
   String formatDate(dynamic timestamp) {

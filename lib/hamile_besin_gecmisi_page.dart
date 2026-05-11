@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+
 import 'food_units.dart';
+import 'l10n/app_localizations.dart';
 import 'nutrition_engine.dart';
 
 class HamileBesinGecmisiPage extends StatelessWidget {
@@ -11,14 +13,15 @@ class HamileBesinGecmisiPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser!.uid;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              Theme.of(context).colorScheme.primary.withOpacity(0.3),
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -30,7 +33,7 @@ class HamileBesinGecmisiPage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Text(
-                  "Besin & Takviye Geçmişi",
+                  l10n.nutritionSupplementHistory,
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -53,7 +56,7 @@ class HamileBesinGecmisiPage extends StatelessWidget {
                     if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                       return Center(
                         child: Text(
-                          "Henüz kayıt yok",
+                          l10n.noRecordYet,
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.onSurface,
                           ),
@@ -61,7 +64,10 @@ class HamileBesinGecmisiPage extends StatelessWidget {
                       );
                     }
 
-                    final groups = groupDocsByDay(snapshot.data!.docs);
+                    final groups = _groupDocsByDay(
+                      snapshot.data!.docs,
+                      Localizations.localeOf(context).toString(),
+                    );
 
                     return ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -89,14 +95,13 @@ class _DayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final summary = summarizeDay(group.items);
+    final l10n = AppLocalizations.of(context)!;
+    final summary = _summarizeDay(group.items);
 
     return Card(
       color: Theme.of(context).colorScheme.surface,
       elevation: 6,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -117,29 +122,29 @@ class _DayCard extends StatelessWidget {
             }),
             const Divider(),
             Text(
-              "Günlük Toplam Analiz Sonucu",
+              l10n.dailyTotalAnalysisResult,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.primary,
               ),
             ),
             const SizedBox(height: 8),
-            Text("Toplam Kalori: ${summary.calorie.toStringAsFixed(0)} kcal"),
+            Text(l10n.totalCalories(summary.calorie.toStringAsFixed(0))),
             const SizedBox(height: 8),
             _NutrientList(
-              title: "Alınan Besin Öğeleri",
+              title: l10n.consumedNutrients,
               values: summary.consumed,
               icon: Icons.check_circle,
               color: Colors.green,
             ),
             _NutrientList(
-              title: "Eksik Besin Öğeleri",
+              title: l10n.missingNutrients,
               values: summary.missing,
               icon: Icons.warning,
               color: Colors.orange,
             ),
             _NutrientList(
-              title: "Fazla Besin Öğeleri",
+              title: l10n.excessNutrients,
               values: summary.excess,
               icon: Icons.arrow_upward,
               color: Colors.red,
@@ -159,7 +164,9 @@ class _AnalysisSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final time = DateFormat("HH:mm", "tr_TR").format(item.date);
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
+    final time = DateFormat("HH:mm", locale).format(item.date);
     final besinler = item.data['besinler'] as List? ?? [];
     final takviyeler = item.data['takviyeler'] as List? ?? [];
 
@@ -169,13 +176,17 @@ class _AnalysisSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "${index + 1}. Analiz - $time",
+            l10n.analysisWithTime(index + 1, time),
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
           ...besinler.map((b) => _FoodLine(item: b)),
           ...takviyeler.map((t) => _FoodLine(item: t)),
-          Text("Kalori: ${NumberFormat.decimalPattern('tr_TR').format(item.calorie)} kcal"),
+          Text(
+            l10n.calories(
+              NumberFormat.decimalPattern(locale).format(item.calorie),
+            ),
+          ),
         ],
       ),
     );
@@ -236,13 +247,15 @@ class _NutrientList extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          ...values.map((value) => Row(
-                children: [
-                  Icon(icon, color: color, size: 18),
-                  const SizedBox(width: 6),
-                  Expanded(child: Text(value)),
-                ],
-              )),
+          ...values.map(
+            (value) => Row(
+              children: [
+                Icon(icon, color: color, size: 18),
+                const SizedBox(width: 6),
+                Expanded(child: Text(value)),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -288,7 +301,10 @@ class _DaySummary {
   });
 }
 
-List<_DayGroup> groupDocsByDay(List<QueryDocumentSnapshot> docs) {
+List<_DayGroup> _groupDocsByDay(
+  List<QueryDocumentSnapshot> docs,
+  String locale,
+) {
   final groups = <String, List<_AnalysisItem>>{};
 
   for (final doc in docs) {
@@ -296,10 +312,10 @@ List<_DayGroup> groupDocsByDay(List<QueryDocumentSnapshot> docs) {
     final date = readAnalysisDate(data);
     if (date == null) continue;
 
-    final key = DateFormat("dd MMMM yyyy", "tr_TR").format(date);
-    groups.putIfAbsent(key, () => []).add(
-          _AnalysisItem(id: doc.id, date: date, data: data),
-        );
+    final key = DateFormat("dd MMMM yyyy", locale).format(date);
+    groups
+        .putIfAbsent(key, () => [])
+        .add(_AnalysisItem(id: doc.id, date: date, data: data));
   }
 
   return groups.entries.map((entry) {
@@ -315,7 +331,7 @@ DateTime? readAnalysisDate(Map<String, dynamic> data) {
   return null;
 }
 
-_DaySummary summarizeDay(List<_AnalysisItem> items) {
+_DaySummary _summarizeDay(List<_AnalysisItem> items) {
   final foods = <Map<String, dynamic>>[];
   final supplements = <Map<String, dynamic>>[];
 
@@ -325,19 +341,13 @@ _DaySummary summarizeDay(List<_AnalysisItem> items) {
       final unitGram = FoodUnits.units[data['format']] ?? 1;
       final amount = double.tryParse(data['miktar'].toString()) ?? 0;
 
-      foods.add({
-        'name': data['ad'],
-        'amount': unitGram * amount,
-      });
+      foods.add({'name': data['ad'], 'amount': unitGram * amount});
     }
 
     for (final raw in (item.data['takviyeler'] as List? ?? [])) {
       final data = Map<String, dynamic>.from(raw as Map);
 
-      supplements.add({
-        'name': data['ad'],
-        'amount': data['miktar'],
-      });
+      supplements.add({'name': data['ad'], 'amount': data['miktar']});
     }
   }
 

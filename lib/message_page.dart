@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
 import 'chat_page.dart';
+import 'l10n/app_localizations.dart';
 
 class MessagePage extends StatelessWidget {
   const MessagePage({super.key});
@@ -21,9 +23,7 @@ class MessagePage extends StatelessWidget {
       }
     }
 
-    final newChat = await FirebaseFirestore.instance
-        .collection("chats")
-        .add({
+    final newChat = await FirebaseFirestore.instance.collection("chats").add({
       "users": [currentUserId, otherUserId],
       "lastMessage": "",
       "lastMessageTime": FieldValue.serverTimestamp(),
@@ -34,18 +34,17 @@ class MessagePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection("users")
             .doc(uid)
             .snapshots(),
         builder: (context, snapshot) {
-
           if (!snapshot.hasData) {
             return Center(
               child: CircularProgressIndicator(
@@ -62,7 +61,7 @@ class MessagePage extends StatelessWidget {
           if (doctorId == null && dietitianId == null) {
             return Center(
               child: Text(
-                "Henüz uzman yok 😔",
+                l10n.noExpertYet,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
@@ -73,17 +72,17 @@ class MessagePage extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-
-              /// 🔥 ORTALI BAŞLIK
               Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.chat_bubble_outline,
-                        color: Theme.of(context).colorScheme.primary),
+                    Icon(
+                      Icons.chat_bubble_outline,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     const SizedBox(width: 8),
                     Text(
-                      "MESAJLAR",
+                      l10n.messages.toUpperCase(),
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -93,14 +92,11 @@ class MessagePage extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 20),
-
               if (doctorId != null && doctorId.toString().isNotEmpty)
-                _card(context, doctorId, "Doktor"),
-
+                _card(context, doctorId, l10n.doctor, "Dr."),
               if (dietitianId != null && dietitianId.toString().isNotEmpty)
-                _card(context, dietitianId, "Diyetisyen"),
+                _card(context, dietitianId, l10n.dietitian, "Dyt."),
             ],
           );
         },
@@ -108,13 +104,15 @@ class MessagePage extends StatelessWidget {
     );
   }
 
-  Widget _card(BuildContext context, String otherUserId, String role) {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-
+  Widget _card(
+    BuildContext context,
+    String otherUserId,
+    String roleLabel,
+    String prefix,
+  ) {
     return FutureBuilder(
       future: getOrCreateChat(otherUserId),
       builder: (context, chatSnapshot) {
-
         if (!chatSnapshot.hasData) return const SizedBox();
 
         final chatId = chatSnapshot.data as String;
@@ -125,11 +123,9 @@ class MessagePage extends StatelessWidget {
               .doc(chatId)
               .snapshots(),
           builder: (context, chatSnap) {
-
             if (!chatSnap.hasData) return const SizedBox();
 
-            final chatData =
-            chatSnap.data!.data() as Map<String, dynamic>?;
+            final chatData = chatSnap.data!.data() as Map<String, dynamic>?;
 
             final lastMessage = chatData?["lastMessage"] ?? "";
             final time = chatData?["lastMessageTime"];
@@ -138,7 +134,7 @@ class MessagePage extends StatelessWidget {
             if (time != null) {
               final date = (time as Timestamp).toDate();
               timeText =
-              "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+                  "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
             }
 
             return FutureBuilder<DocumentSnapshot>(
@@ -147,19 +143,13 @@ class MessagePage extends StatelessWidget {
                   .doc(otherUserId)
                   .get(),
               builder: (context, userSnap) {
-
                 if (!userSnap.hasData) {
                   return const SizedBox();
                 }
 
-                final userData =
-                userSnap.data!.data() as Map<String, dynamic>?;
-
-                final name = userData?["name"] ?? role;
-
-                String prefix = "";
-                if (role == "Doktor") prefix = "Dr.";
-                if (role == "Diyetisyen") prefix = "Dyt.";
+                final userData = userSnap.data!.data() as Map<String, dynamic>?;
+                final name = userData?["name"] ?? roleLabel;
+                final title = "$prefix $name";
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -168,38 +158,28 @@ class MessagePage extends StatelessWidget {
                   ),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor:
-                      Theme.of(context).colorScheme.primary,
-                      child: const Icon(Icons.person,
-                          color: Colors.white),
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      child: const Icon(Icons.person, color: Colors.white),
                     ),
-
                     title: Text(
-                      "$prefix $name",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      title,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-
                     subtitle: Text(
                       lastMessage,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-
                     trailing: Text(
                       timeText,
                       style: const TextStyle(fontSize: 12),
                     ),
-
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => ChatPage(
-                            chatId: chatId,
-                            title: "$prefix $name",
-                          ),
+                          builder: (_) =>
+                              ChatPage(chatId: chatId, title: title),
                         ),
                       );
                     },

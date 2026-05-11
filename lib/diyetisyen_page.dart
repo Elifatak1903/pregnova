@@ -9,6 +9,8 @@ import 'son_analizler_page.dart';
 import 'sifre_degistir_page.dart';
 import 'selection_client_for_diet_page.dart';
 import 'edit_dietitian_profile_page.dart';
+import 'language_selector.dart';
+import 'l10n/app_localizations.dart';
 
 class DietitianHomePage extends StatefulWidget {
   const DietitianHomePage({super.key});
@@ -76,6 +78,8 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
   }
 
   Widget _buildRequestsPage() {
+    final l10n = AppLocalizations.of(context)!;
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection("expert_requests")
@@ -88,7 +92,7 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
         }
 
         if (!snapshot.hasData) {
-          return const Center(child: Text("Veri yok"));
+          return Center(child: Text(l10n.noData));
         }
 
         if (snapshot.data!.metadata.isFromCache) {
@@ -98,7 +102,7 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
         final docs = snapshot.data!.docs;
 
         if (docs.isEmpty) {
-          return const Center(child: Text("Bekleyen istek yok"));
+          return Center(child: Text(l10n.noPendingRequests));
         }
 
         return ListView.builder(
@@ -162,16 +166,16 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("Hasta ID: $clientId"),
-                          Text("İstek ID: ${doc.id}"),
+                          Text("${l10n.patientId}: $clientId"),
+                          Text("${l10n.requestId}: ${doc.id}"),
                           const SizedBox(height: 6),
-                          Text("E-posta: $email"),
-                          Text("Telefon: $phone"),
-                          Text("Gebelik haftası: $hafta"),
-                          Text("Boy/Kilo: $boy cm / $kilo kg"),
-                          Text("BMI: $bmi"),
-                          Text("Risk: ${_riskText(risk)}"),
-                          Text("Alerji: $allergy"),
+                          Text("${l10n.email}: $email"),
+                          Text("${l10n.phone}: $phone"),
+                          Text("${l10n.pregnancyWeekInput}: $hafta"),
+                          Text("${l10n.heightWeight}: $boy cm / $kilo kg"),
+                          Text("${l10n.bmi}: $bmi"),
+                          Text("${l10n.risk}: ${_riskText(risk)}"),
+                          Text("${l10n.allergy}: $allergy"),
                         ],
                       ),
                     ),
@@ -221,6 +225,8 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
   }
 
   Widget _buildRecentActivity() {
+    final l10n = AppLocalizations.of(context)!;
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection("besin_analizleri")
@@ -234,7 +240,7 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Text("Henüz aktivite yok");
+          return Text(l10n.noActivityYet);
         }
 
         final docs = snapshot.data!.docs;
@@ -304,13 +310,13 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "$name $surname yeni analiz gönderdi",
+                                l10n.newAnalysisSent("$name $surname"),
                                 style: const TextStyle(fontSize: 14),
                               ),
                               const SizedBox(height: 4),
 
                               Text(
-                                formatDate(createdAt),
+                                formatDate(createdAt, l10n),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey.shade600,
@@ -332,14 +338,16 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
   }
 
   Widget _buildHomePage() {
+    final l10n = AppLocalizations.of(context)!;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Diyetisyen Paneli",
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          Text(
+            l10n.dietitianPanel,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
 
           const SizedBox(height: 25),
@@ -356,7 +364,7 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
                 future: getApprovedCount(),
                 builder: (context, snapshot) {
                   return _statCard(
-                    "Danışan",
+                    l10n.clients,
                     snapshot.data?.toString() ?? "...",
                     Icons.people,
                     () {
@@ -372,7 +380,7 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
                 future: getPendingCount(),
                 builder: (context, snapshot) {
                   return _statCard(
-                    "Bekleyen İstek",
+                    l10n.pendingRequest,
                     snapshot.data?.toString() ?? "...",
                     Icons.pending,
                     () {
@@ -388,7 +396,7 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
                 future: getActiveThisWeek(),
                 builder: (context, snapshot) {
                   return _statCard(
-                    "Son 7 Gün Aktif",
+                    l10n.activeLast7Days,
                     snapshot.data?.toString() ?? "...",
                     Icons.timeline,
                     () {
@@ -402,7 +410,7 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
                   );
                 },
               ),
-              _statCard("Beslenme Modülü", "Aç", Icons.restaurant, () {
+              _statCard(l10n.nutritionModule, l10n.open, Icons.restaurant, () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -432,6 +440,8 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
   }
 
   Widget _buildClientsPage() {
+    final l10n = AppLocalizations.of(context)!;
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection("expert_requests")
@@ -446,7 +456,7 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
         final docs = snapshot.data!.docs;
 
         if (docs.isEmpty) {
-          return const Center(child: Text("Henüz danışan bulunmuyor"));
+          return Center(child: Text(l10n.noClientsYet));
         }
 
         return ListView.builder(
@@ -496,7 +506,7 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
                       ),
                     ),
 
-                    subtitle: Text("Gebelik Haftası: $hafta"),
+                    subtitle: Text("${l10n.pregnancyWeekInput}: $hafta"),
 
                     trailing: const Icon(Icons.arrow_forward_ios, size: 18),
 
@@ -523,6 +533,7 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
   }
 
   Widget _buildAccountPage() {
+    final l10n = AppLocalizations.of(context)!;
     final user = FirebaseAuth.instance.currentUser;
 
     return FutureBuilder<DocumentSnapshot>(
@@ -588,7 +599,7 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
                         ),
                         Text(email),
                         Text(
-                          "Diyetisyen",
+                          l10n.dietitian,
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
                           ),
@@ -616,13 +627,13 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text("Bilgileri Düzenle"),
+                child: Text(l10n.editInfo),
               ),
 
               const SizedBox(height: 25),
 
               Text(
-                "Uzmanlık Bilgileri",
+                l10n.expertiseInfo,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -632,13 +643,13 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
 
               const SizedBox(height: 10),
 
-              _infoCard("Uzmanlık Alanı", expertise),
-              _infoCard("Deneyim", experience),
-              _infoCard("Çalıştığı Kurum", institution),
+              _infoCard(l10n.expertiseArea, expertise),
+              _infoCard(l10n.experience, experience),
+              _infoCard(l10n.institution, institution),
 
               const SizedBox(height: 25),
 
-              _accountTile(Icons.description, "Diploma / Belgeler", () {
+              _accountTile(Icons.description, l10n.diplomaDocuments, () {
                 if (diplomaUrl != null) {
                   Navigator.push(
                     context,
@@ -655,9 +666,9 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
                     ),
                   );
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Henüz diploma eklenmemiş")),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(l10n.noDiplomaAdded)));
                 }
               }),
               if (diplomaUrl != null)
@@ -677,7 +688,7 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
                         color: Theme.of(context).colorScheme.primary,
                       ),
                       SizedBox(width: 8),
-                      Text("Diploma yüklendi"),
+                      Text(l10n.diplomaUploaded),
                     ],
                   ),
                 ),
@@ -685,7 +696,7 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
               const SizedBox(height: 25),
 
               Text(
-                "Ayarlar",
+                l10n.settings,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -695,14 +706,20 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
 
               const SizedBox(height: 10),
 
-              _accountTile(Icons.lock, "?ifre De?i?tir", () {
+              _accountTile(Icons.lock, l10n.changePassword, () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const SifreDegistirPage()),
                 );
               }),
 
-              _accountTile(Icons.logout, "Çıkış Yap", () async {
+              _accountTile(
+                Icons.language,
+                l10n.language,
+                () => showLanguageDialog(context),
+              ),
+
+              _accountTile(Icons.logout, l10n.logoutAction, () async {
                 await FirebaseAuth.instance.signOut();
 
                 if (!context.mounted) return;
@@ -793,6 +810,8 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
 
@@ -801,6 +820,7 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
         backgroundColor: Theme.of(context).colorScheme.primary,
 
         actions: [
+          const LanguageActionButton(),
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection("notification")
@@ -857,19 +877,19 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
           });
         },
         items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Ana Sayfa",
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.home),
+            label: l10n.home,
           ),
 
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: "Danışanlar",
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.people),
+            label: l10n.clients,
           ),
 
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.pending),
-            label: "İstekler",
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.pending),
+            label: l10n.requests,
           ),
 
           BottomNavigationBarItem(
@@ -914,12 +934,12 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
                 );
               },
             ),
-            label: "Mesajlar",
+            label: l10n.messages,
           ),
 
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: "Hesap",
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.person),
+            label: l10n.accountShort,
           ),
         ],
       ),
@@ -927,8 +947,8 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
   }
 }
 
-String formatDate(dynamic timestamp) {
-  if (timestamp == null) return "Tarih yok";
+String formatDate(dynamic timestamp, AppLocalizations l10n) {
+  if (timestamp == null) return l10n.noDate;
 
   final date = timestamp.toDate();
 

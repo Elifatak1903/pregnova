@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -13,6 +13,7 @@ import 'hamile_info_page.dart';
 import 'hamile_olcum_gecmisi_page.dart';
 import 'hamile_besin_gecmisi_page.dart';
 import 'hamile_diet_page.dart';
+import 'l10n/app_localizations.dart';
 
 class HamileAnaSayfa extends StatefulWidget {
   const HamileAnaSayfa({super.key});
@@ -62,10 +63,9 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
     final parsedWeek = calculatePregnancyWeek(data);
 
     if (data['hafta'] != parsedWeek) {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .set({'hafta': parsedWeek}, SetOptions(merge: true));
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'hafta': parsedWeek,
+      }, SetOptions(merge: true));
     }
 
     setState(() {
@@ -80,9 +80,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
 
     if (start == null) {
       final week = data['hafta'];
-      return (week is int)
-          ? week
-          : int.tryParse(week.toString()) ?? 1;
+      return (week is int) ? week : int.tryParse(week.toString()) ?? 1;
     }
 
     DateTime startDate;
@@ -102,11 +100,13 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
 
   Future<void> haftalikBildirimKontrol() async {
     if (userWeek == null) return;
+    if (!mounted) return;
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
     final week = userWeek!;
+    final l10n = AppLocalizations.of(context)!;
 
     final query = await FirebaseFirestore.instance
         .collection('notification')
@@ -119,9 +119,8 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
     await FirebaseFirestore.instance.collection('notification').add({
       'uid': uid,
       'week': week,
-      'title': 'Hafta $week Bilgilendirmesi',
-      'message':
-      'Bu haftada demir ve protein ihtiyacın artıyor. Beslenmene dikkat et 💕',
+      'title': l10n.weeklyInfoTitle(week),
+      'message': l10n.weeklyInfoMessage,
       'isRead': false,
       'createdAt': FieldValue.serverTimestamp(),
     });
@@ -145,36 +144,35 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
 
     if (!mounted) return;
 
+    final l10n = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: Theme.of(context).colorScheme.surface,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16)),
-        title: const Text("Gebelik Bilgileri"),
-        content: const Text(
-          "Gebelik bilgilerini doldurmak ister misin?\n\n"
-              "Bu bilgiler sana daha doğru öneriler sunmamızı sağlar 💕",
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(l10n.pregnancyInfoTitle),
+        content: Text(l10n.pregnancyInfoPrompt),
         actions: [
           TextButton(
-            child: const Text("Daha Sonra"),
+            child: Text(l10n.later),
             onPressed: () async {
               await FirebaseFirestore.instance
                   .collection('users')
                   .doc(uid)
                   .update({'infoLater': true});
-              Navigator.pop(context);
+              if (!dialogContext.mounted) return;
+              Navigator.pop(dialogContext);
             },
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primary,
             ),
-            child: const Text("Şimdi Doldur"),
+            child: Text(l10n.fillNow),
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -190,6 +188,8 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
 
@@ -218,19 +218,18 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
                 StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('notification')
-                      .where('uid',
-                      isEqualTo:
-                      FirebaseAuth.instance.currentUser!.uid)
+                      .where(
+                        'uid',
+                        isEqualTo: FirebaseAuth.instance.currentUser!.uid,
+                      )
                       .where('isRead', isEqualTo: false)
                       .snapshots(),
                   builder: (context, snapshot) {
-                    if (snapshot.connectionState ==
-                        ConnectionState.waiting) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
                       return const SizedBox();
                     }
 
-                    if (!snapshot.hasData ||
-                        snapshot.data!.docs.isEmpty) {
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                       return const SizedBox();
                     }
 
@@ -238,7 +237,9 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
                       right: 10,
                       top: 10,
                       child: CircleAvatar(
-                          radius: 5, backgroundColor: Colors.red),
+                        radius: 5,
+                        backgroundColor: Colors.red,
+                      ),
                     );
                   },
                 ),
@@ -268,30 +269,29 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
           });
         },
         items: [
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.chat_bubble_outline),
+            label: l10n.message,
+          ),
 
           BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline),
-            label: "Mesaj",
+            icon: const Icon(Icons.search),
+            label: l10n.searchExpert,
           ),
 
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: "Uzman Ara",
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.home),
+            label: l10n.home,
           ),
 
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Ana Sayfa",
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.restaurant_menu),
+            label: l10n.diet,
           ),
 
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant_menu),
-            label: "Diyet",
-          ),
-
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: "Hesabım",
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.person),
+            label: l10n.account,
           ),
         ],
       ),
@@ -314,34 +314,39 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
-        child: Row(children: [
-          CircleAvatar(
-            radius: 25,
-            backgroundColor: color,
-            child: Icon(icon, color: Colors.white),
-          ),
-          const SizedBox(width: 15),
-          Text(
-            title,
-            style: TextStyle(
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 25,
+              backgroundColor: color,
+              child: Icon(icon, color: Colors.white),
+            ),
+            const SizedBox(width: 15),
+            Text(
+              title,
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,),
-          ),
-        ]),
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+
   Widget _buildHomeContent() {
+    final l10n = AppLocalizations.of(context)!;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Center(
             child: Text(
-              "Hoş geldin anne 💕",
+              l10n.welcomeMother,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 28,
@@ -355,13 +360,12 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
 
           Center(
             child: Text(
-              "Sağlık ve beslenme takibini kolayca yapabilirsin.",
+              l10n.pregnantHomeSubtitle,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withOpacity(0.7),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
           ),
@@ -374,21 +378,26 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
               gradient: LinearGradient(
                 colors: [
                   Theme.of(context).colorScheme.primary,
-                  Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
               children: [
-                const Icon(Icons.baby_changing_station,
-                    color: Colors.white, size: 40),
+                const Icon(
+                  Icons.baby_changing_station,
+                  color: Colors.white,
+                  size: 40,
+                ),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Şu an",
-                        style: TextStyle(color: Colors.white70)),
+                    Text(
+                      l10n.current,
+                      style: const TextStyle(color: Colors.white70),
+                    ),
 
                     StreamBuilder<DocumentSnapshot>(
                       stream: FirebaseFirestore.instance
@@ -396,21 +405,20 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
                           .doc(FirebaseAuth.instance.currentUser!.uid)
                           .snapshots(),
                       builder: (context, snapshot) {
-
                         if (!snapshot.hasData) {
-                          return const Text(
-                            "Yükleniyor...",
-                            style: TextStyle(color: Colors.white),
+                          return Text(
+                            l10n.loading,
+                            style: const TextStyle(color: Colors.white),
                           );
                         }
 
                         final data =
-                        snapshot.data!.data() as Map<String, dynamic>;
+                            snapshot.data!.data() as Map<String, dynamic>;
 
                         final week = data['hafta'] ?? 1;
 
                         return Text(
-                          "$week. Hafta",
+                          l10n.pregnancyWeek(week),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 22,
@@ -430,48 +438,42 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
           riskDashboard(),
 
           gridButton(
-            title: "Risk Ölçüm",
+            title: l10n.riskMeasurement,
             icon: Icons.health_and_safety,
             color: Colors.deepPurple.shade400,
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (_) => RiskTakipFormuPage()),
+              MaterialPageRoute(builder: (_) => RiskTakipFormuPage()),
             ),
           ),
 
           gridButton(
-            title: "Besin Analizi",
+            title: l10n.nutritionAnalysis,
             icon: Icons.restaurant_menu,
             color: Colors.indigo.shade400,
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (_) => HamileBesinPage()),
+              MaterialPageRoute(builder: (_) => HamileBesinPage()),
             ),
           ),
 
           gridButton(
-            title: "Son Ölçüm Geçmişi",
+            title: l10n.lastMeasurementHistory,
             icon: Icons.history,
             color: Colors.deepPurple.shade400,
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (_) =>
-                  const HamileOlcumGecmisiPage()),
+              MaterialPageRoute(builder: (_) => const HamileOlcumGecmisiPage()),
             ),
           ),
 
           gridButton(
-            title: "Besin & Takviye Geçmişi",
+            title: l10n.nutritionSupplementHistory,
             icon: Icons.medication,
             color: Colors.indigo.shade400,
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (_) =>
-                  const HamileBesinGecmisiPage()),
+              MaterialPageRoute(builder: (_) => const HamileBesinGecmisiPage()),
             ),
           ),
         ],
@@ -493,7 +495,6 @@ Widget riskDashboard() {
         .limit(1)
         .snapshots(),
     builder: (context, snapshot) {
-
       if (snapshot.connectionState == ConnectionState.waiting) {
         return const SizedBox();
       }
@@ -502,8 +503,8 @@ Widget riskDashboard() {
         return const SizedBox();
       }
 
-      final data =
-      snapshot.data!.docs.first.data() as Map<String, dynamic>;
+      final l10n = AppLocalizations.of(context)!;
+      final data = snapshot.data!.docs.first.data() as Map<String, dynamic>;
 
       Color riskColor(String risk) {
         if (risk == "HIGH") return Colors.red;
@@ -518,29 +519,38 @@ Widget riskDashboard() {
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(color: Theme.of(context).shadowColor.withOpacity(0.2), blurRadius: 6)
+            BoxShadow(
+              color: Theme.of(context).shadowColor.withValues(alpha: 0.2),
+              blurRadius: 6,
+            ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            const Text(
-              "Son Risk Durumu",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+            Text(
+              l10n.latestRiskStatus,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 10),
-
-            riskRow(context, "Preeklampsi",
-                data["preeklampsiRisk"] ?? "LOW", riskColor),
-            riskRow(context, "Diyabet",
-                data["diyabetRisk"] ?? "LOW", riskColor),
-            riskRow(context, "Preterm",
-                data["pretermRisk"] ?? "LOW", riskColor),
+            riskRow(
+              context,
+              "Preeklampsi",
+              data["preeklampsiRisk"] ?? "LOW",
+              riskColor,
+            ),
+            riskRow(
+              context,
+              l10n.diabetes,
+              data["diyabetRisk"] ?? "LOW",
+              riskColor,
+            ),
+            riskRow(
+              context,
+              "Preterm",
+              data["pretermRisk"] ?? "LOW",
+              riskColor,
+            ),
           ],
         ),
       );
@@ -548,8 +558,12 @@ Widget riskDashboard() {
   );
 }
 
-Widget riskRow(BuildContext context,
-    String title, String risk, Color Function(String) color) {
+Widget riskRow(
+  BuildContext context,
+  String title,
+  String risk,
+  Color Function(String) color,
+) {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 3),
     child: Row(
@@ -557,17 +571,12 @@ Widget riskRow(BuildContext context,
       children: [
         Text(
           title,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
         Text(
           risk,
-          style: TextStyle(
-            color: color(risk),
-            fontWeight: FontWeight.bold,
-          ),
-        )
+          style: TextStyle(color: color(risk), fontWeight: FontWeight.bold),
+        ),
       ],
     ),
   );

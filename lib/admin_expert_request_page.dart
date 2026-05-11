@@ -1,6 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+
 import 'expert_detail_page.dart';
+import 'language_selector.dart';
+import 'l10n/app_localizations.dart';
 
 class AdminExpertRequestsPage extends StatefulWidget {
   const AdminExpertRequestsPage({super.key});
@@ -16,10 +19,13 @@ class _AdminExpertRequestsPageState extends State<AdminExpertRequestsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Uzman Başvuruları"),
+        title: Text(l10n.expertApplications),
         backgroundColor: Theme.of(context).colorScheme.primary,
+        actions: const [LanguageActionButton()],
       ),
       body: Column(
         children: [
@@ -41,7 +47,7 @@ class _AdminExpertRequestsPageState extends State<AdminExpertRequestsPage> {
                 }
 
                 if (!snapshot.hasData) {
-                  return const Center(child: Text("Başvuru bulunamadı"));
+                  return Center(child: Text(l10n.noApplicationFound));
                 }
 
                 final docs = snapshot.data!.docs.where((doc) {
@@ -52,7 +58,11 @@ class _AdminExpertRequestsPageState extends State<AdminExpertRequestsPage> {
 
                 if (docs.isEmpty) {
                   return Center(
-                    child: Text("${_statusLabel(statusFilter)} başvuru yok"),
+                    child: Text(
+                      l10n.noApplicationsWithStatus(
+                        _statusLabel(l10n, statusFilter),
+                      ),
+                    ),
                   );
                 }
 
@@ -80,18 +90,22 @@ class _AdminExpertRequestsPageState extends State<AdminExpertRequestsPage> {
     BuildContext context,
     QueryDocumentSnapshot doc,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
+
     await doc.reference.update({'status': 'rejected'});
 
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Başvuru reddedildi")),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.applicationRejected)));
   }
 
   Future<void> approveExpert(
     BuildContext context,
     QueryDocumentSnapshot doc,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
+
     try {
       final data = doc.data() as Map<String, dynamic>;
       final uid = data['uid'];
@@ -100,42 +114,34 @@ class _AdminExpertRequestsPageState extends State<AdminExpertRequestsPage> {
 
       final batch = FirebaseFirestore.instance.batch();
 
-      batch.update(
-        FirebaseFirestore.instance.collection('users').doc(uid),
-        {
-          'role': role,
-          'diplomaUrl': diplomaUrl,
-        },
-      );
+      batch.update(FirebaseFirestore.instance.collection('users').doc(uid), {
+        'role': role,
+        'diplomaUrl': diplomaUrl,
+        'isApproved': true,
+      });
 
-      batch.update(
-        doc.reference,
-        {'status': 'approved'},
-      );
+      batch.update(doc.reference, {'status': 'approved'});
 
-      batch.set(
-        FirebaseFirestore.instance.collection('notification').doc(),
-        {
-          'uid': uid,
-          'title': 'Uzman Başvurun Onaylandı',
-          'message': 'Artık PregNova’da uzman olarak giriş yapabilirsin.',
-          'isRead': false,
-          'createdAt': FieldValue.serverTimestamp(),
-        },
-      );
+      batch.set(FirebaseFirestore.instance.collection('notification').doc(), {
+        'uid': uid,
+        'title': l10n.applicationApprovedNotificationTitle,
+        'message': l10n.applicationApprovedNotificationMessage,
+        'isRead': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
       await batch.commit();
 
       if (!context.mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Uzman onaylandı")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.expertApproved)));
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Onay hatası: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.approvalError(e))));
     }
   }
 }
@@ -155,6 +161,8 @@ class _FilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
       child: Column(
@@ -163,18 +171,43 @@ class _FilterBar extends StatelessWidget {
           Wrap(
             spacing: 8,
             children: [
-              _filterChip("Bekleyen", "pending", statusFilter, onStatusChanged),
-              _filterChip("Onaylanan", "approved", statusFilter, onStatusChanged),
-              _filterChip("Reddedilen", "rejected", statusFilter, onStatusChanged),
+              _filterChip(
+                l10n.pendingStatus,
+                "pending",
+                statusFilter,
+                onStatusChanged,
+              ),
+              _filterChip(
+                l10n.approvedStatus,
+                "approved",
+                statusFilter,
+                onStatusChanged,
+              ),
+              _filterChip(
+                l10n.rejectedStatus,
+                "rejected",
+                statusFilter,
+                onStatusChanged,
+              ),
             ],
           ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             children: [
-              _filterChip("Tümü", "all", roleFilter, onRoleChanged),
-              _filterChip("Jinekolog", "gynecologist", roleFilter, onRoleChanged),
-              _filterChip("Diyetisyen", "dietitian", roleFilter, onRoleChanged),
+              _filterChip(l10n.all, "all", roleFilter, onRoleChanged),
+              _filterChip(
+                l10n.gynecologist,
+                "gynecologist",
+                roleFilter,
+                onRoleChanged,
+              ),
+              _filterChip(
+                l10n.dietitian,
+                "dietitian",
+                roleFilter,
+                onRoleChanged,
+              ),
             ],
           ),
         ],
@@ -211,13 +244,12 @@ class _ApplicationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final data = doc.data() as Map<String, dynamic>;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 3,
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
@@ -227,22 +259,19 @@ class _ApplicationCard extends StatelessWidget {
         ),
         title: Text(
           data['email'] ?? "-",
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 15,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 6),
-            Text("Rol: ${_roleLabel(data['role'])}"),
-            Text("Durum: ${_statusLabel(data['status'])}"),
-            Text("Lisans No: ${data['licenseNumber'] ?? '-'}"),
+            Text("${l10n.role}: ${_roleLabel(l10n, data['role'])}"),
+            Text("${l10n.status}: ${_statusLabel(l10n, data['status'])}"),
+            Text("${l10n.licenseNumber}: ${data['licenseNumber'] ?? '-'}"),
             if (data['experience'] != null)
-              Text("Deneyim: ${data['experience']}"),
+              Text("${l10n.experience}: ${data['experience']}"),
             if (data['hospital'] != null)
-              Text("Kurum: ${data['hospital']}"),
+              Text("${l10n.institution}: ${data['hospital']}"),
           ],
         ),
         trailing: Row(
@@ -267,9 +296,7 @@ class _ApplicationCard extends StatelessWidget {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => ExpertDetailPage(doc: doc),
-            ),
+            MaterialPageRoute(builder: (_) => ExpertDetailPage(doc: doc)),
           );
         },
       ),
@@ -277,24 +304,24 @@ class _ApplicationCard extends StatelessWidget {
   }
 }
 
-String _statusLabel(String? status) {
+String _statusLabel(AppLocalizations l10n, String? status) {
   switch (status) {
     case 'approved':
-      return 'Onaylanan';
+      return l10n.approvedStatus;
     case 'rejected':
-      return 'Reddedilen';
+      return l10n.rejectedStatus;
     case 'pending':
     default:
-      return 'Bekleyen';
+      return l10n.pendingStatus;
   }
 }
 
-String _roleLabel(String? role) {
+String _roleLabel(AppLocalizations l10n, String? role) {
   switch (role) {
     case 'gynecologist':
-      return 'Jinekolog';
+      return l10n.gynecologist;
     case 'dietitian':
-      return 'Diyetisyen';
+      return l10n.dietitian;
     default:
       return role ?? '-';
   }

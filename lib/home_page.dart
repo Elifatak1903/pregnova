@@ -1,14 +1,20 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
+import 'l10n/app_localizations.dart';
 
 class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: const Text("Ana Sayfa"),
+        title: Text(l10n.home),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: Center(
@@ -16,14 +22,13 @@ class HomePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              "Hoş geldiniz, ${user?.email ?? "Kullanıcı"}",
+              l10n.welcomeUser(user?.email ?? l10n.userFallback),
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 16,
               ),
             ),
             const SizedBox(height: 20),
-
             ElevatedButton(
               onPressed: () => FirebaseAuth.instance.signOut(),
               style: ElevatedButton.styleFrom(
@@ -34,7 +39,7 @@ class HomePage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text("Çıkış Yap"),
+              child: Text(l10n.logoutAction),
             ),
           ],
         ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import 'food_units.dart';
+import 'l10n/app_localizations.dart';
 import 'nutrition_engine.dart';
 
 class HamileBesinPage extends StatefulWidget {
@@ -24,8 +26,14 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
   String _takviyeFormat = 'ölçek';
 
   final List<String> formatlar = [
-    'tane', 'tabak', 'bardak', 'fincan',
-    'kaşık', 'gram', 'ml', 'ölçek'
+    'tane',
+    'tabak',
+    'bardak',
+    'fincan',
+    'kaşık',
+    'gram',
+    'ml',
+    'ölçek',
   ];
 
   bool _loading = false;
@@ -41,7 +49,9 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
 
   void besinEkle() {
     if (_besinAdiController.text.isEmpty ||
-        _besinMiktarController.text.isEmpty) return;
+        _besinMiktarController.text.isEmpty) {
+      return;
+    }
 
     setState(() {
       besinListesi.add({
@@ -56,7 +66,9 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
 
   void takviyeEkle() {
     if (_takviyeAdiController.text.isEmpty ||
-        _takviyeMiktarController.text.isEmpty) return;
+        _takviyeMiktarController.text.isEmpty) {
+      return;
+    }
 
     setState(() {
       takviyeListesi.add({
@@ -70,68 +82,44 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
   }
 
   Future<void> kaydetAnaliz() async {
+    final l10n = AppLocalizations.of(context)!;
 
     try {
-
       final user = FirebaseAuth.instance.currentUser;
 
-      if (user == null) {
-        print("KULLANICI YOK");
-        return;
+      if (user == null) return;
+      if (besinListesi.isEmpty && takviyeListesi.isEmpty) return;
+
+      setState(() => _loading = true);
+
+      final foodsForAnalysis = <Map<String, dynamic>>[];
+
+      for (final item in besinListesi) {
+        final unitGram = FoodUnits.units[item["format"]] ?? 0;
+        final miktar = double.tryParse(item["miktar"].toString()) ?? 0;
+        final totalGram = unitGram * miktar;
+
+        foodsForAnalysis.add({"name": item["ad"], "amount": totalGram});
       }
 
-      if (besinListesi.isEmpty && takviyeListesi.isEmpty) {
-        print("LİSTE BOŞ");
-        return;
-      }
+      final supplementsForAnalysis = <Map<String, dynamic>>[];
 
-      setState(() {
-        _loading = true;
-      });
-
-      List<Map<String, dynamic>> foodsForAnalysis = [];
-
-      for (var item in besinListesi) {
-
-        double unitGram =
-            FoodUnits.units[item["format"]] ?? 0;
-
-        double miktar =
-            double.tryParse(item["miktar"]) ?? 0;
-
-        double totalGram = unitGram * miktar;
-
-        foodsForAnalysis.add({
-          "name": item["ad"],
-          "amount": totalGram
-        });
-      }
-
-      List<Map<String, dynamic>> supplementsForAnalysis = [];
-
-      for (var item in takviyeListesi) {
-
+      for (final item in takviyeListesi) {
         supplementsForAnalysis.add({
           "name": item["ad"],
-          "amount": item["miktar"]
+          "amount": item["miktar"],
         });
       }
 
       final analiz = NutritionEngine.analyzeFoods(
-          foodsForAnalysis,
-          supplementsForAnalysis,
+        foodsForAnalysis,
+        supplementsForAnalysis,
       );
 
       final dailyInputs = await getTodayNutritionInputs(user.uid);
       final dailyAnaliz = NutritionEngine.analyzeFoods(
-        [
-          ...dailyInputs["foods"]!,
-          ...foodsForAnalysis,
-        ],
-        [
-          ...dailyInputs["supplements"]!,
-          ...supplementsForAnalysis,
-        ],
+        [...dailyInputs["foods"]!, ...foodsForAnalysis],
+        [...dailyInputs["supplements"]!, ...supplementsForAnalysis],
       );
 
       final userDoc = await FirebaseFirestore.instance
@@ -141,85 +129,92 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
 
       final dietitianId = userDoc["assignedDietitian"];
       if (dietitianId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Henüz diyetisyen atanmadı ❗"),
-          ),
-        );
+        if (mounted) setState(() => _loading = false);
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.noDietitianAssigned)));
         return;
       }
 
-      await FirebaseFirestore.instance
-          .collection('besin_analizleri')
-          .add({
-
+      await FirebaseFirestore.instance.collection('besin_analizleri').add({
         'uid': user.uid,
         'dietitianId': dietitianId,
-
         'createdAt': FieldValue.serverTimestamp(),
-
         'besinler': besinListesi,
         'takviyeler': takviyeListesi,
-
         'kalori': analiz["totalCalories"] ?? 0,
-
         'foodDetails': analiz["foodDetails"],
         'consumedNutrients': dailyAnaliz["consumedNutrients"],
         'missingNutrients': dailyAnaliz["missingNutrients"],
         'excessNutrients': dailyAnaliz["excessNutrients"],
-        'totalNutrients': dailyAnaliz["totalNutrients"]
-
+        'totalNutrients': dailyAnaliz["totalNutrients"],
       });
 
-      if (!context.mounted) return;
+      if (!mounted) return;
 
-      showDialog(
+      showDialog<void>(
         context: context,
         builder: (_) => AlertDialog(
           backgroundColor: Theme.of(context).colorScheme.surface,
-          title: const Text("Besin Analizi"),
-
+          title: Text(l10n.nutritionAnalysis),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
-              const Text("Alınan Besin Öğeleri"),
-
+              Text(l10n.consumedNutrients),
               const SizedBox(height: 8),
-
               ...dailyAnaliz["consumedNutrients"]
-                  .map<Widget>((n) => Row(
-                children: [
-                  const Icon(Icons.check_circle, color: Colors.green, size: 18),
-                  const SizedBox(width: 6),
-                  Text(n),
-                ],
-              ))
+                  .map<Widget>(
+                    (n) => Row(
+                      children: [
+                        const Icon(
+                          Icons.check_circle,
+                          color: Colors.green,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(n),
+                      ],
+                    ),
+                  )
                   .toList(),
-
               const SizedBox(height: 20),
-
-              const Text("Eksik Besin Öğeleri"),
-
+              Text(l10n.missingNutrients),
               const SizedBox(height: 10),
-
               ...dailyAnaliz["missingNutrients"]
-                  .map<Widget>((n) => Row(
-                children: [
-                  const Icon(Icons.warning, color: Colors.orange, size: 18),
-                  const SizedBox(width: 6),
-                  Text(n),
-                ],
-              )).toList(),
+                  .map<Widget>(
+                    (n) => Row(
+                      children: [
+                        const Icon(
+                          Icons.warning,
+                          color: Colors.orange,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(n),
+                      ],
+                    ),
+                  )
+                  .toList(),
               const SizedBox(height: 20),
-
-              const Text("Fazla Besin Öğeleri"),
-
+              Text(l10n.excessNutrients),
               const SizedBox(height: 10),
-
               ...dailyAnaliz["excessNutrients"]
-                  .map<Widget>((n) => Text("⬆ $n"))
+                  .map<Widget>(
+                    (n) => Row(
+                      children: [
+                        const Icon(
+                          Icons.arrow_upward,
+                          color: Colors.red,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(n),
+                      ],
+                    ),
+                  )
                   .toList(),
             ],
           ),
@@ -228,7 +223,7 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text("Kaydedildi 💗"),
+          content: Text(l10n.saved),
           backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
@@ -238,28 +233,27 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
         takviyeListesi.clear();
         _loading = false;
       });
-
     } catch (e) {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+      if (!mounted) return;
 
-      print("HATA VAR: $e");
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Hata: $e")),
-      );
-
-      setState(() {
-        _loading = false;
-      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.errorWithMessage(e))));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
-        title: const Text("Besin ve Takviye Analizi"),
+        title: Text(l10n.nutritionSupplementAnalysis),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -267,61 +261,50 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            _buildSectionTitle("📌 Besin Girişi"),
-            _buildTextField("Besin Adı", _besinAdiController),
+            _buildSectionTitle(l10n.foodEntry),
+            _buildTextField(l10n.foodName, _besinAdiController),
             const SizedBox(height: 10),
-
             Row(
               children: [
                 Expanded(
                   child: _buildDropdown(
                     _besinFormat,
-                        (v) => setState(() => _besinFormat = v!),
+                    (v) => setState(() => _besinFormat = v!),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: _buildTextField("Miktar", _besinMiktarController),
+                  child: _buildTextField(l10n.amount, _besinMiktarController),
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-            _pinkButton("Besin Ekle", besinEkle),
-
+            _primaryButton(l10n.addFood, besinEkle),
             const SizedBox(height: 25),
-
-            _buildSectionTitle("💊 Takviye Girişi"),
-            _buildTextField("Takviye Adı", _takviyeAdiController),
+            _buildSectionTitle(l10n.supplementEntry),
+            _buildTextField(l10n.supplementName, _takviyeAdiController),
             const SizedBox(height: 10),
-
             Row(
               children: [
                 Expanded(
                   child: _buildDropdown(
                     _takviyeFormat,
-                        (v) => setState(() => _takviyeFormat = v!),
+                    (v) => setState(() => _takviyeFormat = v!),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: _buildTextField("Miktar", _takviyeMiktarController),
+                  child: _buildTextField(l10n.amount, _takviyeMiktarController),
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-            _pinkButton("Takviye Ekle", takviyeEkle),
-
+            _primaryButton(l10n.addSupplement, takviyeEkle),
             const SizedBox(height: 30),
-
-            _buildList("📝 Girilen Besinler", besinListesi),
+            _buildList(l10n.enteredFoods, besinListesi),
             const SizedBox(height: 20),
-            _buildList("📝 Girilen Takviyeler", takviyeListesi),
-
+            _buildList(l10n.enteredSupplements, takviyeListesi),
             const SizedBox(height: 30),
-
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
@@ -334,10 +317,9 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
               onPressed: _loading ? null : kaydetAnaliz,
               child: _loading
                   ? CircularProgressIndicator(
-                color: Theme.of(context).colorScheme.onPrimary,
-              )
-                  : const Text("Günü Kaydet",
-                  style: TextStyle(fontSize: 16)),
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    )
+                  : Text(l10n.saveDay, style: const TextStyle(fontSize: 16)),
             ),
           ],
         ),
@@ -374,27 +356,22 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
     );
   }
 
-  Widget _buildDropdown(String value, Function(String?) onChanged) {
+  Widget _buildDropdown(String value, ValueChanged<String?> onChanged) {
     return DropdownButtonFormField<String>(
       value: value,
       decoration: InputDecoration(
         filled: true,
         fillColor: Theme.of(context).colorScheme.surface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
       items: formatlar
-          .map((f) => DropdownMenuItem(
-        value: f,
-        child: Text(f),
-      ))
+          .map((f) => DropdownMenuItem(value: f, child: Text(f)))
           .toList(),
       onChanged: onChanged,
     );
   }
 
-  Widget _pinkButton(String text, VoidCallback onTap) {
+  Widget _primaryButton(String text, VoidCallback onTap) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -407,6 +384,8 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
   }
 
   Widget _buildList(String title, List<Map<String, dynamic>> liste) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
@@ -417,48 +396,44 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold)),
+          Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           if (liste.isEmpty)
             Text(
-              "Henüz ekleme yok",
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
+              l10n.noItemsYet,
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            ),
+          ...liste.map(
+            (item) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      "- ${item['ad']} (${item['miktar']} ${item['format']})",
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () {
+                      setState(() {
+                        liste.remove(item);
+                      });
+                    },
+                  ),
+                ],
               ),
             ),
-          ...liste.map((item) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-
-                Expanded(
-                  child: Text(
-                    "- ${item['ad']} (${item['miktar']} ${item['format']})",
-                  ),
-                ),
-
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () {
-                    setState(() {
-                      liste.remove(item);
-                    });
-                  },
-                ),
-
-              ],
-            ),
-          )),
+          ),
         ],
       ),
     );
   }
 
   Future<Map<String, List<Map<String, dynamic>>>> getTodayNutritionInputs(
-      String uid) async {
+    String uid,
+  ) async {
     final now = DateTime.now();
     final start = DateTime(now.year, now.month, now.day);
 
@@ -488,25 +463,16 @@ class _HamileBesinPageState extends State<HamileBesinPage> {
         final unitGram = FoodUnits.units[map['format']] ?? 1;
         final amount = double.tryParse(map['miktar'].toString()) ?? 0;
 
-        foods.add({
-          'name': map['ad'],
-          'amount': unitGram * amount,
-        });
+        foods.add({'name': map['ad'], 'amount': unitGram * amount});
       }
 
       for (final item in (data['takviyeler'] ?? [])) {
         final map = Map<String, dynamic>.from(item);
 
-        supplements.add({
-          'name': map['ad'],
-          'amount': map['miktar'],
-        });
+        supplements.add({'name': map['ad'], 'amount': map['miktar']});
       }
     }
 
-    return {
-      'foods': foods,
-      'supplements': supplements,
-    };
+    return {'foods': foods, 'supplements': supplements};
   }
 }

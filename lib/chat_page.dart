@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'l10n/app_localizations.dart';
+
 class ChatPage extends StatefulWidget {
   final String chatId;
   final String title;
@@ -33,9 +35,9 @@ class _ChatPageState extends State<ChatPage> {
         .collection("chats")
         .doc(widget.chatId)
         .update({
-      "lastMessage": text,
-      "lastMessageTime": FieldValue.serverTimestamp(),
-    });
+          "lastMessage": text,
+          "lastMessageTime": FieldValue.serverTimestamp(),
+        });
 
     controller.clear();
   }
@@ -69,6 +71,7 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
@@ -86,7 +89,6 @@ class _ChatPageState extends State<ChatPage> {
                   .orderBy("createdAt", descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
-
                 if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
                   markMessagesAsRead();
                 }
@@ -101,19 +103,16 @@ class _ChatPageState extends State<ChatPage> {
                   reverse: true,
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
-
-                    final data =
-                    messages[index].data() as Map<String, dynamic>;
+                    final data = messages[index].data() as Map<String, dynamic>;
 
                     final isMe = data["senderId"] == uid;
 
                     String timeText = "";
 
                     if (data["createdAt"] != null) {
-                      final date =
-                      (data["createdAt"] as Timestamp).toDate();
+                      final date = (data["createdAt"] as Timestamp).toDate();
                       timeText =
-                      "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+                          "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
                     }
 
                     return Align(
@@ -122,17 +121,20 @@ class _ChatPageState extends State<ChatPage> {
                           : Alignment.centerLeft,
                       child: Container(
                         margin: const EdgeInsets.symmetric(
-                            vertical: 4, horizontal: 10),
+                          vertical: 4,
+                          horizontal: 10,
+                        ),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: isMe
                               ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.surfaceVariant,
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
                               data["text"] ?? "",
@@ -148,8 +150,10 @@ class _ChatPageState extends State<ChatPage> {
                               style: TextStyle(
                                 fontSize: 10,
                                 color: isMe
-                                    ? Theme.of(context).colorScheme.onPrimary.withOpacity(0.7)
-                                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                    ? Theme.of(context).colorScheme.onPrimary
+                                          .withValues(alpha: 0.7)
+                                    : Theme.of(context).colorScheme.onSurface
+                                          .withValues(alpha: 0.6),
                               ),
                             ),
                           ],
@@ -168,7 +172,7 @@ class _ChatPageState extends State<ChatPage> {
                 child: TextField(
                   controller: controller,
                   decoration: InputDecoration(
-                    hintText: "Mesaj yaz...",
+                    hintText: l10n.writeMessage,
                     contentPadding: const EdgeInsets.all(12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -177,11 +181,14 @@ class _ChatPageState extends State<ChatPage> {
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.send, color: Theme.of(context).colorScheme.primary),
+                icon: Icon(
+                  Icons.send,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 onPressed: sendMessage,
-              )
+              ),
             ],
-          )
+          ),
         ],
       ),
     );

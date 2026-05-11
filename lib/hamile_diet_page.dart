@@ -1,21 +1,23 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
+import 'l10n/app_localizations.dart';
 
 class DiyetPage extends StatelessWidget {
   const DiyetPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final uid = FirebaseAuth.instance.currentUser?.uid;
 
     if (uid == null) {
-      return const Center(child: Text("Giriş yapmalısın"));
+      return Center(child: Text(l10n.notLoggedIn));
     }
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection("diet_plans")
@@ -23,9 +25,7 @@ class DiyetPage extends StatelessWidget {
             .orderBy("createdAt", descending: true)
             .limit(1)
             .snapshots(),
-
         builder: (context, snapshot) {
-
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
               child: CircularProgressIndicator(
@@ -37,7 +37,7 @@ class DiyetPage extends StatelessWidget {
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return Center(
               child: Text(
-                "Henüz diyet planın yok 🥲",
+                l10n.noDietPlanYet,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
@@ -45,31 +45,25 @@ class DiyetPage extends StatelessWidget {
             );
           }
 
-          final data =
-          snapshot.data!.docs.first.data() as Map<String, dynamic>;
-
-          final createdAt = data["createdAt"];
-          DateTime? date;
-
-          if (createdAt is Timestamp) {
-            date = createdAt.toDate();
-          }
+          final data = snapshot.data!.docs.first.data() as Map<String, dynamic>;
+          final date = _readDate(data["createdAt"]);
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-
                 Center(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.restaurant_menu,
-                          color: Theme.of(context).colorScheme.primary),
+                      Icon(
+                        Icons.restaurant_menu,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                       const SizedBox(width: 8),
                       Text(
-                        "Diyet Planım",
+                        l10n.myDietPlan,
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -79,44 +73,35 @@ class DiyetPage extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 6),
-
                 Center(
                   child: Text(
-                    "Güncel diyet planını görüntüle",
+                    l10n.viewCurrentDietPlan,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withOpacity(0.6),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
-                GestureDetector(
-                  onTap: () => showDietDetail(context, data, date),
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 16),
+                FilledButton.icon(
+                  onPressed: () => showDietDetail(context, data, date),
+                  icon: const Icon(Icons.calendar_month),
+                  label: Text(l10n.viewDietPlanButton(formatDate(date))),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(20),
+                      horizontal: 18,
+                      vertical: 14,
                     ),
-                    child: Text(
-                      "📅 ${formatDate(date)} - Diyeti Gör",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onPrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
                     ),
                   ),
                 ),
-
               ],
             ),
           );
@@ -125,94 +110,23 @@ class DiyetPage extends StatelessWidget {
     );
   }
 
-  Widget mealCard(BuildContext context, String title, dynamic value) {
-    if (value == null || value.toString().isEmpty) {
-      return const SizedBox();
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).shadowColor.withOpacity(0.1),
-            blurRadius: 6,
-          )
-        ],
-      ),
-      child: Row(
-        children: [
-
-          CircleAvatar(
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            child: const Icon(Icons.restaurant, color: Colors.white),
-          ),
-
-          const SizedBox(width: 12),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-
-                const SizedBox(height: 5),
-
-                Text(
-                  value.toString(),
-                  style: TextStyle(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withOpacity(0.7),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+  DateTime? _readDate(dynamic raw) {
+    if (raw is Timestamp) return raw.toDate();
+    if (raw != null) return DateTime.tryParse(raw.toString());
+    return null;
   }
 
-  Widget noteCard(BuildContext context, String note) {
-    return Container(
-      margin: const EdgeInsets.only(top: 10),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.info,
-              color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 10),
-          Expanded(child: Text(note)),
-        ],
-      ),
-    );
-  }
-
-  String formatDate(DateTime? d) {
-    if (d == null) return "-";
-    return "${d.day}/${d.month}/${d.year}";
+  String formatDate(DateTime? date) {
+    if (date == null) return "-";
+    return "${date.day}/${date.month}/${date.year}";
   }
 
   void showDietDetail(
-      BuildContext context,
-      Map<String, dynamic> data,
-      DateTime? date) {
+    BuildContext context,
+    Map<String, dynamic> data,
+    DateTime? date,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
 
     showModalBottomSheet(
       context: context,
@@ -224,7 +138,6 @@ class DiyetPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               Center(
                 child: Container(
                   width: 40,
@@ -236,25 +149,24 @@ class DiyetPage extends StatelessWidget {
                   ),
                 ),
               ),
-
               Text(
-                "Diyet Detayı - ${formatDate(date)}",
+                l10n.dietDetailWithDate(formatDate(date)),
                 style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 16),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
-
               const SizedBox(height: 15),
-
               Expanded(
                 child: ListView(
                   children: [
-                    textItem("Kahvaltı", data["kahvalti"]),
-                    textItem("Ara 1", data["ara1"]),
-                    textItem("Öğle", data["ogle"]),
-                    textItem("Ara 2", data["ara2"]),
-                    textItem("Akşam", data["aksam"]),
-                    textItem("Gece", data["gece"]),
-                    textItem("Not", data["notlar"]),
+                    textItem(l10n.breakfast, data["kahvalti"]),
+                    textItem(l10n.snack1, data["ara1"]),
+                    textItem(l10n.lunch, data["ogle"]),
+                    textItem(l10n.snack2, data["ara2"]),
+                    textItem(l10n.dinner, data["aksam"]),
+                    textItem(l10n.nightSnack, data["gece"]),
+                    textItem(l10n.notes, data["notlar"]),
                   ],
                 ),
               ),
@@ -272,7 +184,7 @@ class DiyetPage extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Text("• $title: $value"),
+      child: Text("- $title: $value"),
     );
   }
 }

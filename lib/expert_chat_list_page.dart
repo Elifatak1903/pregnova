@@ -1,19 +1,21 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 import 'chat_page.dart';
+import 'l10n/app_localizations.dart';
 
 class ExpertChatListPage extends StatelessWidget {
   const ExpertChatListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Mesajlar"),
+        title: Text(l10n.messages),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -23,18 +25,21 @@ class ExpertChatListPage extends StatelessWidget {
             .orderBy("lastMessageTime", descending: true)
             .snapshots(),
         builder: (context, snapshot) {
-
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text(
-              "Henüz mesaj yok",
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            return Center(
+              child: Text(
+                l10n.noMessagesYet,
+                style: TextStyle(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
               ),
-            ));
+            );
           }
 
           final chats = snapshot.data!.docs;
@@ -42,14 +47,9 @@ class ExpertChatListPage extends StatelessWidget {
           return ListView.builder(
             itemCount: chats.length,
             itemBuilder: (context, index) {
-
-              final data =
-              chats[index].data() as Map<String, dynamic>;
-
+              final data = chats[index].data() as Map<String, dynamic>;
               final users = List<String>.from(data["users"]);
-
-              final otherUserId =
-              users.firstWhere((u) => u != uid);
+              final otherUserId = users.firstWhere((u) => u != uid);
 
               return FutureBuilder<DocumentSnapshot>(
                 future: FirebaseFirestore.instance
@@ -57,48 +57,33 @@ class ExpertChatListPage extends StatelessWidget {
                     .doc(otherUserId)
                     .get(),
                 builder: (context, userSnap) {
-
-                  if (userSnap.connectionState ==
-                      ConnectionState.waiting) {
+                  if (userSnap.connectionState == ConnectionState.waiting) {
                     return ListTile(
-                        title: Text(
-                          "Yükleniyor...",
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ));
+                      title: Text(
+                        l10n.loading,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    );
                   }
 
-                  if (!userSnap.hasData ||
-                      userSnap.data!.data() == null) {
-                    return const ListTile(
-                        title: Text("Kullanıcı bulunamadı"));
+                  if (!userSnap.hasData || userSnap.data!.data() == null) {
+                    return ListTile(title: Text(l10n.userNotFound));
                   }
 
                   final userData =
-                  userSnap.data!.data()
-                  as Map<String, dynamic>;
-
+                      userSnap.data!.data() as Map<String, dynamic>;
                   final name = userData["name"] ?? "";
                   final surname = userData["surname"] ?? "";
-
-                  String timeText = "";
-                  if (data["lastMessageTime"] != null) {
-                    final date =
-                    (data["lastMessageTime"] as Timestamp)
-                        .toDate();
-                    timeText =
-                    "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
-                  }
+                  final timeText = _formatTime(data["lastMessageTime"]);
 
                   return StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
                         .collection("messages")
                         .where("chatId", isEqualTo: chats[index].id)
                         .snapshots(),
-
                     builder: (context, msgSnap) {
-
                       int unreadCount = 0;
 
                       if (msgSnap.hasData) {
@@ -110,13 +95,14 @@ class ExpertChatListPage extends StatelessWidget {
 
                       return ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
                           child: Icon(
                             Icons.person,
                             color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         ),
-
                         title: Text(
                           "$name $surname",
                           style: TextStyle(
@@ -124,30 +110,29 @@ class ExpertChatListPage extends StatelessWidget {
                             color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
-
                         subtitle: Text(
                           data["lastMessage"] ?? "",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.7),
                           ),
                         ),
-
                         trailing: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            /// saat
                             Text(
                               timeText,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.6),
                               ),
                             ),
-
                             const SizedBox(height: 5),
-
                             if (unreadCount > 0)
                               Container(
                                 padding: const EdgeInsets.all(6),
@@ -158,14 +143,15 @@ class ExpertChatListPage extends StatelessWidget {
                                 child: Text(
                                   unreadCount.toString(),
                                   style: TextStyle(
-                                    color: Theme.of(context).colorScheme.onPrimary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimary,
                                     fontSize: 10,
                                   ),
                                 ),
                               ),
                           ],
                         ),
-
                         onTap: () {
                           Navigator.push(
                             context,
@@ -187,5 +173,11 @@ class ExpertChatListPage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  String _formatTime(dynamic raw) {
+    if (raw is! Timestamp) return "";
+    final date = raw.toDate();
+    return "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
   }
 }

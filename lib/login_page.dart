@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'register_page.dart';
+import 'package:flutter/material.dart';
+
+import 'l10n/app_localizations.dart';
 import 'main.dart';
+import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,14 +13,21 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   bool _loading = false;
 
   static const Color brandColor = Color(0xFF673AB7);
 
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
   void login() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _loading = true);
 
     try {
@@ -32,15 +41,14 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const RoleLoaderPage()),
-            (route) => false,
+        (route) => false,
       );
-
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.message ?? "Giriş hatası"),
+          content: Text(e.message ?? l10n.loginError),
           backgroundColor: Colors.red,
         ),
       );
@@ -54,70 +62,50 @@ class _LoginPageState extends State<LoginPage> {
       labelText: label,
       filled: true,
       fillColor: Colors.white,
-
-      labelStyle: const TextStyle(
-        color: brandColor,
-      ),
-
-      prefixIcon: Icon(
-        icon,
-        color: brandColor,
-      ),
-
+      labelStyle: const TextStyle(color: brandColor),
+      prefixIcon: Icon(icon, color: brandColor),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
       ),
-
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: brandColor,
-        ),
+        borderSide: const BorderSide(color: brandColor),
       ),
-
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: brandColor,
-          width: 2,
-        ),
+        borderSide: const BorderSide(color: brandColor, width: 2),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Colors.white,
-
       appBar: AppBar(
         backgroundColor: brandColor,
-        title: const Text("Giriş Yap"),
+        title: Text(l10n.login),
         centerTitle: true,
       ),
-
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-
               TextField(
                 controller: emailController,
-                decoration: inputDecoration("Email", Icons.email),
+                decoration: inputDecoration(l10n.emailField, Icons.email),
               ),
-
               const SizedBox(height: 12),
-
               TextField(
                 controller: passwordController,
                 obscureText: true,
-                decoration: inputDecoration("Şifre", Icons.lock),
+                decoration: inputDecoration(l10n.password, Icons.lock),
               ),
-
               const SizedBox(height: 24),
-
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -132,28 +120,20 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   child: _loading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                    "Giriş Yap",
-                    style: TextStyle(fontSize: 16),
-                  ),
+                      : Text(l10n.login, style: const TextStyle(fontSize: 16)),
                 ),
               ),
-
               const SizedBox(height: 16),
-
               TextButton(
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                        builder: (_) => const RegisterPage()),
+                    MaterialPageRoute(builder: (_) => const RegisterPage()),
                   );
                 },
-                child: const Text(
-                  "Hesabınız yok mu? Kayıt olun",
-                  style: TextStyle(
-                    color: brandColor,
-                  ),
+                child: Text(
+                  l10n.noAccountRegister,
+                  style: const TextStyle(color: brandColor),
                 ),
               ),
             ],

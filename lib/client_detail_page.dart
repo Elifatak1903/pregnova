@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'besin_analiz_detay_page.dart';
 import 'food_units.dart';
+import 'l10n/app_localizations.dart';
 import 'nutrition_engine.dart';
 
 class ChartData {
@@ -34,15 +35,17 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
   }
 
   Future<ChartData> getWeightSpots() async {
-
     final query = await FirebaseFirestore.instance
         .collection("risk_olcumleri")
         .where("uid", isEqualTo: widget.clientId)
         .get();
 
     final now = DateTime.now();
-    final startDate = DateTime(now.year, now.month, now.day)
-        .subtract(const Duration(days: 6));
+    final startDate = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(const Duration(days: 6));
 
     List<DateTime> dates = [];
     for (int i = 0; i < 7; i++) {
@@ -52,14 +55,18 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     Map<String, double> weightMap = {};
 
     for (var doc in query.docs) {
-      final data = doc.data() as Map<String, dynamic>;
+      final data = doc.data();
 
-      if (!data.containsKey("tarih") || !data.containsKey("kilo")) continue;
+      if (!data.containsKey("tarih") || !data.containsKey("kilo")) {
+        continue;
+      }
 
       final ts = data["tarih"];
       final rawKilo = data["kilo"];
 
-      if (ts == null || rawKilo == null) continue;
+      if (ts == null || rawKilo == null) {
+        continue;
+      }
 
       DateTime date;
 
@@ -69,14 +76,18 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
         continue;
       }
 
-      if (date.isBefore(startDate)) continue;
+      if (date.isBefore(startDate)) {
+        continue;
+      }
 
       double kilo = (rawKilo is int)
           ? rawKilo.toDouble()
           : (rawKilo is double)
           ? rawKilo
           : double.tryParse(rawKilo.toString()) ?? 0;
-      if (kilo <= 0) continue;
+      if (kilo <= 0) {
+        continue;
+      }
       String key = "${date.year}-${date.month}-${date.day}";
 
       weightMap[key] = kilo;
@@ -103,15 +114,17 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
   }
 
   Future<ChartData> getCalorieSpots() async {
-
     final query = await FirebaseFirestore.instance
         .collection("besin_analizleri")
         .where("uid", isEqualTo: widget.clientId)
         .get();
 
     final now = DateTime.now();
-    final startDate = DateTime(now.year, now.month, now.day)
-        .subtract(const Duration(days: 6));
+    final startDate = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(const Duration(days: 6));
 
     List<DateTime> dates = [];
     for (int i = 0; i < 7; i++) {
@@ -121,14 +134,18 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     Map<String, double> calorieMap = {};
 
     for (var doc in query.docs) {
-      final data = doc.data() as Map<String, dynamic>;
+      final data = doc.data();
 
-      if (!data.containsKey("createdAt") || !data.containsKey("kalori")) continue;
+      if (!data.containsKey("createdAt") || !data.containsKey("kalori")) {
+        continue;
+      }
 
       final ts = data["createdAt"];
       final raw = data["kalori"];
 
-      if (ts == null || raw == null) continue;
+      if (ts == null || raw == null) {
+        continue;
+      }
 
       DateTime date;
 
@@ -138,7 +155,9 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
         continue;
       }
 
-      if (date.isBefore(startDate)) continue;
+      if (date.isBefore(startDate)) {
+        continue;
+      }
 
       double kalori = (raw is int)
           ? raw.toDouble()
@@ -146,7 +165,9 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
           ? raw
           : double.tryParse(raw.toString()) ?? 0;
 
-      if (kalori <= 0) continue;
+      if (kalori <= 0) {
+        continue;
+      }
 
       String key = "${date.year}-${date.month}-${date.day}";
 
@@ -168,12 +189,15 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
 
     return ChartData(spots, dates);
   }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: const Text("Danışan Detayı"),
+        title: Text(l10n.clientDetail),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: FutureBuilder<DocumentSnapshot>(
@@ -182,16 +206,14 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
             .doc(widget.clientId)
             .get(),
         builder: (context, snapshot) {
-
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final data =
-          snapshot.data!.data() as Map<String, dynamic>?;
+          final data = snapshot.data!.data() as Map<String, dynamic>?;
 
           if (data == null) {
-            return const Center(child: Text("Danışan bulunamadı"));
+            return Center(child: Text(l10n.noClientFound));
           }
 
           final name = data["name"] ?? "";
@@ -205,7 +227,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 Card(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -224,18 +245,21 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                           ),
                         ),
                         const SizedBox(height: 15),
-                        Text("Gebelik Haftası: $hafta"),
+                        Text("${l10n.pregnancyWeekInput}: $hafta"),
                         const SizedBox(height: 10),
-                        Text("Güncel Kilo: $kilo kg"),
+                        Text("${l10n.currentWeightKg}: $kilo kg"),
                         const SizedBox(height: 10),
                         Row(
                           children: [
-                            Icon(Icons.warning_amber_rounded,
-                                color: Colors.red, size: 18),
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.red,
+                              size: 18,
+                            ),
                             const SizedBox(width: 6),
-                            Text("Alerjiler: $alerji"),
+                            Text("${l10n.allergies}: $alerji"),
                           ],
-                        )
+                        ),
                       ],
                     ),
                   ),
@@ -244,7 +268,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                 const SizedBox(height: 30),
 
                 Text(
-                  "Kilo Grafiği",
+                  l10n.weightChart,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -257,7 +281,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                 FutureBuilder<ChartData>(
                   future: weightFuture,
                   builder: (context, snapshot) {
-
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const SizedBox(
                         height: 220,
@@ -266,19 +289,20 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                     }
 
                     if (snapshot.hasError) {
-                      print("❌ WEIGHT ERROR: ${snapshot.error}");
                       return SizedBox(
                         height: 220,
                         child: Center(
-                          child: Text("Hata: ${snapshot.error}"),
+                          child: Text(
+                            l10n.errorWithMessage(snapshot.error ?? ""),
+                          ),
                         ),
                       );
                     }
 
                     if (!snapshot.hasData) {
-                      return const SizedBox(
+                      return SizedBox(
                         height: 220,
-                        child: Center(child: Text("Veri alınamadı")),
+                        child: Center(child: Text(l10n.dataCouldNotBeLoaded)),
                       );
                     }
 
@@ -291,136 +315,155 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                       padding: const EdgeInsets.fromLTRB(4, 10, 10, 10),
 
                       child: spots.isEmpty
-                          ? const Center(child: Text("Veri yok"))
+                          ? Center(child: Text(l10n.noData))
                           : LineChart(
-                        LineChartData(
+                              LineChartData(
+                                minX: 0,
+                                maxX: 6,
 
-                          minX: 0,
-                          maxX: 6,
+                                minY: spots.isEmpty
+                                    ? 0
+                                    : spots
+                                              .map((e) => e.y)
+                                              .reduce((a, b) => a < b ? a : b) -
+                                          2,
 
+                                maxY: spots.isEmpty
+                                    ? 10
+                                    : spots
+                                              .map((e) => e.y)
+                                              .reduce((a, b) => a > b ? a : b) +
+                                          2,
 
-                          minY: spots.isEmpty
-                              ? 0
-                              : spots.map((e) => e.y).reduce((a, b) => a < b ? a : b) - 2,
+                                lineBarsData: [
+                                  LineChartBarData(
+                                    spots: spots,
+                                    isCurved: true,
+                                    curveSmoothness: 0.3,
+                                    barWidth: 3,
+                                    dotData: FlDotData(show: true),
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                  ),
+                                ],
 
-                          maxY: spots.isEmpty
-                              ? 10
-                              : spots.map((e) => e.y).reduce((a, b) => a > b ? a : b) + 2,
+                                titlesData: FlTitlesData(
+                                  bottomTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      interval: 1,
+                                      reservedSize: 30,
 
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: spots,
-                              isCurved: true,
-                              curveSmoothness: 0.3,
-                              barWidth: 3,
-                              dotData: FlDotData(show: true),
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ],
+                                      getTitlesWidget: (value, meta) {
+                                        int index = value.toInt();
 
-                          titlesData: FlTitlesData(
+                                        if (index < 0 ||
+                                            index > 6 ||
+                                            index >= dates.length) {
+                                          return const SizedBox();
+                                        }
 
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                interval: 1,
-                                reservedSize: 30,
+                                        final d = dates[index];
 
-                                getTitlesWidget: (value, meta) {
-                                  int index = value.toInt();
-
-                                  if (index < 0 || index > 6 || index >= dates.length) {
-                                    return const SizedBox();
-                                  }
-
-                                  final d = dates[index];
-
-                                  return Padding(
-                                    padding: const EdgeInsets.only(top: 6),
-                                    child: Text(
-                                      "${d.day}/${d.month}",
-                                      style: const TextStyle(fontSize: 10),
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 6,
+                                          ),
+                                          child: Text(
+                                            "${d.day}/${d.month}",
+                                            style: const TextStyle(
+                                              fontSize: 10,
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     ),
-                                  );
-                                },
-                              ),
-                            ),
+                                  ),
 
-                            leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                interval: 5,
-                                reservedSize: 38,
+                                  leftTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      interval: 5,
+                                      reservedSize: 38,
 
-                                getTitlesWidget: (value, meta) {
-                                  if (value % 5 != 0) return const SizedBox();
+                                      getTitlesWidget: (value, meta) {
+                                        if (value % 5 != 0) {
+                                          return const SizedBox();
+                                        }
 
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 8),
-                                    child: Text(
-                                      value.toInt().toString(),
-                                      textAlign: TextAlign.right,
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w500,
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                            right: 8,
+                                          ),
+                                          child: Text(
+                                            value.toInt().toString(),
+                                            textAlign: TextAlign.right,
+                                            style: const TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+
+                                  rightTitles: AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+
+                                  topTitles: AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+                                ),
+
+                                gridData: FlGridData(
+                                  show: true,
+                                  horizontalInterval: 5,
+                                  verticalInterval: 1,
+
+                                  getDrawingHorizontalLine: (value) {
+                                    return FlLine(
+                                      color: Colors.grey.withValues(alpha: 0.2),
+                                      strokeWidth: 1,
+                                    );
+                                  },
+
+                                  getDrawingVerticalLine: (value) {
+                                    return FlLine(
+                                      color: Colors.grey.withValues(
+                                        alpha: 0.15,
                                       ),
-                                    ),
-                                  );
-                                },
+                                      strokeWidth: 1,
+                                    );
+                                  },
+                                ),
+
+                                lineTouchData: LineTouchData(
+                                  touchTooltipData: LineTouchTooltipData(
+                                    getTooltipItems: (touchedSpots) {
+                                      return touchedSpots.map((spot) {
+                                        int index = spot.x.toInt();
+
+                                        if (index < 0 ||
+                                            index > 6 ||
+                                            index >= dates.length) {
+                                          return null;
+                                        }
+
+                                        final d = dates[index];
+
+                                        return LineTooltipItem(
+                                          "${d.day}/${d.month}\n${spot.y.toStringAsFixed(1)} kg",
+                                          const TextStyle(color: Colors.white),
+                                        );
+                                      }).toList();
+                                    },
+                                  ),
+                                ),
                               ),
                             ),
-
-                            rightTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-
-                            topTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                          ),
-
-                          gridData: FlGridData(
-                            show: true,
-                            horizontalInterval: 5,
-                            verticalInterval: 1,
-
-                            getDrawingHorizontalLine: (value) {
-                              return FlLine(
-                                color: Colors.grey.withOpacity(0.2),
-                                strokeWidth: 1,
-                              );
-                            },
-
-                            getDrawingVerticalLine: (value) {
-                              return FlLine(
-                                color: Colors.grey.withOpacity(0.15),
-                                strokeWidth: 1,
-                              );
-                            },
-                          ),
-
-                          lineTouchData: LineTouchData(
-                            touchTooltipData: LineTouchTooltipData(
-                              getTooltipItems: (touchedSpots) {
-                                return touchedSpots.map((spot) {
-                                  int index = spot.x.toInt();
-
-                                  if (index < 0 || index > 6 || index >= dates.length) {
-                                    return null;
-                                  }
-
-                                  final d = dates[index];
-
-                                  return LineTooltipItem(
-                                    "${d.day}/${d.month}\n${spot.y.toStringAsFixed(1)} kg",
-                                    const TextStyle(color: Colors.white),
-                                  );
-                                }).toList();
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
                     );
                   },
                 ),
@@ -428,7 +471,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                 const SizedBox(height: 30),
 
                 Text(
-                  "Kalori Grafiği",
+                  l10n.calorieChart,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -441,17 +484,14 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                 FutureBuilder<ChartData>(
                   future: calorieFuture,
                   builder: (context, snapshot) {
-
                     if (snapshot.hasError) {
-                      print("❌ CALORIE ERROR: ${snapshot.error}");
-                      return const SizedBox(
+                      return SizedBox(
                         height: 220,
-                        child: Center(child: Text("Hata oluştu")),
+                        child: Center(child: Text(l10n.genericError)),
                       );
                     }
 
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      print("⏳ CALORIE LOADING...");
                       return const SizedBox(
                         height: 220,
                         child: Center(child: CircularProgressIndicator()),
@@ -459,23 +499,19 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                     }
 
                     if (!snapshot.hasData) {
-                      print("❌ CALORIE DATA YOK");
-                      return const SizedBox(
+                      return SizedBox(
                         height: 220,
-                        child: Center(child: Text("Veri alınamadı")),
+                        child: Center(child: Text(l10n.dataCouldNotBeLoaded)),
                       );
                     }
 
                     final spots = snapshot.data!.spots;
                     final dates = snapshot.data!.dates;
 
-                    print("📊 CALORIE SPOTS: ${spots.length}");
-
                     if (spots.isEmpty) {
-                      print("⚠️ CALORIE BOŞ");
-                      return const SizedBox(
+                      return SizedBox(
                         height: 220,
-                        child: Center(child: Text("Veri yok")),
+                        child: Center(child: Text(l10n.noData)),
                       );
                     }
 
@@ -485,17 +521,22 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
 
                       child: LineChart(
                         LineChartData(
-
                           minX: 0,
                           maxX: 6,
 
                           minY: spots.isEmpty
                               ? 0
-                              : spots.map((e) => e.y).reduce((a, b) => a < b ? a : b) - 100,
+                              : spots
+                                        .map((e) => e.y)
+                                        .reduce((a, b) => a < b ? a : b) -
+                                    100,
 
                           maxY: spots.isEmpty
                               ? 100
-                              : spots.map((e) => e.y).reduce((a, b) => a > b ? a : b) + 100,
+                              : spots
+                                        .map((e) => e.y)
+                                        .reduce((a, b) => a > b ? a : b) +
+                                    100,
 
                           lineBarsData: [
                             LineChartBarData(
@@ -508,14 +549,12 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                           ],
 
                           titlesData: FlTitlesData(
-
                             bottomTitles: AxisTitles(
                               sideTitles: SideTitles(
                                 showTitles: true,
                                 interval: 1,
                                 reservedSize: 30,
                                 getTitlesWidget: (value, meta) {
-
                                   int index = value.toInt();
                                   if (index < 0 || index >= dates.length) {
                                     return const SizedBox();
@@ -540,8 +579,9 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                 interval: 100,
                                 reservedSize: 38,
                                 getTitlesWidget: (value, meta) {
-
-                                  if (value % 100 != 0) return const SizedBox();
+                                  if (value % 100 != 0) {
+                                    return const SizedBox();
+                                  }
 
                                   return Padding(
                                     padding: const EdgeInsets.only(right: 8),
@@ -573,9 +613,10 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                             touchTooltipData: LineTouchTooltipData(
                               getTooltipItems: (touchedSpots) {
                                 return touchedSpots.map((spot) {
-
                                   int index = spot.x.toInt();
-                                  if (index >= dates.length) return null;
+                                  if (index >= dates.length) {
+                                    return null;
+                                  }
 
                                   final d = dates[index];
 
@@ -583,7 +624,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                     "${d.day}/${d.month}\n${spot.y.toInt()} kcal",
                                     const TextStyle(color: Colors.white),
                                   );
-
                                 }).toList();
                               },
                             ),
@@ -596,7 +636,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                 const SizedBox(height: 30),
 
                 Text(
-                  "Analiz Geçmişi",
+                  l10n.analysisHistory,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -613,7 +653,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                       .orderBy("createdAt", descending: true)
                       .snapshots(),
                   builder: (context, snapshot) {
-
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const SizedBox(
                         height: 100,
@@ -622,13 +661,13 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                     }
 
                     if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text("Henüz analiz yok"),
+                      return Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(l10n.noAnalysisYet),
                       );
                     }
 
-                    final groups = groupBesinDocsByDay(snapshot.data!.docs);
+                    final groups = _groupBesinDocsByDay(snapshot.data!.docs);
 
                     return ListView.builder(
                       shrinkWrap: true,
@@ -649,159 +688,6 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
   }
 }
 
-class _BesinCard extends StatelessWidget {
-  final DateTime? tarih;
-  final List<dynamic> takviyeler;
-  final double kalori;
-  final String docId;
-  final List<dynamic> missingNutrients;
-
-  const _BesinCard({
-    required this.tarih,
-    required this.takviyeler,
-    required this.kalori,
-    required this.docId,
-    required this.missingNutrients,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BesinAnalizDetayPage(docId: docId),
-          ),
-        );
-      },
-
-      child: Container(
-        width: double.infinity,
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        padding: const EdgeInsets.all(16),
-
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: Theme.of(context).shadowColor.withOpacity(0.15),
-              blurRadius: 6,
-            )
-          ],
-        ),
-
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-            Text(
-              tarih != null
-                  ? "${tarih!.day}/${tarih!.month}/${tarih!.year}"
-                  : "Tarih Yok",
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            Text(
-              "Toplam Kalori: ${kalori.toStringAsFixed(0)} kcal",
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-
-            const SizedBox(height: 10),
-
-            if (missingNutrients.isNotEmpty)
-              ...missingNutrients.take(3).map((m) {
-                return Row(
-                  children: [
-                    const Icon(Icons.close, color: Colors.red, size: 16),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        m.toString(),
-                        style: const TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }),
-
-            if (takviyeler.isNotEmpty)
-              ...takviyeler.take(3).map((t) {
-
-                final name = t is Map ? t["ad"] ?? "" : t.toString();
-
-                return Row(
-                  children: [
-                    Icon(Icons.check,
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 16),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        name,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }),
-
-            if (takviyeler.length > 3)
-              const Padding(
-                padding: EdgeInsets.only(top: 4),
-                child: Text("..."),
-              ),
-
-            const SizedBox(height: 12),
-
-            Align(
-              alignment: Alignment.centerRight,
-              child: Container(
-                padding:
-                const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primary
-                      .withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "Detaylı İncele",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    const Icon(Icons.arrow_forward_ios, size: 14),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _BesinDayCard extends StatelessWidget {
   final _BesinDayGroup group;
 
@@ -809,7 +695,8 @@ class _BesinDayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final summary = summarizeBesinDay(group.items);
+    final l10n = AppLocalizations.of(context)!;
+    final summary = _summarizeBesinDay(group.items);
 
     return Container(
       width: double.infinity,
@@ -820,9 +707,9 @@ class _BesinDayCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).shadowColor.withOpacity(0.15),
+            color: Theme.of(context).shadowColor.withValues(alpha: 0.15),
             blurRadius: 6,
-          )
+          ),
         ],
       ),
       child: Column(
@@ -830,10 +717,7 @@ class _BesinDayCard extends StatelessWidget {
         children: [
           Text(
             group.dayLabel,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 10),
           ...group.items.asMap().entries.map((entry) {
@@ -858,13 +742,13 @@ class _BesinDayCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "${index + 1}. Analiz - $time",
+                      l10n.analysisWithTime(index + 1, time),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    Text("Kalori: ${item.calorie.toStringAsFixed(0)} kcal"),
+                    Text(l10n.calories(item.calorie.toStringAsFixed(0))),
                     if (takviyeler.isNotEmpty)
                       Text(
-                        "Takviyeler: ${takviyeler.map((t) => t is Map ? t["ad"] ?? "" : t.toString()).take(3).join(", ")}",
+                        "${l10n.supplements}: ${takviyeler.map((t) => t is Map ? t["ad"] ?? "" : t.toString()).take(3).join(", ")}",
                       ),
                   ],
                 ),
@@ -873,29 +757,33 @@ class _BesinDayCard extends StatelessWidget {
           }),
           const Divider(),
           Text(
-            "Günlük Toplam: ${summary.calorie.toStringAsFixed(0)} kcal",
+            l10n.dailyTotalCalories(summary.calorie.toStringAsFixed(0)),
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           if (summary.missing.isNotEmpty)
-            ...summary.missing.take(4).map((m) => Row(
-                  children: [
-                    const Icon(Icons.close, color: Colors.red, size: 16),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        m,
-                        style: const TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.w500,
+            ...summary.missing
+                .take(4)
+                .map(
+                  (m) => Row(
+                    children: [
+                      const Icon(Icons.close, color: Colors.red, size: 16),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          m,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                )),
+                    ],
+                  ),
+                ),
           if (summary.consumed.isNotEmpty)
             Text(
-              "Alınanlar: ${summary.consumed.take(4).join(", ")}",
+              "${l10n.consumedNutrients}: ${summary.consumed.take(4).join(", ")}",
               style: const TextStyle(color: Colors.green),
             ),
         ],
@@ -941,18 +829,20 @@ class _BesinSummary {
   });
 }
 
-List<_BesinDayGroup> groupBesinDocsByDay(List<QueryDocumentSnapshot> docs) {
+List<_BesinDayGroup> _groupBesinDocsByDay(List<QueryDocumentSnapshot> docs) {
   final groups = <String, List<_BesinAnalysisItem>>{};
 
   for (final doc in docs) {
     final data = doc.data() as Map<String, dynamic>;
-    final date = readBesinAnalysisDate(data);
-    if (date == null) continue;
+    final date = _readBesinAnalysisDate(data);
+    if (date == null) {
+      continue;
+    }
 
     final key = "${date.day}/${date.month}/${date.year}";
-    groups.putIfAbsent(key, () => []).add(
-          _BesinAnalysisItem(id: doc.id, date: date, data: data),
-        );
+    groups
+        .putIfAbsent(key, () => [])
+        .add(_BesinAnalysisItem(id: doc.id, date: date, data: data));
   }
 
   return groups.entries.map((entry) {
@@ -961,36 +851,66 @@ List<_BesinDayGroup> groupBesinDocsByDay(List<QueryDocumentSnapshot> docs) {
   }).toList();
 }
 
-DateTime? readBesinAnalysisDate(Map<String, dynamic> data) {
+DateTime? _readBesinAnalysisDate(Map<String, dynamic> data) {
   final raw = data["createdAt"] ?? data["tarih"];
   if (raw is Timestamp) return raw.toDate();
   if (raw != null) return DateTime.tryParse(raw.toString());
   return null;
 }
 
-_BesinSummary summarizeBesinDay(List<_BesinAnalysisItem> items) {
+_BesinSummary _summarizeBesinDay(List<_BesinAnalysisItem> items) {
   final foods = <Map<String, dynamic>>[];
   final supplements = <Map<String, dynamic>>[];
 
   for (final item in items) {
-    for (final raw in (item.data["besinler"] as List? ?? [])) {
-      final data = Map<String, dynamic>.from(raw as Map);
-      final unitGram = FoodUnits.units[data["format"]] ?? 1;
-      final amount = double.tryParse(data["miktar"].toString()) ?? 0;
+    final besinler = item.data["besinler"] as List? ?? [];
+    final takviyeler = item.data["takviyeler"] as List? ?? [];
 
-      foods.add({
-        "name": data["ad"],
-        "amount": unitGram * amount,
-      });
+    for (final raw in besinler) {
+      if (raw is Map) {
+        final data = Map<String, dynamic>.from(raw);
+
+        final unitGram = FoodUnits.units[data["format"]] ?? 1;
+        final amount = double.tryParse(data["miktar"]?.toString() ?? "0") ?? 0;
+        final name = data["ad"]?.toString() ?? "";
+
+        if (name.isNotEmpty && amount > 0) {
+          foods.add({
+            "name": name,
+            "amount": unitGram * amount,
+          });
+        }
+      } else if (raw is String) {
+        if (raw.trim().isNotEmpty) {
+          foods.add({
+            "name": raw.trim(),
+            "amount": 1,
+          });
+        }
+      }
     }
 
-    for (final raw in (item.data["takviyeler"] as List? ?? [])) {
-      final data = Map<String, dynamic>.from(raw as Map);
+    for (final raw in takviyeler) {
+      if (raw is Map) {
+        final data = Map<String, dynamic>.from(raw);
 
-      supplements.add({
-        "name": data["ad"],
-        "amount": data["miktar"],
-      });
+        final name = data["ad"]?.toString() ?? "";
+        final amount = double.tryParse(data["miktar"]?.toString() ?? "1") ?? 1;
+
+        if (name.isNotEmpty) {
+          supplements.add({
+            "name": name,
+            "amount": amount,
+          });
+        }
+      } else if (raw is String) {
+        if (raw.trim().isNotEmpty) {
+          supplements.add({
+            "name": raw.trim(),
+            "amount": 1,
+          });
+        }
+      }
     }
   }
 

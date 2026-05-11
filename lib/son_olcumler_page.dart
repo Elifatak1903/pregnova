@@ -1,16 +1,14 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+
 import 'hasta_klinik_detay_page.dart';
+import 'l10n/app_localizations.dart';
 
 class SonOlcumlerPage extends StatefulWidget {
   final Timestamp? selectedTarih;
   final String? selectedUid;
 
-  const SonOlcumlerPage({
-    super.key,
-    this.selectedTarih,
-    this.selectedUid,
-  });
+  const SonOlcumlerPage({super.key, this.selectedTarih, this.selectedUid});
 
   @override
   State<SonOlcumlerPage> createState() => _SonOlcumlerPageState();
@@ -22,22 +20,20 @@ class _SonOlcumlerPageState extends State<SonOlcumlerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: const Text("Son Ölçümler"),
+        title: Text(l10n.recentMeasurements),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
-
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection("risk_olcumleri")
             .orderBy("tarih", descending: true)
             .snapshots(),
-
         builder: (context, snapshot) {
-
           if (!snapshot.hasData) {
             return Center(
               child: CircularProgressIndicator(
@@ -49,19 +45,20 @@ class _SonOlcumlerPageState extends State<SonOlcumlerPage> {
           final docs = snapshot.data!.docs;
 
           if (docs.isEmpty) {
-            return const Center(child: Text("Kayıt yok"));
+            return Center(child: Text(l10n.noRecords));
           }
 
-          /// 🔥 GÜNLER
-          final dates = docs.map((doc) {
-            final ts = doc["tarih"] as Timestamp;
-            final d = ts.toDate();
-            return DateTime(d.year, d.month, d.day);
-          }).toSet().toList();
+          final dates = docs
+              .map((doc) {
+                final ts = doc["tarih"] as Timestamp;
+                final d = ts.toDate();
+                return DateTime(d.year, d.month, d.day);
+              })
+              .toSet()
+              .toList();
 
           dates.sort((a, b) => b.compareTo(a));
 
-          /// 🔥 TIKLANAN GÜNE GİT
           if (widget.selectedTarih != null) {
             final d = widget.selectedTarih!.toDate();
             selectedDate = DateTime(d.year, d.month, d.day);
@@ -69,7 +66,6 @@ class _SonOlcumlerPageState extends State<SonOlcumlerPage> {
             selectedDate ??= dates.first;
           }
 
-          /// 🔥 FİLTRE
           final filteredDocs = docs.where((doc) {
             final ts = doc["tarih"] as Timestamp;
             final d = ts.toDate();
@@ -77,7 +73,6 @@ class _SonOlcumlerPageState extends State<SonOlcumlerPage> {
             return onlyDate == selectedDate;
           }).toList();
 
-          /// 🔥 DOĞRU INDEX BUL
           int targetIndex = 0;
 
           if (widget.selectedTarih != null && widget.selectedUid != null) {
@@ -91,7 +86,6 @@ class _SonOlcumlerPageState extends State<SonOlcumlerPage> {
             if (targetIndex == -1) targetIndex = 0;
           }
 
-          /// 🔥 SCROLL
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (_controller.hasClients) {
               _controller.jumpTo(targetIndex * 160);
@@ -102,16 +96,12 @@ class _SonOlcumlerPageState extends State<SonOlcumlerPage> {
             controller: _controller,
             padding: const EdgeInsets.all(16),
             children: [
-
-              /// 🔥 DROPDOWN
               Container(
                 margin: const EdgeInsets.only(bottom: 15),
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Theme.of(context).dividerColor,
-                  ),
+                  border: Border.all(color: Theme.of(context).dividerColor),
                 ),
                 child: DropdownButton<DateTime>(
                   value: selectedDate,
@@ -125,24 +115,18 @@ class _SonOlcumlerPageState extends State<SonOlcumlerPage> {
                   items: dates.map((date) {
                     return DropdownMenuItem(
                       value: date,
-                      child: Text(
-                        "📅 ${date.day}/${date.month}/${date.year}",
-                      ),
+                      child: Text("${date.day}/${date.month}/${date.year}"),
                     );
                   }).toList(),
                 ),
               ),
-
-              /// 🔥 LİSTE
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: filteredDocs.length,
-
                 itemBuilder: (context, index) {
-
                   final data =
-                  filteredDocs[index].data() as Map<String, dynamic>;
+                      filteredDocs[index].data() as Map<String, dynamic>;
 
                   final patientId = data["uid"];
                   final tarih = data["tarih"] as Timestamp?;
@@ -152,15 +136,13 @@ class _SonOlcumlerPageState extends State<SonOlcumlerPage> {
                         .collection("users")
                         .doc(patientId)
                         .get(),
-
                     builder: (context, userSnap) {
-
                       if (!userSnap.hasData) {
                         return const SizedBox();
                       }
 
                       final userData =
-                      userSnap.data!.data() as Map<String, dynamic>?;
+                          userSnap.data!.data() as Map<String, dynamic>?;
 
                       final name = userData?["name"] ?? "";
                       final surname = userData?["surname"] ?? "";
@@ -175,10 +157,9 @@ class _SonOlcumlerPageState extends State<SonOlcumlerPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-
                               Row(
                                 mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     "$name $surname",
@@ -188,34 +169,48 @@ class _SonOlcumlerPageState extends State<SonOlcumlerPage> {
                                     ),
                                   ),
                                   Text(
-                                    tarih != null ? _timeAgo(tarih) : "",
+                                    tarih != null ? _timeAgo(tarih, l10n) : "",
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Theme.of(context)
                                           .colorScheme
                                           .onSurface
-                                          .withOpacity(0.6),
+                                          .withValues(alpha: 0.6),
                                     ),
                                   ),
                                 ],
                               ),
-
                               const SizedBox(height: 10),
-
-                              _infoRow("Tansiyon",
-                                  "${data["sistolik"] ?? "-"} / ${data["diastolik"] ?? "-"}"),
-                              _infoRow("Açlık Şekeri", data["aclikSeker"]),
-                              _infoRow("Tokluk Şekeri", data["toklukSeker"]),
-                              _infoRow("Stres", data["stresSeviyesi"]),
-
+                              _infoRow(
+                                l10n.bloodPressure,
+                                "${data["sistolik"] ?? "-"} / ${data["diastolik"] ?? "-"}",
+                              ),
+                              _infoRow(
+                                l10n.fastingBloodSugar,
+                                data["aclikSeker"],
+                              ),
+                              _infoRow(
+                                l10n.postMealBloodSugar,
+                                data["toklukSeker"],
+                              ),
+                              _infoRow(l10n.stress, data["stresSeviyesi"]),
                               const SizedBox(height: 10),
-
-                              _riskRow(context, "Preeklampsi", data["preeklampsiRisk"]),
-                              _riskRow(context, "Diyabet", data["diyabetRisk"]),
-                              _riskRow(context, "Preterm", data["pretermRisk"]),
-
+                              _riskRow(
+                                context,
+                                l10n.preeklampsiTracking,
+                                data["preeklampsiRisk"],
+                              ),
+                              _riskRow(
+                                context,
+                                l10n.diabetes,
+                                data["diyabetRisk"],
+                              ),
+                              _riskRow(
+                                context,
+                                l10n.preterm,
+                                data["pretermRisk"],
+                              ),
                               const SizedBox(height: 12),
-
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
@@ -223,17 +218,26 @@ class _SonOlcumlerPageState extends State<SonOlcumlerPage> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) =>
-                                            HastaKlinikDetayPage(
-                                              clientId: patientId,
-                                              name: name,
-                                              surname: surname,
-                                              initialIndex: index,
-                                            ),
+                                        builder: (_) => HastaKlinikDetayPage(
+                                          clientId: patientId,
+                                          name: name,
+                                          surname: surname,
+                                          initialIndex: index,
+                                        ),
                                       ),
                                     );
                                   },
-                                  child: const Text("Detaylı İncele ➜"),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(l10n.detailedReview),
+                                      const SizedBox(width: 6),
+                                      const Icon(
+                                        Icons.arrow_forward_ios,
+                                        size: 14,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
@@ -256,21 +260,24 @@ class _SonOlcumlerPageState extends State<SonOlcumlerPage> {
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title),
-          Text(value?.toString() ?? "-"),
-        ],
+        children: [Text(title), Text(value?.toString() ?? "-")],
       ),
     );
   }
 
   Widget _riskRow(BuildContext context, String title, dynamic value) {
-    String text = value?.toString() ?? "-";
+    final l10n = AppLocalizations.of(context)!;
+    final risk = value?.toString();
+    final text = _riskText(l10n, risk);
     Color color = Theme.of(context).colorScheme.onSurface;
 
-    if (text == "HIGH") color = Colors.red;
-    else if (text == "MEDIUM") color = Colors.orange;
-    else if (text == "LOW") color = Colors.green;
+    if (risk == "HIGH") {
+      color = Colors.red;
+    } else if (risk == "MEDIUM") {
+      color = Colors.orange;
+    } else if (risk == "LOW") {
+      color = Colors.green;
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -280,24 +287,28 @@ class _SonOlcumlerPageState extends State<SonOlcumlerPage> {
           Text(title),
           Text(
             text,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold, color: color),
           ),
         ],
       ),
     );
   }
 
-  String _timeAgo(Timestamp timestamp) {
+  String _timeAgo(Timestamp timestamp, AppLocalizations l10n) {
     final now = DateTime.now();
     final date = timestamp.toDate();
     final diff = now.difference(date);
 
-    if (diff.inMinutes < 1) return "${diff.inSeconds} sn önce";
-    if (diff.inMinutes < 60) return "${diff.inMinutes} dk önce";
-    if (diff.inHours < 24) return "${diff.inHours} saat önce";
-    return "${diff.inDays} gün önce";
+    if (diff.inMinutes < 1) return l10n.secondsAgo(diff.inSeconds);
+    if (diff.inMinutes < 60) return l10n.minutesAgo(diff.inMinutes);
+    if (diff.inHours < 24) return l10n.hoursAgo(diff.inHours);
+    return l10n.daysAgo(diff.inDays);
+  }
+
+  String _riskText(AppLocalizations l10n, String? risk) {
+    if (risk == "HIGH") return l10n.highRisk;
+    if (risk == "MEDIUM") return l10n.mediumRisk;
+    if (risk == "LOW") return l10n.lowRisk;
+    return risk ?? "-";
   }
 }
