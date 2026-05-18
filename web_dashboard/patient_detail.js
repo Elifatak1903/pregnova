@@ -1,12 +1,18 @@
-import { db } from "./app.js";
+import { auth, db } from "./app.js";
 import { t } from "./i18n.js";
 
 import {
   collection,
+  deleteField,
+  doc,
+  getDoc,
+  getDocs,
   query,
   where,
   orderBy,
-  onSnapshot
+  onSnapshot,
+  serverTimestamp,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const params = new URLSearchParams(window.location.search);
@@ -15,6 +21,17 @@ const name = params.get("name");
 
 const nameEl = document.getElementById("patientName");
 const list = document.getElementById("measurementsList");
+const patientMenuButton = document.getElementById("patientMenuButton");
+const patientMenu = document.getElementById("patientMenu");
+const assignRiskButton = document.getElementById("assignRiskButton");
+const removePatientButton = document.getElementById("removePatientButton");
+const riskModal = document.getElementById("riskModal");
+const cancelRiskButton = document.getElementById("cancelRiskButton");
+const saveRiskButton = document.getElementById("saveRiskButton");
+const riskPreeclampsia = document.getElementById("riskPreeclampsia");
+const riskDiabetes = document.getElementById("riskDiabetes");
+const riskPreterm = document.getElementById("riskPreterm");
+const doctorRiskTags = document.getElementById("doctorRiskTags");
 
 /* NAME */
 if (nameEl) {
@@ -28,6 +45,30 @@ if (!uid) {
   if (nameEl) {
     nameEl.innerText = t("patientNotFound");
   }
+}
+
+patientMenuButton?.addEventListener("click", (event) => {
+  event.stopPropagation();
+  patientMenu?.classList.toggle("hidden");
+});
+
+window.addEventListener("click", () => patientMenu?.classList.add("hidden"));
+
+assignRiskButton?.addEventListener("click", async () => {
+  patientMenu?.classList.add("hidden");
+  await loadDoctorRiskFlags();
+  riskModal?.classList.remove("hidden");
+});
+
+cancelRiskButton?.addEventListener("click", () => {
+  riskModal?.classList.add("hidden");
+});
+
+saveRiskButton?.addEventListener("click", saveDoctorRiskFlags);
+removePatientButton?.addEventListener("click", removePatientFromDoctor);
+
+if (uid) {
+  loadDoctorRiskFlags();
 }
 
 /* DATA */
@@ -144,6 +185,101 @@ function boolText(val) {
   if (val === true) return `<span style="color:#EF5350">${t("exists")}</span>`;
   if (val === false) return `<span style="color:#00BFA5">${t("none")}</span>`;
   return "-";
+}
+
+async function loadDoctorRiskFlags() {
+  if (!uid) return;
+
+  const snapshot = await getDoc(doc(db, "users", uid));
+  const flags = normalizeDoctorRiskFlags(snapshot.data()?.doctorRiskFlags);
+
+  if (riskPreeclampsia) riskPreeclampsia.checked = flags.preeklampsi;
+  if (riskDiabetes) riskDiabetes.checked = flags.diabetes;
+  if (riskPreterm) riskPreterm.checked = flags.preterm;
+
+  renderDoctorRiskTags(flags);
+}
+
+async function saveDoctorRiskFlags() {
+  if (!uid) return;
+
+  const flags = {
+    preeklampsi: riskPreeclampsia?.checked === true,
+    diabetes: riskDiabetes?.checked === true,
+    preterm: riskPreterm?.checked === true
+  };
+
+  await updateDoc(doc(db, "users", uid), {
+    doctorRiskFlags: flags,
+    doctorRiskUpdatedAt: serverTimestamp()
+  });
+
+  renderDoctorRiskTags(flags);
+  riskModal?.classList.add("hidden");
+  alert(t("saved"));
+}
+
+async function removePatientFromDoctor() {
+  if (!uid) return;
+
+  const doctorId = auth.currentUser?.uid;
+  if (!doctorId) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  const confirmed = confirm(t("removePatientConfirm"));
+  if (!confirmed) return;
+
+  const requestSnapshot = await getDocs(query(
+    collection(db, "expert_requests"),
+    where("expertId", "==", doctorId),
+    where("clientId", "==", uid),
+    where("status", "==", "approved")
+  ));
+
+  await Promise.all(requestSnapshot.docs.map(requestDoc => updateDoc(requestDoc.ref, {
+    status: "removed",
+    removedAt: serverTimestamp()
+  })));
+
+  await updateDoc(doc(db, "users", uid), {
+    assignedDoctor: deleteField(),
+    doctorRiskFlags: deleteField(),
+    doctorRiskUpdatedAt: deleteField()
+  });
+
+  window.location.href = "patients.html";
+}
+
+function normalizeDoctorRiskFlags(flags) {
+  if (!flags || typeof flags !== "object") {
+    return {
+      preeklampsi: false,
+      diabetes: false,
+      preterm: false
+    };
+  }
+
+  return {
+    preeklampsi: flags.preeklampsi === true,
+    diabetes: flags.diabetes === true,
+    preterm: flags.preterm === true
+  };
+}
+
+function renderDoctorRiskTags(flags) {
+  if (!doctorRiskTags) return;
+
+  const labels = [
+    flags.preeklampsi ? t("preeclampsiaFollowUp") : null,
+    flags.diabetes ? t("diabetesFollowUp") : null,
+    flags.preterm ? t("pretermFollowUp") : null
+  ].filter(Boolean);
+
+  doctorRiskTags.innerHTML = labels
+    .map(label => `<span>${label}</span>`)
+    .join("");
 }
 
 /* CHART */

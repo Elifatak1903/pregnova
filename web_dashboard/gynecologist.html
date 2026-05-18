@@ -34,7 +34,7 @@
 
             <!-- NOTIFICATION -->
             <div class="notification-btn" onclick="toggleNotifications(event)">
-                🔔
+                <span class="notification-mark" aria-hidden="true"></span>
                 <span class="badge"></span>
                 <div id="notifDropdown" class="notif-dropdown hidden">
                     <div id="notifList" class="notif-list"></div>
@@ -53,7 +53,7 @@
             <div class="card stat-card" onclick="go('patients.html')">
                 <div class="card-top">
                     <p data-i18n="totalPatients">Toplam Hasta</p>
-                    <div class="icon purple">👤</div>
+                    <div class="icon purple">P</div>
                 </div>
                 <span id="approved">0</span>
             </div>
@@ -69,7 +69,7 @@
             <div class="card stat-card">
                 <div class="card-top">
                     <p data-i18n="highRisk">Yüksek Risk</p>
-                    <div class="icon red">⚠️</div>
+                    <div class="icon red">!</div>
                 </div>
                 <span id="highRisk">0</span>
             </div>
@@ -77,7 +77,7 @@
             <div class="card stat-card" onclick="go('son_olcumler.html')">
                 <div class="card-top">
                     <p data-i18n="last7Days">Son 7 Gün</p>
-                    <div class="icon green">📈</div>
+                    <div class="icon green">G</div>
                 </div>
                 <span id="weekly">0</span>
             </div>
@@ -85,7 +85,7 @@
         </div>
 
         <div id="highRiskBanner" class="high-risk-banner hidden" onclick="go('son_olcumler.html')">
-            <div class="risk-icon">⚠️</div>
+            <div class="risk-icon">!</div>
             <div class="risk-copy">
                 <h3 data-i18n="highRiskPatientWarning">Yüksek riskli hasta uyarısı</h3>
                 <p id="highRiskBannerText">0 hastada yüksek risk tespit edildi.</p>

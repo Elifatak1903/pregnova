@@ -95,8 +95,8 @@ function render() {
             <div class="request-actions">
                 <button class="action-btn btn-detail">${t("detail")}</button>
                 ${status === "pending" ? `
-                    <button class="action-btn btn-reject" aria-label="${t("rejected")}">✕</button>
-                    <button class="action-btn btn-approve" aria-label="${t("approved")}">✓</button>
+                    <button class="action-btn btn-reject" aria-label="${t("rejected")}">X</button>
+                    <button class="action-btn btn-approve" aria-label="${t("approved")}">OK</button>
                 ` : ""}
             </div>
         `;
@@ -167,6 +167,7 @@ async function approveExpert(data) {
         type: "expert_application",
         title: t("applicationApprovedTitle"),
         message: t("applicationApprovedMessage"),
+        actionPage: "expert_application.html",
         isRead: false,
         createdAt: serverTimestamp()
     });

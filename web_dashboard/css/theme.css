@@ -29,8 +29,10 @@ body.admin {
   --secondary: #0D47A1;
 }
 
-body.pregnant {
-  --primary: #673AB7;
+body.pregnant,
+html.pregnant {
+  --primary: #A855F7;
+  --secondary: #9333EA;
 }
 
 body {

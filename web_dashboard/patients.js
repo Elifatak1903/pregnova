@@ -73,6 +73,7 @@ async function loadPatients(uid) {
     const surname = data?.surname || "";
     const hafta = data?.hafta || "-";
     const risk = (data?.riskLevel || "normal").toLowerCase();
+    const doctorRiskFlags = normalizeDoctorRiskFlags(data?.doctorRiskFlags);
 
     if (risk === "high") high++;
     else if (risk === "medium") medium++;
@@ -83,7 +84,8 @@ async function loadPatients(uid) {
       name,
       surname,
       hafta,
-      risk
+      risk,
+      doctorRiskFlags
     });
   }
 
@@ -123,16 +125,25 @@ function renderPatients(list) {
 
     const fullName = `${p.name} ${p.surname}`;
     const highlightedName = highlight(fullName, searchValue);
+    const doctorRiskTags = doctorRiskLabels(p.doctorRiskFlags);
 
     const div = document.createElement("div");
     div.className = "patient-card";
 
     div.innerHTML = `
-      <b>${highlightedName}</b><br>
-      ${t("week")}: ${p.hafta}<br>
-      <span style="color:${color}">
-        ${t("risk")}: ${text}
-      </span>
+      <div class="patient-card-main">
+        <b>${highlightedName}</b><br>
+        ${t("week")}: ${p.hafta}<br>
+        <span style="color:${color}">
+          ${t("risk")}: ${text}
+        </span>
+        ${doctorRiskTags.length ? `
+          <div class="doctor-risk-tags">
+            ${doctorRiskTags.map(label => `<span>${label}</span>`).join("")}
+          </div>
+        ` : ""}
+      </div>
+      <span class="patient-arrow">›</span>
     `;
 
     /* DETAY SAYFASI */
@@ -188,6 +199,18 @@ function applyFilter(list) {
     sorted = sorted.filter(p => p.risk === "normal");
   }
 
+  if (filter === "doctorPreeclampsia") {
+    sorted = sorted.filter(p => p.doctorRiskFlags?.preeklampsi === true);
+  }
+
+  if (filter === "doctorDiabetes") {
+    sorted = sorted.filter(p => p.doctorRiskFlags?.diabetes === true);
+  }
+
+  if (filter === "doctorPreterm") {
+    sorted = sorted.filter(p => p.doctorRiskFlags?.preterm === true);
+  }
+
   if (filter === "newest") {
     sorted.reverse();
   }
@@ -207,4 +230,29 @@ function highlight(text, value) {
 function setText(id, value) {
   const el = document.getElementById(id);
   if (el) el.innerText = value;
+}
+
+function normalizeDoctorRiskFlags(flags) {
+  if (!flags || typeof flags !== "object") {
+    return {
+      preeklampsi: false,
+      diabetes: false,
+      preterm: false
+    };
+  }
+
+  return {
+    preeklampsi: flags.preeklampsi === true,
+    diabetes: flags.diabetes === true,
+    preterm: flags.preterm === true
+  };
+}
+
+function doctorRiskLabels(flags) {
+  const normalized = normalizeDoctorRiskFlags(flags);
+  return [
+    normalized.preeklampsi ? t("preeclampsiaFollowUp") : null,
+    normalized.diabetes ? t("diabetesFollowUp") : null,
+    normalized.preterm ? t("pretermFollowUp") : null
+  ].filter(Boolean);
 }

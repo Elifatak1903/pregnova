@@ -19,27 +19,47 @@
     <!-- MAIN -->
     <div class="main">
 
-        <div class="top-bar">
+        <div class="messages-page-header">
             <h1 class="page-title" data-i18n="messages">Mesajlar</h1>
+            <p data-i18n="messagesSubtitle">
+                Uzmanlarınızla iletişime geçin
+            </p>
         </div>
 
         <div class="chat-layout">
 
-            <!-- SOL -->
-            <div id="chatList" class="chat-list"></div>
+            <div class="chat-list-card">
 
-            <!-- SAĞ -->
-            <div class="chat-window">
-
-                <div id="chatHeader" class="chat-header">
-                    <span data-i18n="selectChat">Sohbet seç</span>
+                <div class="chat-list-title" data-i18n="myExperts">
+                    UZMANLARIM
                 </div>
 
-                <div id="messages" class="chat-messages"></div>
+                <div id="chatList" class="chat-list"></div>
+            </div>
 
-                <div class="chat-input">
-                    <input id="messageInput" data-i18n-placeholder="messagePlaceholder" placeholder="Mesaj yaz...">
-                    <button onclick="sendMessage()" data-i18n="send">Gönder</button>
+            <div class="chat-window">
+
+                <div id="emptyChat" class="empty-chat">
+                    <div class="empty-icon">M</div>
+
+                    <h3 data-i18n="selectExpert">
+                        Bir uzman seçin
+                    </h3>
+
+                    <p data-i18n="selectExpertDesc">
+                        Soldan bir doktor veya diyetisyen seçerek sohbete başlayın
+                    </p>
+                </div>
+
+                <div id="activeChat" class="active-chat hidden">
+                    <div id="chatHeader" class="chat-header"></div>
+
+                    <div id="messages" class="chat-messages"></div>
+
+                    <div class="chat-input">
+                        <input id="messageInput" data-i18n-placeholder="messagePlaceholder" placeholder="Mesaj yaz...">
+                        <button onclick="sendMessage()" data-i18n="send">Gönder</button>
+                    </div>
                 </div>
 
             </div>

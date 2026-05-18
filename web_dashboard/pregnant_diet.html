@@ -21,7 +21,7 @@
             <h1 class="page-title" data-i18n="myDietPlan">Diyet Planım</h1>
 
             <div class="notification-btn" onclick="toggleNotifications(event)">
-                🔔
+                <span class="notification-mark" aria-hidden="true"></span>
                 <span class="badge"></span>
 
                 <div id="notifDropdown" class="notif-dropdown hidden">
@@ -35,14 +35,34 @@
         </div>
 
         <div class="diet-page">
+
+            <div class="diet-hero">
+                <div>
+                    <p class="eyebrow" data-i18n="myDietPlan">Diyet Planım</p>
+                    <h2 data-i18n="dietPlanSubtitle">Diyetisyeninin hazırladığı güncel plan</h2>
+                    <p class="hero-desc" data-i18n="dietPlanInfo">
+                        Güncel diyet planını görüntüleyebilir ve öğün detaylarını inceleyebilirsin.
+                    </p>
+                </div>
+
+                <div class="diet-icon">D</div>
+            </div>
+
             <div id="dietState" class="state-card" data-i18n="loading">Yükleniyor...</div>
 
             <button id="dietSummary" class="diet-summary hidden" type="button">
-                <span id="summaryDate">-</span>
+                <div class="summary-left">
+                    <div class="summary-icon">T</div>
+                    <div>
+                        <span id="summaryDate">-</span>
+                        <p data-i18n="latestDietPlan">Güncel diyet planı</p>
+                    </div>
+                </div>
+
                 <b data-i18n="viewDiet">Diyeti Gör</b>
             </button>
+
         </div>
-    </div>
 </div>
 
 <div id="dietModal" class="diet-modal hidden">

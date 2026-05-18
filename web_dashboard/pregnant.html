@@ -31,11 +31,11 @@
         <!-- TOP BAR -->
         <div class="top-bar">
 
-            <h1 class="page-title">PregNova</h1>
+            <h1 class="page-title" data-i18n="pregnantPanel">Hamile Paneli</h1>
 
             <!-- NOTIFICATION -->
             <div class="notification-btn" onclick="toggleNotifications(event)">
-                🔔
+                <span class="notification-mark" aria-hidden="true"></span>
                 <span class="badge"></span>
 
                 <div id="notifDropdown" class="notif-dropdown hidden">
@@ -53,41 +53,80 @@
         <div class="content">
 
             <!-- HOŞ GELDİN -->
-            <h2 class="welcome" data-i18n="welcomeMother">Hoş geldin anne</h2>
+            <h2 class="welcome" data-i18n="welcomeMother">Hoşgeldin Anne!</h2>
             <p class="subtitle" data-i18n="healthTrackingSubtitle">Sağlık ve beslenme takibini kolayca yapabilirsin.</p>
 
             <!-- HAFTA KART -->
             <div class="week-card">
-                <div class="icon">👶</div>
-                <div>
-                    <p data-i18n="now">Şu an</p>
-                    <h3 id="weekText">-</h3>
+
+                <div class="week-top">
+
+                    <div class="icon">H</div>
+
+                    <div class="week-info">
+                        <p data-i18n="now">Şu an</p>
+                        <h3 id="weekText">-</h3>
+                        <small class="week-total">
+                            <span id="weekProgressText">-</span>
+                        </small>
+                    </div>
+
                 </div>
+
+                <div class="week-progress">
+                    <div class="week-progress-fill"></div>
+                </div>
+
             </div>
 
             <!-- RISK -->
-            <div class="card">
-                <h3 data-i18n="latestRiskStatus">Son Risk Durumu</h3>
-                <div id="riskBox"></div>
+            <div class="risk-card">
+
+                <h3 data-i18n="latestRiskStatus">
+                    Son Risk Durumu
+                </h3>
+
+                <div id="riskBox" class="risk-grid"></div>
+
             </div>
 
             <!-- ACTION BUTTONS -->
             <div class="action-buttons">
 
                 <div class="action-card" onclick="go('risk.html')">
-                    <span data-i18n="riskMeasurement">Risk Ölçüm</span>
+                    <div class="action-icon">R</div>
+                    <div class="action-text">
+                        <strong data-i18n="riskMeasurement">Risk Ölçüm</strong>
+                        <small data-i18n="riskMeasurementDesc">Günlük sağlık ölçümlerini kaydet</small>
+                    </div>
+                    <span class="action-arrow">›</span>
                 </div>
 
                 <div class="action-card" onclick="go('nutrition.html')">
-                    <span data-i18n="nutritionAnalysis">Besin Analizi</span>
+                    <div class="action-icon">◎</div>
+                    <div class="action-text">
+                        <strong data-i18n="nutritionAnalysis">Besin Analizi</strong>
+                        <small data-i18n="nutritionAnalysisDesc">Besin ve takviye alımını analiz et</small>
+                    </div>
+                    <span class="action-arrow">›</span>
                 </div>
 
                 <div class="action-card" onclick="go('measurement_history.html')">
-                    <span data-i18n="measurementHistory">Ölçüm Geçmişi</span>
+                    <div class="action-icon">▥</div>
+                    <div class="action-text">
+                        <strong data-i18n="measurementHistory">Ölçüm Geçmişi</strong>
+                        <small data-i18n="measurementHistoryDescShort">Önceki ölçümlerini görüntüle</small>
+                    </div>
+                    <span class="action-arrow">›</span>
                 </div>
 
                 <div class="action-card" onclick="go('nutrition_history.html')">
-                    <span data-i18n="nutritionHistory">Besin Geçmişi</span>
+                    <div class="action-icon">L</div>
+                    <div class="action-text">
+                        <strong data-i18n="nutritionHistory">Besin Geçmişi</strong>
+                        <small data-i18n="nutritionHistoryDescShort">Geçmiş besin analizlerini incele</small>
+                    </div>
+                    <span class="action-arrow">›</span>
                 </div>
 
             </div>

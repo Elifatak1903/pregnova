@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'app_theme.dart';
+import 'auth_redirect.dart';
 import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
 import 'locale_controller.dart';
@@ -24,8 +25,9 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final String role;
+  final bool isAuthenticated;
 
-  const MyApp({super.key, required this.role});
+  const MyApp({super.key, required this.role, required this.isAuthenticated});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +41,7 @@ class MyApp extends StatelessWidget {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           localeResolutionCallback: _resolveLocale,
           theme: AppTheme.getTheme(role),
-          home: const WelcomePage(),
+          home: isAuthenticated ? const AuthRedirect() : const WelcomePage(),
         );
       },
     );
@@ -55,6 +57,7 @@ class RoleLoaderPage extends StatefulWidget {
 
 class _RoleLoaderPageState extends State<RoleLoaderPage> {
   String? role;
+  bool isAuthenticated = false;
 
   @override
   void initState() {
@@ -70,6 +73,7 @@ class _RoleLoaderPageState extends State<RoleLoaderPage> {
     if (user == null) {
       setState(() {
         role = "pregnant";
+        isAuthenticated = false;
       });
       return;
     }
@@ -83,6 +87,7 @@ class _RoleLoaderPageState extends State<RoleLoaderPage> {
 
     setState(() {
       role = data?["role"] ?? "pregnant";
+      isAuthenticated = true;
     });
   }
 
@@ -109,7 +114,7 @@ class _RoleLoaderPageState extends State<RoleLoaderPage> {
       );
     }
 
-    return MyApp(role: role!);
+    return MyApp(role: role!, isAuthenticated: isAuthenticated);
   }
 }
 

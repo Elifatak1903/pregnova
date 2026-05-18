@@ -106,6 +106,7 @@ form.addEventListener("submit", async (e) => {
       type: "expert_application",
       title: t("expertApplicationReceivedTitle"),
       message: t("expertApplicationReceivedMessage"),
+      actionPage: "expert_application.html",
       isRead: false,
       createdAt: serverTimestamp()
     });

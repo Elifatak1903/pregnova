@@ -2,7 +2,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import 'admin_expert_request_page.dart';
+import 'diyetisyen_page.dart';
+import 'expert_chat_list_page.dart';
+import 'hamile_olcum_gecmisi_page.dart';
+import 'jinekolog_page.dart';
 import 'l10n/app_localizations.dart';
+import 'message_page.dart';
+import 'son_analizler_page.dart';
+import 'son_olcumler_page.dart';
+import 'uzman_ara_page.dart';
+import 'uzman_basvuru_page.dart';
 
 String timeAgo(Timestamp? timestamp, AppLocalizations l10n) {
   if (timestamp == null) return "";
@@ -47,6 +57,8 @@ class NotificationPanel extends StatelessWidget {
           );
         }
 
+        final userData = userSnap.data!.data() as Map<String, dynamic>? ?? {};
+        final role = userData["role"]?.toString() ?? "";
         final primaryColor = Theme.of(context).colorScheme.primary;
         final backgroundColor = Theme.of(context).colorScheme.surface;
 
@@ -184,6 +196,10 @@ class NotificationPanel extends StatelessWidget {
                         if (!isRead) {
                           await doc.reference.update({'isRead': true});
                         }
+
+                        if (context.mounted) {
+                          _openNotificationTarget(context, data, role);
+                        }
                       },
                     ),
                   );
@@ -194,5 +210,68 @@ class NotificationPanel extends StatelessWidget {
         );
       },
     );
+  }
+
+  void _openNotificationTarget(
+    BuildContext context,
+    Map<String, dynamic> data,
+    String role,
+  ) {
+    final target = _notificationTarget(data, role);
+    if (target == null) return;
+
+    Navigator.push(context, MaterialPageRoute(builder: (_) => target));
+  }
+
+  Widget? _notificationTarget(Map<String, dynamic> data, String role) {
+    final type = data["type"]?.toString() ?? "general";
+
+    if (type == "weekly_info") {
+      return const HamileOlcumGecmisiPage();
+    }
+
+    if (type == "risk_alert") {
+      if (role == "gynecologist") {
+        final patientId = _firstText(data, ["patientId", "clientId"]);
+        return SonOlcumlerPage(selectedUid: patientId);
+      }
+
+      if (role == "dietitian") {
+        return const SonAnalizlerPage();
+      }
+
+      return const HamileOlcumGecmisiPage();
+    }
+
+    if (type == "expert_application") {
+      return role == "admin"
+          ? const AdminExpertRequestsPage()
+          : const UzmanBasvuruPage();
+    }
+
+    if (type == "expert_request") {
+      if (role == "gynecologist") return const GynecologistHomePage();
+      if (role == "dietitian") return const DietitianHomePage();
+      return const UzmanAraPage();
+    }
+
+    if (type == "message") {
+      if (role == "gynecologist" || role == "dietitian") {
+        return const ExpertChatListPage();
+      }
+
+      return const MessagePage();
+    }
+
+    return null;
+  }
+
+  String? _firstText(Map<String, dynamic> data, List<String> keys) {
+    for (final key in keys) {
+      final value = data[key]?.toString().trim();
+      if (value != null && value.isNotEmpty) return value;
+    }
+
+    return null;
   }
 }

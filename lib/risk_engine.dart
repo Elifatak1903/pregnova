@@ -28,7 +28,6 @@ class RiskEngine {
     required bool sislik,
     required bool chronicHypertension,
   }) async {
-
     if (sistolik >= 160 || diastolik >= 110) {
       return RiskLevel.high;
     }
@@ -78,10 +77,7 @@ class RiskEngine {
       }
     }
 
-    await FirebaseFirestore.instance
-        .collection("users")
-        .doc(uid)
-        .set({
+    await FirebaseFirestore.instance.collection("users").doc(uid).set({
       "riskLevel": risk.toLowerCase(),
     }, SetOptions(merge: true));
 
@@ -95,9 +91,7 @@ class RiskEngine {
     required bool sikIdrar,
     required bool diabetes,
   }) {
-
-    if ((aclik != null && aclik >= 126) ||
-        (tokluk != null && tokluk >= 200)) {
+    if ((aclik != null && aclik >= 126) || (tokluk != null && tokluk >= 200)) {
       return RiskLevel.high;
     }
 
@@ -122,7 +116,6 @@ class RiskEngine {
     required bool previousPreterm,
     required bool multiplePregnancy,
   }) {
-
     int score = 0;
 
     if (karinKasilma) score += 2;
@@ -148,7 +141,6 @@ class RiskEngine {
     required String riskType,
     required String riskLevel,
   }) async {
-
     if (riskLevel != RiskLevel.high) return;
 
     final userDoc = await FirebaseFirestore.instance
@@ -160,10 +152,10 @@ class RiskEngine {
     if (userData == null) return;
 
     final doctorId = userData["assignedDoctor"];
-    if (doctorId == null) return;
+    final dietitianId = userData["assignedDietitian"];
+    if (doctorId == null && dietitianId == null) return;
 
-    final patientName =
-    (userData["name"] ?? "").toString().isEmpty
+    final patientName = (userData["name"] ?? "").toString().isEmpty
         ? "Bilinmeyen hasta"
         : userData["name"];
 
@@ -211,22 +203,40 @@ class RiskEngine {
       "uid": uid,
       "type": "risk_alert",
       "riskType": riskType,
+      "patientId": uid,
       "title": "Risk Uyarısı",
       "message":
-      "$riskType riski yüksek tespit edildi. Lütfen doktorunuzla iletişime geçiniz.",
+          "$riskType riski yüksek tespit edildi. Lütfen doktorunuzla iletişime geçiniz.",
       "isRead": false,
       "createdAt": FieldValue.serverTimestamp(),
     });
 
-    await FirebaseFirestore.instance.collection("notification").add({
-      "uid": doctorId,
-      "type": "risk_alert",
-      "riskType": riskType,
-      "title": "Riskli Hasta",
-      "message":
-      "$patientName için $riskType riski yüksek tespit edildi.",
-      "isRead": false,
-      "createdAt": FieldValue.serverTimestamp(),
-    });
+    if (doctorId != null) {
+      await FirebaseFirestore.instance.collection("notification").add({
+        "uid": doctorId,
+        "type": "risk_alert",
+        "riskType": riskType,
+        "patientId": uid,
+        "title": "Riskli Hasta",
+        "message": "$patientName için $riskType riski yüksek tespit edildi.",
+        "isRead": false,
+        "createdAt": FieldValue.serverTimestamp(),
+      });
+    }
+
+    if (riskType == "Gestasyonel Diyabet" && dietitianId != null) {
+      await FirebaseFirestore.instance.collection("notification").add({
+        "uid": dietitianId,
+        "type": "risk_alert",
+        "riskType": riskType,
+        "clientId": uid,
+        "patientId": uid,
+        "title": "Beslenme Riski",
+        "message":
+            "$patientName için gestasyonel diyabet riski yüksek tespit edildi.",
+        "isRead": false,
+        "createdAt": FieldValue.serverTimestamp(),
+      });
+    }
   }
 }

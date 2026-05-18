@@ -72,6 +72,12 @@
     document.addEventListener("DOMContentLoaded", () => {
       applyTranslations();
       syncLanguageButtons();
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          register();
+        }
+      });
     });
 
     window.addEventListener("pregnova:languageChanged", () => {

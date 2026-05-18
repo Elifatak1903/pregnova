@@ -24,7 +24,7 @@
             <h1 class="page-title" data-i18n="nutritionAnalysis">Besin Analizi</h1>
 
             <div class="notification-btn" onclick="toggleNotifications(event)">
-                🔔
+                <span class="notification-mark" aria-hidden="true"></span>
                 <span class="badge"></span>
 
                 <div id="notifDropdown" class="notif-dropdown hidden">
@@ -38,7 +38,7 @@
 
             <!-- BESİN -->
             <div class="card">
-                <h3>🍎 <span data-i18n="addFood">Besin Ekle</span></h3>
+                <h3><span class="plain-icon">FOOD</span> <span data-i18n="addFood">Besin Ekle</span></h3>
 
                 <div class="input-group">
                     <input id="foodName" data-i18n-placeholder="foodNamePlaceholder" placeholder="Besin adı (örn: süt)">
@@ -55,7 +55,9 @@
                         <option value="ölçek" data-i18n="scoop">Ölçek</option>
                     </select>
 
-                    <button class="small-btn" onclick="addFood()">+</button>
+                    <button class="small-btn" onclick="addFood()">
+                        Besin Ekle
+                    </button>
                 </div>
 
                 <div id="foodList" class="list"></div>
@@ -63,7 +65,7 @@
 
             <!-- TAKVİYE -->
             <div class="card">
-                <h3>💊 <span data-i18n="addSupplement">Takviye Ekle</span></h3>
+                <h3><span class="plain-icon">SUPP</span> <span data-i18n="addSupplement">Takviye Ekle</span></h3>
 
                 <div class="input-group">
 
@@ -73,7 +75,9 @@
 
                     <input id="supUnit" data-i18n-placeholder="unit" placeholder="Birim" readonly>
 
-                    <button class="small-btn" onclick="addSupplement()">+</button>
+                    <button class="small-btn" onclick="addSupplement()">
+                        Takviye Ekle
+                    </button>
 
                 </div>
 
@@ -84,10 +88,10 @@
 
         <!-- ANALİZ BUTON -->
         <button class="analyze-btn" onclick="saveAnalysis()">
-            🔍 <span data-i18n="analyze">Analiz Yap</span>
+            <span class="plain-icon">ANL</span> <span data-i18n="analyze">Analiz Yap</span>
         </button>
 
-        <div class="result-box">
+        <div class="result-box hidden-result" id="resultBox">
 
             <div class="progress-container">
                 <p data-i18n="calories">Kalori</p>
@@ -117,6 +121,8 @@
 
 <script>
     window.showResult = function(result){
+      document.getElementById("resultBox")
+        .classList.remove("hidden-result");
 
       const totalCalories = result.totalCalories ?? 0;
       const calorieText = document.getElementById("calorieText");

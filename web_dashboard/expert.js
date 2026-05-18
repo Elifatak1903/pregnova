@@ -113,15 +113,25 @@ async function renderExperts(list) {
     const roleText =
       e.role === "dietitian" ? t("dietitian") : t("gynecologist");
 
-    div.innerHTML = `
-      <div class="expert-left">
-        <div class="avatar">🩺</div>
+    const initials = getInitials(e.name);
+    const icon = e.role === "dietitian" ? "D" : "J";
 
-        <div>
+    div.innerHTML = `
+      <div class="expert-top">
+        <div class="expert-avatar">
+          <span class="expert-icon">${icon}</span>
+          <strong>${initials}</strong>
+        </div>
+
+        <div class="expert-info">
           <div class="expert-name">${e.name}</div>
           <div class="expert-role">${roleText}</div>
-          <div class="expert-hospital">${e.hospital}</div>
         </div>
+      </div>
+
+      <div class="expert-meta">
+        <span>${t("institution")}</span>
+        <strong>${e.hospital}</strong>
       </div>
 
       <button class="expert-btn ${disabled ? "disabled" : ""}">
@@ -204,4 +214,14 @@ async function sendRequest(expertId) {
   });
 
   alert(t("requestSent"));
+}
+
+function getInitials(name) {
+  return String(name)
+    .trim()
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0]?.toUpperCase())
+    .join("") || "?";
 }

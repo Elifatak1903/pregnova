@@ -20,6 +20,8 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
+const MAX_DROPDOWN_NOTIFICATIONS = 7;
+
 /* NAVIGATION */
 window.go = function(page) {
   window.location.href = page;
@@ -67,12 +69,20 @@ async function loadUserData(uid) {
     await updateDoc(userRef, { hafta });
   }
 
-  await createWeeklyNotification(uid, hafta);
+  if (data.role === "pregnant") {
+    await createWeeklyNotification(uid, hafta);
+  }
 
   const weekEl = document.getElementById("weekText");
 
   if (weekEl) {
     weekEl.innerText = t("weekValue", { week: hafta });
+  }
+
+  const weekProgressText = document.getElementById("weekProgressText");
+
+  if (weekProgressText) {
+    weekProgressText.innerText = `${hafta} / 40 ${t("week").toLowerCase()}`;
   }
 }
 
@@ -108,6 +118,7 @@ async function createWeeklyNotification(uid, week) {
     type: "weekly_info",
     title: t("weeklyInfoTitle", { week }),
     message: t("weeklyInfoMessage", { week }),
+    actionPage: "pregnant.html",
     isRead: false,
     createdAt: serverTimestamp()
   });
@@ -142,9 +153,32 @@ function loadRisk(uid) {
     if (!box) return;
 
     box.innerHTML = `
-      <div>${t("preeclampsia")}: ${colorRisk(data.preeklampsiRisk)}</div>
-      <div>${t("diabetes")}: ${colorRisk(data.diyabetRisk)}</div>
-      <div>${t("preterm")}: ${colorRisk(data.pretermRisk)}</div>
+      <div class="risk-item">
+          <div class="risk-icon high">!</div>
+
+          <div class="risk-content">
+              <strong>${t("preeclampsia")}</strong>
+              ${colorRisk(data.preeklampsiRisk)}
+          </div>
+      </div>
+
+      <div class="risk-item">
+          <div class="risk-icon medium">◉</div>
+
+          <div class="risk-content">
+              <strong>${t("diabetes")}</strong>
+              ${colorRisk(data.diyabetRisk)}
+          </div>
+      </div>
+
+      <div class="risk-item">
+          <div class="risk-icon medium">◌</div>
+
+          <div class="risk-content">
+              <strong>${t("preterm")}</strong>
+              ${colorRisk(data.pretermRisk)}
+          </div>
+      </div>
     `;
   });
 }
@@ -198,7 +232,9 @@ function loadNotifications(uid) {
       if (!docSnap.data().isRead) unread++;
     });
 
-    snapshot.docs.slice(0, 7).forEach(docSnap => {
+    const dropdownDocs = snapshot.docs.slice(0, MAX_DROPDOWN_NOTIFICATIONS);
+
+    dropdownDocs.forEach(docSnap => {
 
       const data = docSnap.data();
 

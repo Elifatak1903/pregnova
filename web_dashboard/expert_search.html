@@ -20,12 +20,19 @@
     <div class="main">
 
         <div class="top-bar">
-            <h1 class="page-title" data-i18n="searchExpert">Uzman Ara</h1>
+            <div>
+                <h1 class="page-title" data-i18n="searchExpert">Uzman Ara</h1>
+                <p class="page-subtitle" data-i18n="searchExpertSubtitle">
+                    Doktor veya diyetisyen seçerek danışan isteği gönderebilirsin.
+                </p>
+            </div>
         </div>
 
-        <!-- FILTER -->
-        <div class="filter-bar">
-            <input id="searchInput" data-i18n-placeholder="searchNamePlaceholder" placeholder="İsim ara...">
+        <div class="filter-card">
+            <div class="search-box">
+                <span class="plain-icon">ARA</span>
+                <input id="searchInput" data-i18n-placeholder="searchNamePlaceholder" placeholder="İsim ara...">
+            </div>
 
             <select id="roleFilter">
                 <option value="" data-i18n="all">Tümü</option>
@@ -34,7 +41,6 @@
             </select>
         </div>
 
-        <!-- LIST -->
         <div id="expertList" class="expert-list"></div>
 
     </div>

@@ -49,3 +49,136 @@
   font-size: 14px;
   color: var(--text-light);
 }
+
+.date-filter {
+  width: min(360px, 100%);
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, white);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.analysis-full-card {
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--primary) 12%, white);
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 22px rgba(40, 20, 90, 0.06);
+}
+
+.analysis-full-card.selected {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 7%, white);
+}
+
+.analysis-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.analysis-top strong,
+.analysis-top span {
+  display: block;
+}
+
+.analysis-top strong {
+  color: var(--text);
+  font-size: 16px;
+}
+
+.analysis-top span {
+  margin-top: 4px;
+  color: var(--text-light);
+  font-size: 13px;
+}
+
+.detail-btn {
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  cursor: pointer;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.analysis-section {
+  margin-top: 10px;
+}
+
+.analysis-section h4,
+.nutrient-block h4,
+.daily-summary h3 {
+  margin: 0 0 8px;
+  color: var(--primary);
+  font-size: 14px;
+}
+
+.food-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 7px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.food-line span {
+  color: var(--text);
+}
+
+.food-line b {
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.daily-summary {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+.daily-summary p {
+  margin: 0 0 10px;
+  color: var(--text);
+}
+
+.nutrient-block {
+  margin-top: 10px;
+}
+
+.nutrient-block span {
+  display: inline-block;
+  margin: 0 6px 6px 0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.nutrient-block.ok span {
+  color: #00897B;
+  background: rgba(0, 191, 165, 0.12);
+}
+
+.nutrient-block.warn span {
+  color: #E08000;
+  background: rgba(255, 160, 0, 0.15);
+}
+
+.nutrient-block.danger span {
+  color: #D84343;
+  background: rgba(239, 83, 80, 0.13);
+}
+
+.empty-state {
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--text-light);
+}

@@ -16,61 +16,93 @@
             <h1 class="page-title" data-i18n="personalInfo">Kişisel Bilgiler</h1>
         </div>
         <div class="form" id="form">
-            <div class="input-group">
-                <label data-i18n="age">Yaş</label>
-                <input type="number" id="yas" data-i18n-placeholder="exampleAge" placeholder="Örn: 26">
+
+            <div class="form-section">
+                <div class="section-head">
+                    <h3 data-i18n="personalInfo">Kişisel Bilgiler</h3>
+                    <p data-i18n="profileEditSubtitle">Gebelik ve sağlık bilgilerini güncelle</p>
+                </div>
+
+                <div class="input-grid">
+
+                    <div class="input-group">
+                        <label data-i18n="age">Yaş</label>
+                        <input type="number" id="yas" data-i18n-placeholder="exampleAge" placeholder="Örn: 26">
+                    </div>
+
+                    <div class="input-group">
+                        <label data-i18n="currentWeight">Güncel Kilo</label>
+                        <input type="number" id="kilo" data-i18n-placeholder="exampleWeight" placeholder="Örn: 60">
+                    </div>
+
+                    <div class="input-group">
+                        <label data-i18n="height">Boy</label>
+                        <input type="number" id="boy" data-i18n-placeholder="exampleHeight" placeholder="Örn: 165">
+                    </div>
+
+                    <div class="bmi-card">
+                        <span data-i18n="bmi">BMI</span>
+                        <strong id="bmiPreview">-</strong>
+                    </div>
+
+                    <div class="input-group">
+                        <label data-i18n="pregnancyWeek">Hamilelik Haftası</label>
+                        <input type="number" id="hafta" data-i18n-placeholder="exampleWeek" placeholder="Örn: 24">
+                    </div>
+
+                    <div class="input-group">
+                        <label data-i18n="allergies">Alerjiler</label>
+                        <input type="text" id="alerjiler" data-i18n-placeholder="allergiesExample" placeholder="Örn: fıstık, süt">
+                    </div>
+
+                </div>
             </div>
-            <div class="input-group">
-                <label data-i18n="currentWeight">Güncel Kilo</label>
-                <input type="number" id="kilo" data-i18n-placeholder="exampleWeight" placeholder="Örn: 60">
+
+            <div class="form-section">
+                <div class="section-head">
+                    <h3 data-i18n="riskFactors">Risk Faktörleri</h3>
+                    <p data-i18n="riskFactorsSubtitle">Varsa mevcut risk durumlarını işaretle</p>
+                </div>
+
+                <div class="checkbox-grid">
+
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="chronicHypertension">
+                        <span data-i18n="chronicHypertension">Kronik Hipertansiyon</span>
+                    </label>
+
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="diabetes">
+                        <span data-i18n="diabetes">Diyabet</span>
+                    </label>
+
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="thyroidDisease">
+                        <span data-i18n="thyroidDisease">Tiroid Hastalığı</span>
+                    </label>
+
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="previousPreterm">
+                        <span data-i18n="previousPreterm">Önceki Preterm</span>
+                    </label>
+
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="multiplePregnancy">
+                        <span data-i18n="multiplePregnancy">Çoğul Gebelik</span>
+                    </label>
+
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="smoker">
+                        <span data-i18n="smokingUse">Sigara Kullanımı</span>
+                    </label>
+
+                </div>
             </div>
-            <div class="input-group">
-                <label data-i18n="height">Boy</label>
-                <input type="number" id="boy" data-i18n-placeholder="exampleHeight" placeholder="Örn: 165">
-            </div>
-            <div class="bmi-card">
-                <span data-i18n="bmi">BMI</span>
-                <strong id="bmiPreview">-</strong>
-            </div>
-            <div class="input-group">
-                <label data-i18n="pregnancyWeek">Hamilelik Haftası</label>
-                <input type="number" id="hafta" data-i18n-placeholder="exampleWeek" placeholder="Örn: 24">
-            </div>
-            <div class="input-group">
-                <label data-i18n="allergies">Alerjiler</label>
-                <input type="text" id="alerjiler" data-i18n-placeholder="allergiesExample" placeholder="Örn: fıstık, süt">
-            </div>
-            <hr>
-            <h3 class="section-title" data-i18n="riskFactors">Risk Faktörleri</h3>
-            <div class="checkbox-group">
-                <label class="checkbox-item">
-                    <input type="checkbox" id="chronicHypertension">
-                    <span data-i18n="chronicHypertension">Kronik Hipertansiyon</span>
-                </label>
-                <label class="checkbox-item">
-                    <input type="checkbox" id="diabetes">
-                    <span data-i18n="diabetes">Diyabet</span>
-                </label>
-                <label class="checkbox-item">
-                    <input type="checkbox" id="thyroidDisease">
-                    <span data-i18n="thyroidDisease">Tiroid Hastalığı</span>
-                </label>
-                <label class="checkbox-item">
-                    <input type="checkbox" id="previousPreterm">
-                    <span data-i18n="previousPreterm">Önceki Preterm</span>
-                </label>
-                <label class="checkbox-item">
-                    <input type="checkbox" id="multiplePregnancy">
-                    <span data-i18n="multiplePregnancy">Çoğul Gebelik</span>
-                </label>
-                <label class="checkbox-item">
-                    <input type="checkbox" id="smoker">
-                    <span data-i18n="smokingUse">Sigara Kullanımı</span>
-                </label>
-            </div>
+
             <button onclick="saveProfile()" class="save-btn">
-                💾 <span data-i18n="save">Kaydet</span>
+                <span class="plain-icon">SAVE</span> <span data-i18n="save">Kaydet</span>
             </button>
+
         </div>
     </div>
 </div>

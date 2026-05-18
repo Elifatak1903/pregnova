@@ -15,7 +15,7 @@
         <div class="top-bar">
             <h1 class="page-title" data-i18n="account">Hesabım</h1>
             <div class="notification-btn" onclick="toggleNotifications(event)">
-                🔔
+                <span class="notification-mark" aria-hidden="true"></span>
                 <span class="badge"></span>
                 <div id="notifDropdown" class="notif-dropdown hidden">
                     <div id="notifList" class="notif-list"></div>
@@ -27,7 +27,7 @@
         </div>
         <div class="account-page">
             <div class="profile-card">
-                <div class="avatar">👤</div>
+                <div class="avatar">P</div>
                 <div>
                     <h2 id="name" data-i18n="loading">Yükleniyor...</h2>
                     <p id="email"></p>
@@ -51,15 +51,15 @@
                 <b id="hospital"></b>
             </div>
             <div class="setting-item" onclick="openDiploma()">
-                📄 <span data-i18n="diplomaDocuments">Diploma / Belgeler</span>
+                <span class="plain-icon">DOC</span> <span data-i18n="diplomaDocuments">Diploma / Belgeler</span>
                 <span id="diplomaStatus" class="status-text" data-i18n="none">Yok</span>
             </div>
             <div class="settings">
                 <div class="setting-item" onclick="go('change_password.html')">
-                    🔒 <span data-i18n="changePassword">Şifre Değiştir</span>
+                    <span class="plain-icon">LOCK</span> <span data-i18n="changePassword">Şifre Değiştir</span>
                 </div>
                 <div class="setting-item logout" onclick="logout()">
-                    🚪 <span data-i18n="logoutAction">Çıkış Yap</span>
+                    <span class="plain-icon">EXIT</span> <span data-i18n="logoutAction">Çıkış Yap</span>
                 </div>
             </div>
         </div>

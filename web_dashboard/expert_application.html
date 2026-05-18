@@ -19,58 +19,94 @@
     <!-- MAIN -->
     <div class="main">
 
-        <h1 class="page-title" data-i18n="expertApplicationTitle">Uzman Başvurusu</h1>
+        <div class="top-bar">
+            <h1 class="page-title" data-i18n="expertApplicationTitle">Uzman Başvurusu</h1>
+        </div>
 
-        <!-- STATUS -->
-        <div id="statusView" class="status"></div>
+        <div class="application-layout">
 
-        <!-- FORM -->
-        <form id="applicationForm" class="form hidden">
+            <div class="application-info-card">
+                <div class="application-icon">U</div>
 
-            <div class="input-group">
-                <label data-i18n="expertiseArea">Uzmanlık Alanı</label>
-                <select id="role">
-                    <option value="dietitian" data-i18n="dietitian">Diyetisyen</option>
-                    <option value="gynecologist" data-i18n="gynecologist">Jinekolog</option>
-                </select>
+                <h2 data-i18n="expertApplicationTitle">Uzman Başvurusu</h2>
+
+                <p data-i18n="expertApplicationInfoText">
+                    Diyetisyen veya jinekolog olarak başvurmak için uzmanlık bilgilerini ve belgeni yükle.
+                </p>
+
+                <div class="info-note">
+                    <strong data-i18n="applicationNoteTitle">Bilgilendirme</strong>
+                    <span data-i18n="applicationNoteText">
+                    Başvurun admin tarafından incelendikten sonra onaylanır veya reddedilir.
+                </span>
+                </div>
             </div>
 
-            <div class="input-group">
-                <label data-i18n="licenseRegistryNo">Lisans / Sicil No</label>
-                <input type="text" id="licenseNo" required>
+            <div class="application-form-card">
+
+                <div id="statusView" class="status"></div>
+
+                <form id="applicationForm" class="form hidden">
+
+                    <div class="form-grid">
+
+                        <div class="input-group">
+                            <label data-i18n="expertiseArea">Uzmanlık Alanı</label>
+                            <select id="role">
+                                <option value="dietitian" data-i18n="dietitian">Diyetisyen</option>
+                                <option value="gynecologist" data-i18n="gynecologist">Jinekolog</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label data-i18n="licenseRegistryNo">Lisans / Sicil No</label>
+                            <input type="text" id="licenseNo" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label data-i18n="experience">Deneyim</label>
+                            <input type="text" id="experience">
+                        </div>
+
+                        <div class="input-group">
+                            <label data-i18n="phone">Telefon</label>
+                            <input type="tel" id="phone">
+                        </div>
+
+                        <div class="input-group">
+                            <label data-i18n="institutionWorked">Çalıştığı Kurum</label>
+                            <input type="text" id="hospital">
+                        </div>
+
+                        <div class="input-group">
+                            <label data-i18n="city">Şehir</label>
+                            <input type="text" id="city">
+                        </div>
+
+                    </div>
+
+                    <div class="upload-box">
+                        <label data-i18n="uploadDocument">Belge Yükle</label>
+
+                        <div class="upload-inner" onclick="document.getElementById('fileInput').click()">
+                            <div class="upload-icon">DOC</div>
+                            <strong data-i18n="selectDocument">Belge seç</strong>
+                            <p data-i18n="documentFormatInfo">PDF, JPG, JPEG veya PNG dosyası yükleyebilirsin.</p>
+                        </div>
+
+                        <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" hidden>
+                        <small id="fileName" class="file-name"></small>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="save-btn">
+                        <span data-i18n="submitApplication">Başvuruyu Gönder</span>
+                    </button>
+
+                </form>
+
             </div>
 
-            <div class="input-group">
-                <label data-i18n="experience">Deneyim</label>
-                <input type="text" id="experience">
-            </div>
-
-            <div class="input-group">
-                <label data-i18n="phone">Telefon</label>
-                <input type="tel" id="phone">
-            </div>
-
-            <div class="input-group">
-                <label data-i18n="institutionWorked">Çalıştığı Kurum</label>
-                <input type="text" id="hospital">
-            </div>
-
-            <div class="input-group">
-                <label data-i18n="city">Şehir</label>
-                <input type="text" id="city">
-            </div>
-
-            <div class="input-group">
-                <label data-i18n="uploadDocument">Belge Yükle</label>
-                <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png">
-                <small id="fileName" class="file-name"></small>
-            </div>
-
-            <button type="submit" id="submitBtn" class="save-btn" data-i18n="submitApplication">
-                Başvuruyu Gönder
-            </button>
-
-        </form>
+        </div>
 
     </div>
 

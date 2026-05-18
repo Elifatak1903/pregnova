@@ -19,45 +19,47 @@
     <!-- MAIN -->
     <div class="main">
 
-        <div class="top-bar">
-
+        <div class="messages-page-header">
             <h1 class="page-title" data-i18n="messages">Mesajlar</h1>
-
-            <div class="notification-btn" onclick="toggleNotifications(event)">
-                🔔
-                <span class="badge"></span>
-
-                <div id="notifDropdown" class="notif-dropdown hidden">
-                    <div id="notifList" class="notif-list"></div>
-
-                    <div class="notif-footer" onclick="go('notifications.html')" data-i18n="viewAll">
-                        Tümünü Gör →
-                    </div>
-                </div>
-            </div>
-
+            <p data-i18n="gynecologistMessagesSubtitle">
+                Danışanlarınızla iletişime geçin
+            </p>
         </div>
 
         <div class="chat-layout">
 
-            <!-- SOL -->
-            <div id="chatList" class="chat-list"></div>
+            <div class="chat-list-card">
 
-            <!-- SAĞ -->
-            <div class="chat-window">
-
-                <div id="chatHeader" class="chat-header">
-                    <div class="chat-header-content">
-                        <div class="avatar">👤</div>
-                        <div id="chatHeaderText" data-i18n="selectChat">Sohbet seç</div>
-                    </div>
+                <div class="chat-list-title" data-i18n="myPatients">
+                    DANIŞANLARIM
                 </div>
 
-                <div id="messages" class="chat-messages"></div>
+                <div id="chatList" class="chat-list"></div>
+            </div>
 
-                <div class="chat-input">
-                    <input type="text" id="messageInput" data-i18n-placeholder="messagePlaceholder" placeholder="Mesaj yaz...">
-                    <button onclick="sendMessage()" data-i18n="send">Gönder</button>
+            <div class="chat-window">
+
+                <div id="emptyChat" class="empty-chat">
+                    <div class="empty-icon">M</div>
+
+                    <h3 data-i18n="selectPatient">
+                        Bir danışan seçin
+                    </h3>
+
+                    <p data-i18n="selectPatientDesc">
+                        Soldan bir danışan seçerek sohbete başlayın
+                    </p>
+                </div>
+
+                <div id="activeChat" class="active-chat hidden">
+                    <div id="chatHeader" class="chat-header"></div>
+
+                    <div id="messages" class="chat-messages"></div>
+
+                    <div class="chat-input">
+                        <input id="messageInput" data-i18n-placeholder="messagePlaceholder" placeholder="Mesaj yaz...">
+                        <button onclick="sendMessage()" data-i18n="send">Gönder</button>
+                    </div>
                 </div>
 
             </div>

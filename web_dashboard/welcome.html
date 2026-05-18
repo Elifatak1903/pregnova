@@ -22,24 +22,28 @@
     <h1 class="title" data-i18n="welcomeTitle">PregNova'ya Hoş Geldin</h1>
 
     <p class="desc" data-i18n="welcomeDescription">
-        Hamilelik sürecini güvenle takip edebilmen için sağlık, beslenme ve egzersiz tek yerde
+        Hamilelik sürecini güvenle takip edebilmen için sağlık ve beslenme takibi tek yerde
     </p>
 
-    <button class="main-btn" onclick="go('login.html')" data-i18n="getStarted">
+    <button class="main-btn" onclick="window.location.href='login.html'" data-i18n="getStarted">
         Kullanmaya Başla
     </button>
-
 </div>
 
-<script type="module" src="app.js"></script>
 <script type="module">
-    import { applyTranslations, getLanguage } from "./i18n.js";
+    import { applyTranslations, getLanguage, setLanguage } from "./i18n.js";
 
     function syncLanguageButtons() {
       document.querySelectorAll("[data-lang]").forEach(button => {
         button.classList.toggle("active", button.dataset.lang === getLanguage());
       });
     }
+
+    window.setPregnovaLanguage = function(lang) {
+      setLanguage(lang);
+      applyTranslations();
+      syncLanguageButtons();
+    };
 
     document.addEventListener("DOMContentLoaded", () => {
       applyTranslations();

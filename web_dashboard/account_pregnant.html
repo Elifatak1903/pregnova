@@ -16,19 +16,65 @@
             <h1 class="page-title" data-i18n="account">Hesabım</h1>
         </div>
         <div class="account-content">
-            <p class="subtitle" data-i18n="accountSettingsSubtitle">
-                Hesap ayarlarını buradan yönetebilirsin
-            </p>
-            <div class="account-buttons">
-                <button onclick="kisiselBilgiKontrol()">👤 <span data-i18n="personalInfo">Kişisel Bilgiler</span></button>
-                <button onclick="go('measurement_history.html')">📊 <span data-i18n="lastMeasurementHistory">Ölçüm Geçmişi</span></button>
-                <button onclick="go('nutrition_history.html')">🍽️ <span data-i18n="nutritionSupplementHistory">Besin Geçmişi</span></button>
-                <button onclick="go('change_password.html')">🔒 <span data-i18n="changePassword">Şifre Değiştir</span></button>
-                <button class="primary" onclick="go('expert_application.html')">🩺 <span data-i18n="expertApplication">Uzman Olarak Başvur</span></button>
+
+            <div class="account-header-card">
+                <div class="profile-avatar" id="profileAvatar">PN</div>
+
+                <div>
+                    <h2 id="accountName">PregNova</h2>
+                    <p id="accountEmail" data-i18n="pregnantUser">Hamile Kullanıcı</p>
+                    <span class="role-badge" data-i18n="pregnant">Hamile</span>
+                </div>
             </div>
-            <div class="logout">
-                <button class="danger" onclick="logout()">🚪 <span data-i18n="logoutAction">Çıkış Yap</span></button>
+
+            <div class="account-grid">
+
+                <div class="account-card" onclick="kisiselBilgiKontrol()">
+                    <div class="card-icon">P</div>
+                    <div>
+                        <h3 data-i18n="personalInfo">Kişisel Bilgiler</h3>
+                        <p data-i18n="profileInfoDesc">Profil bilgilerini görüntüle ve düzenle</p>
+                    </div>
+                </div>
+
+                <div class="account-card" onclick="go('measurement_history.html')">
+                    <div class="card-icon">O</div>
+                    <div>
+                        <h3 data-i18n="lastMeasurementHistory">Ölçüm Geçmişi</h3>
+                        <p data-i18n="measurementHistoryDesc">Geçmiş sağlık ölçümlerini incele</p>
+                    </div>
+                </div>
+
+                <div class="account-card" onclick="go('nutrition_history.html')">
+                    <div class="card-icon">N</div>
+                    <div>
+                        <h3 data-i18n="nutritionSupplementHistory">Besin Geçmişi</h3>
+                        <p data-i18n="nutritionHistoryDesc">Beslenme analiz geçmişini görüntüle</p>
+                    </div>
+                </div>
+
+                <div class="account-card" onclick="go('change_password.html')">
+                    <div class="card-icon">L</div>
+                    <div>
+                        <h3 data-i18n="changePassword">Şifre Değiştir</h3>
+                        <p data-i18n="changePasswordDesc">Hesap güvenliği için şifreni güncelle</p>
+                    </div>
+                </div>
+
+                <div class="account-card full-width" onclick="go('expert_application.html')">
+                    <div class="card-icon">U</div>
+                    <div>
+                        <h3 data-i18n="expertApplication">Uzman Olarak Başvur</h3>
+                        <p data-i18n="expertApplicationDesc">Diyetisyen veya jinekolog rolü için başvuru yap</p>
+                    </div>
+                </div>
+
             </div>
+
+            <button class="logout-card" onclick="logout()">
+                <span class="plain-icon">EXIT</span> <span data-i18n="logoutAction">Çıkış Yap</span>
+            </button>
+
         </div>
     </div>
 </div>

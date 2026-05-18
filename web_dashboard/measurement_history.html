@@ -1,14 +1,13 @@
 <!DOCTYPE html>
-
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <title>Ölçüm Geçmişi</title>
+
     <link rel="stylesheet" href="css/theme.css">
     <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/measurement_history.css">
-
 </head>
 
 <body class="pregnant">
@@ -17,15 +16,25 @@
 
     <div class="sidebar"></div>
 
-    <!-- MAIN -->
     <div class="main">
 
         <div class="top-bar">
-            <h1 class="page-title">📊 <span data-i18n="measurementHistory">Ölçüm Geçmişi</span></h1>
+            <h1 class="page-title">
+                <span data-i18n="measurementHistory">Ölçüm Geçmişi</span>
+            </h1>
         </div>
 
         <div class="content">
+
+            <div class="filter-card">
+                <label for="dayFilter">Gün seç</label>
+                <select id="dayFilter" onchange="filterByDay(this.value)">
+                    <option value="all">Tüm Günler</option>
+                </select>
+            </div>
+
             <div id="historyList"></div>
+
         </div>
 
     </div>
@@ -33,7 +42,6 @@
 </div>
 
 <script type="module" src="app.js"></script>
-
 <script type="module" src="measurement_history.js"></script>
 
 </body>

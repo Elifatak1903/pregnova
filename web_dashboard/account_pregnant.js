@@ -8,6 +8,48 @@ import {
 const db = window.db;
 const auth = window.auth;
 
+/* ACCOUNT HEADER BİLGİLERİ */
+auth.onAuthStateChanged(async (user) => {
+  if (!user) return;
+
+  try {
+    const snap = await getDoc(doc(db, "users", user.uid));
+
+    if (!snap.exists()) return;
+
+    const data = snap.data();
+
+    const name = data.name || "";
+    const surname = data.surname || "";
+
+    const fullName = `${name} ${surname}`.trim();
+
+    const accountName = document.getElementById("accountName");
+    const profileAvatar = document.getElementById("profileAvatar");
+    const accountEmail = document.getElementById("accountEmail");
+
+    if (accountName) {
+      accountName.textContent = fullName || "PregNova";
+    }
+
+    if (profileAvatar) {
+      const initials =
+        `${name.charAt(0)}${surname.charAt(0)}`.toUpperCase();
+
+      profileAvatar.textContent = initials || "PN";
+    }
+
+    if (accountEmail) {
+      accountEmail.textContent = user.email || t("pregnantUser");
+      accountEmail.removeAttribute("data-i18n");
+    }
+
+  } catch (error) {
+    console.error(error);
+  }
+});
+
+/* KİŞİSEL BİLGİ KONTROL */
 window.kisiselBilgiKontrol = async function () {
   const user = auth.currentUser;
   if (!user) return;

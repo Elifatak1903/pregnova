@@ -148,6 +148,167 @@ export const NutritionEngine = {
 
   },
 
+  foodAliases: {
+    "egg": "yumurta",
+    "eggs": "yumurta",
+    "milk": "süt",
+    "yogurt": "yoğurt",
+    "yoghurt": "yoğurt",
+    "cheese": "peynir",
+    "chicken": "tavuk",
+    "beef": "et",
+    "meat": "et",
+    "liver": "karaciğer",
+    "fish": "balık",
+    "lentil": "mercimek",
+    "lentils": "mercimek",
+    "beans": "kuru fasulye",
+    "white beans": "kuru fasulye",
+    "chickpea": "nohut",
+    "chickpeas": "nohut",
+    "rice": "pirinç",
+    "spinach": "ıspanak",
+    "broccoli": "brokoli",
+    "kale": "karalahana",
+    "carrot": "havuç",
+    "tomato": "domates",
+    "cucumber": "salatalık",
+    "potato": "patates",
+    "sweet potato": "tatlı patates",
+    "zucchini": "kabak",
+    "eggplant": "patlıcan",
+    "aubergine": "patlıcan",
+    "pepper": "biber",
+    "orange": "portakal",
+    "tangerine": "mandalina",
+    "lemon": "limon",
+    "banana": "muz",
+    "apple": "elma",
+    "pear": "armut",
+    "strawberry": "çilek",
+    "strawberries": "çilek",
+    "avocado": "avokado",
+    "walnut": "ceviz",
+    "walnuts": "ceviz",
+    "almond": "badem",
+    "almonds": "badem",
+    "hazelnut": "fındık",
+    "hazelnuts": "fındık",
+    "buttermilk": "ayran",
+    "lentil soup": "mercimek çorbası",
+    "stuffed vegetables": "dolma",
+    "stuffed grape leaves": "sarma",
+    "whole wheat bread": "tam tahıl ekmek",
+    "white bread": "beyaz ekmek",
+    "pasta": "makarna",
+    "nuts": "kuruyemiş",
+    "flaxseed": "keten",
+    "cherry": "kiraz",
+    "sour cherry": "vişne",
+    "plum": "erik",
+    "peach": "şeftali",
+    "apricot": "kayısı",
+    "fig": "incir",
+    "pomegranate": "nar",
+    "pineapple": "ananas",
+    "kiwi": "kivi",
+    "mushroom": "mantar",
+    "lettuce": "marul",
+    "arugula": "roka",
+    "rocket": "roka",
+    "parsley": "maydanoz",
+    "dill": "dereotu",
+    "leek": "pırasa",
+    "onion": "soğan",
+    "garlic": "sarımsak",
+    "peas": "bezelye",
+    "corn": "mısır",
+    "salmon": "somon",
+    "tuna": "ton balığı",
+    "anchovy": "hamsi",
+    "sardine": "sardalya",
+    "sardines": "sardalya",
+    "shrimp": "karides",
+    "mozzarella": "mozarella",
+    "oats": "yulaf",
+    "oatmeal": "yulaf ezmesi",
+    "quinoa": "kinoa",
+    "barley": "arpa",
+    "rye": "çavdar",
+    "peanut": "fıstık",
+    "peanuts": "fıstık",
+    "pistachio": "antep fıstığı",
+    "pistachios": "antep fıstığı",
+    "cashew": "kaju",
+    "cashews": "kaju",
+    "pumpkin seeds": "kabak çekirdeği",
+    "sunflower seeds": "ay çekirdeği",
+    "sausage": "sosis",
+    "meatball": "köfte",
+    "meatballs": "köfte",
+    "toast": "tost",
+    "omelette": "omlet",
+    "omelet": "omlet",
+    "pancake": "pankek",
+  },
+
+  supplementAliases: {
+    "iron": "demir",
+    "folic acid": "folik asit",
+    "omega-3": "omega 3",
+    "omega 3": "omega 3",
+    "vitamin b12": "b12",
+    "b12 vitamin": "b12",
+    "calcium": "kalsiyum",
+    "vitamin d": "d vitamini",
+    "magnesium": "magnezyum",
+    "zinc": "çinko",
+  },
+
+  normalizeLookup(value) {
+    return String(value || "")
+      .toLowerCase()
+      .trim()
+      .replaceAll("-", " ")
+      .replace(/\s+/g, " ");
+  },
+
+  asciiLookup(value) {
+    return this.normalizeLookup(value)
+      .replaceAll("ı", "i")
+      .replaceAll("ğ", "g")
+      .replaceAll("ü", "u")
+      .replaceAll("ş", "s")
+      .replaceAll("ö", "o")
+      .replaceAll("ç", "c");
+  },
+
+  foodKey(rawName) {
+    const name = this.normalizeLookup(rawName);
+    if (this.foodNutrition[name]) return name;
+    if (this.foodAliases[name]) return this.foodAliases[name];
+
+    const asciiName = this.asciiLookup(name);
+    if (this.foodAliases[asciiName]) return this.foodAliases[asciiName];
+
+    return Object.keys(this.foodNutrition).find(
+      key => this.asciiLookup(key) === asciiName
+    ) || name;
+  },
+
+  supplementKey(rawName) {
+    const name = this.normalizeLookup(rawName);
+    if (this.supplementNutrition[name]) return name;
+    if (this.supplementAliases[name]) return this.supplementAliases[name];
+
+    const asciiName = this.asciiLookup(name);
+    if (this.supplementAliases[asciiName]) return this.supplementAliases[asciiName];
+
+    return Object.keys(this.supplementNutrition).find(
+      key => this.asciiLookup(key) === asciiName
+    ) || name;
+  },
+
   analyzeFoods(foods, supplements) {
 
     let totalNutrients = {};
@@ -158,7 +319,7 @@ export const NutritionEngine = {
 
     foods.forEach(food => {
 
-      const name = food.name.toLowerCase().trim();
+      const name = this.foodKey(food.name);
 
       if (this.foodNutrition[name]) {
 
@@ -185,11 +346,7 @@ export const NutritionEngine = {
       const rawName = sup.name || sup.ad;
       if (!rawName) return;
 
-      const name = rawName
-        .toString()
-        .toLowerCase()
-        .replace("-", " ")
-        .trim();
+      const name = this.supplementKey(rawName);
 
       if (this.supplementNutrition[name]) {
 

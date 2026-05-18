@@ -73,12 +73,36 @@ function loadChats(uid) {
       const div = document.createElement("div");
       div.className = "chat-item";
 
+      const initials = getInitials(u?.name || name);
+      const roleText =
+        role === "gynecologist"
+          ? t("doctor")
+          : role === "dietitian"
+            ? t("dietitian")
+            : t("expert");
+
+      const time = formatTime(data.lastMessageTime);
+
       div.innerHTML = `
-        <b>${name}</b><br>
-        <small>${data.lastMessage || ""}</small>
+        <div class="chat-avatar">${initials}</div>
+
+        <div class="chat-info">
+          <div class="chat-name">${name}</div>
+          <div class="chat-role">${roleText}</div>
+          <div class="chat-last">${data.lastMessage || ""}</div>
+        </div>
+
+        <div class="chat-time">${time}</div>
       `;
 
-      div.onclick = () => openChat(docSnap.id, name);
+      div.onclick = () => {
+        document.querySelectorAll(".chat-item").forEach(item => {
+          item.classList.remove("active");
+        });
+
+        div.classList.add("active");
+        openChat(docSnap.id, name);
+      };
 
       container.appendChild(div);
     }
@@ -86,6 +110,8 @@ function loadChats(uid) {
 }
 
 function openChat(chatId, name) {
+  document.getElementById("emptyChat").classList.add("hidden");
+  document.getElementById("activeChat").classList.remove("hidden");
 
   currentChatId = chatId;
 
@@ -113,7 +139,20 @@ function openChat(chatId, name) {
       div.className =
         data.senderId === currentUserId ? "msg me" : "msg other";
 
-      div.innerText = data.text;
+      let time = "";
+
+      if (data.createdAt?.seconds) {
+        time = new Date(data.createdAt.seconds * 1000)
+          .toLocaleTimeString("tr-TR", {
+            hour: "2-digit",
+            minute: "2-digit"
+          });
+      }
+
+      div.innerHTML = `
+        <div>${data.text}</div>
+        <div class="msg-time">${time}</div>
+      `;
 
       container.appendChild(div);
 
@@ -148,3 +187,34 @@ window.sendMessage = async function () {
 
   input.value = "";
 };
+
+function getInitials(name) {
+  return String(name)
+    .trim()
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0]?.toUpperCase())
+    .join("") || "?";
+}
+
+function formatTime(value) {
+  if (!value) return "";
+
+  let date;
+
+  if (value.toDate) {
+    date = value.toDate();
+  } else if (value.seconds) {
+    date = new Date(value.seconds * 1000);
+  } else {
+    date = new Date(value);
+  }
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleTimeString("tr-TR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}

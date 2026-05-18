@@ -143,7 +143,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   displayName,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                Text("📧 ${data["email"] ?? "-"}"),
+                Text("${l10n.email}: ${data["email"] ?? "-"}"),
                 Text("${l10n.createdAt}: ${formatDate(data["createdAt"])}"),
                 const SizedBox(height: 10),
                 if (data["role"] != "pregnant")

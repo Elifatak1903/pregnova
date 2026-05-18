@@ -152,30 +152,47 @@ async function loadActivity() {
 }
 
 async function loadChart() {
+  const currentUser = auth.currentUser;
+  if (!currentUser) return;
 
-  const normal = await getDocs(query(
-    collection(db,"users"),
-    where("riskLevel","==","normal")
+  const usersSnap = await getDocs(query(
+    collection(db, "users"),
+    where("assignedDoctor", "==", currentUser.uid)
   ));
 
-  const medium = await getDocs(query(
-    collection(db,"users"),
-    where("riskLevel","==","medium")
-  ));
+  let lowCount = 0;
+  let mediumCount = 0;
+  let highCount = 0;
 
-  const high = await getDocs(query(
-    collection(db,"users"),
-    where("riskLevel","==","high")
-  ));
+  usersSnap.forEach(docSnap => {
+    const data = docSnap.data();
+
+    const risk = (data.riskLevel || "")
+      .toString()
+      .trim()
+      .toLowerCase();
+
+    if (risk === "low") {
+      lowCount++;
+    } else if (risk === "medium") {
+      mediumCount++;
+    } else if (risk === "high") {
+      highCount++;
+    }
+  });
 
   const ctx = document.getElementById("chart");
 
-  new Chart(ctx, {
+  if (window.riskChart) {
+    window.riskChart.destroy();
+  }
+
+  window.riskChart = new Chart(ctx, {
     type: "doughnut",
     data: {
-      labels: [t("normal"), t("medium"), t("high")],
+      labels: [t("low"), t("medium"), t("high")],
       datasets: [{
-        data: [normal.size, medium.size, high.size],
+        data: [lowCount, mediumCount, highCount],
         backgroundColor: ["#00BFA5", "#FFA000", "#EF5350"]
       }]
     },
@@ -184,25 +201,25 @@ async function loadChart() {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'bottom'
+          position: "bottom"
         }
       }
     }
   });
-  createLegend(normal.size, medium.size, high.size);
+
+  createLegend(lowCount, mediumCount, highCount);
 }
 
-function createLegend(normalCount, mediumCount, highCount) {
-
+function createLegend(lowCount, mediumCount, highCount) {
   const legend = document.getElementById("riskLegend");
 
   legend.innerHTML = `
     <div class="legend-item">
       <div class="legend-left">
         <div class="legend-color" style="background:#00BFA5"></div>
-        ${t("normal")}
+        ${t("low")}
       </div>
-      <b>${normalCount}</b>
+      <b>${lowCount}</b>
     </div>
 
     <div class="legend-item">

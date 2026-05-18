@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'besin_analiz_detay_page.dart';
 import 'food_units.dart';
@@ -199,6 +200,23 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
       appBar: AppBar(
         title: Text(l10n.clientDetail),
         backgroundColor: Theme.of(context).colorScheme.primary,
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == "remove") {
+                _removeClientFromDietitian(context);
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: "remove",
+                child: Text(
+                  _localized(context, "Danışanla Bağı Kes", "Remove Client"),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance
@@ -686,6 +704,71 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
       ),
     );
   }
+
+  Future<void> _removeClientFromDietitian(BuildContext context) async {
+    final dietitianId = FirebaseAuth.instance.currentUser?.uid;
+    if (dietitianId == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(
+            _localized(context, "Danışanla Bağı Kes", "Remove Client"),
+          ),
+          content: Text(
+            _localized(
+              context,
+              "Bu danışan listenizden çıkarılsın mı?",
+              "Remove this client from your list?",
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(_localized(context, "İptal", "Cancel")),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: Text(_localized(context, "Çıkar", "Remove")),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    final requestQuery = await FirebaseFirestore.instance
+        .collection("expert_requests")
+        .where("expertId", isEqualTo: dietitianId)
+        .where("clientId", isEqualTo: widget.clientId)
+        .where("status", isEqualTo: "approved")
+        .get();
+
+    final batch = FirebaseFirestore.instance.batch();
+    for (final doc in requestQuery.docs) {
+      batch.update(doc.reference, {
+        "status": "removed",
+        "removedAt": FieldValue.serverTimestamp(),
+      });
+    }
+
+    batch.update(
+      FirebaseFirestore.instance.collection("users").doc(widget.clientId),
+      {"assignedDietitian": FieldValue.delete()},
+    );
+
+    await batch.commit();
+
+    if (!context.mounted) return;
+    Navigator.pop(context);
+  }
+
+  String _localized(BuildContext context, String tr, String en) {
+    return Localizations.localeOf(context).languageCode == "tr" ? tr : en;
+  }
 }
 
 class _BesinDayCard extends StatelessWidget {
@@ -875,17 +958,11 @@ _BesinSummary _summarizeBesinDay(List<_BesinAnalysisItem> items) {
         final name = data["ad"]?.toString() ?? "";
 
         if (name.isNotEmpty && amount > 0) {
-          foods.add({
-            "name": name,
-            "amount": unitGram * amount,
-          });
+          foods.add({"name": name, "amount": unitGram * amount});
         }
       } else if (raw is String) {
         if (raw.trim().isNotEmpty) {
-          foods.add({
-            "name": raw.trim(),
-            "amount": 1,
-          });
+          foods.add({"name": raw.trim(), "amount": 1});
         }
       }
     }
@@ -898,17 +975,11 @@ _BesinSummary _summarizeBesinDay(List<_BesinAnalysisItem> items) {
         final amount = double.tryParse(data["miktar"]?.toString() ?? "1") ?? 1;
 
         if (name.isNotEmpty) {
-          supplements.add({
-            "name": name,
-            "amount": amount,
-          });
+          supplements.add({"name": name, "amount": amount});
         }
       } else if (raw is String) {
         if (raw.trim().isNotEmpty) {
-          supplements.add({
-            "name": raw.trim(),
-            "amount": 1,
-          });
+          supplements.add({"name": raw.trim(), "amount": 1});
         }
       }
     }

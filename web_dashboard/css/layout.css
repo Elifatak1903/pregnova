@@ -4,13 +4,17 @@
 }
 
 .main {
+  position: relative;
   flex: 1;
-  padding: 20px;
+  padding: 6px 24px 16px;
   background: var(--background);
+  overflow: visible;
 }
 
 /* HEADER */
 .top-bar {
+  position: relative;
+  z-index: 5000;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -33,6 +37,7 @@ html, body {
 /* NOTIFICATION DROPDOWN */
 .notification-btn {
   position: relative;
+  z-index: 6000;
 
   font-size: 20px;
   cursor: pointer;
@@ -43,6 +48,40 @@ html, body {
 
   box-shadow: 0 5px 15px rgba(0,0,0,0.08);
   transition: 0.2s;
+}
+
+.notification-mark {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  border: 2px solid var(--primary);
+  border-radius: 50% 50% 45% 45%;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.notification-mark::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  width: 6px;
+  height: 4px;
+  border-radius: 6px 6px 0 0;
+  background: var(--primary);
+  transform: translateX(-50%);
+}
+
+.notification-mark::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 6px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--primary);
+  transform: translateX(-50%);
 }
 
 .notification-btn:hover {
@@ -74,7 +113,10 @@ html, body {
   box-shadow: 0 10px 30px rgba(0,0,0,0.15);
 
   padding: 10px;
-  z-index: 999;
+  z-index: 7000;
+  max-height: 560px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .notif-item {

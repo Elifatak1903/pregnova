@@ -119,6 +119,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
     await FirebaseFirestore.instance.collection('notification').add({
       'uid': uid,
       'week': week,
+      'type': 'weekly_info',
       'title': l10n.weeklyInfoTitle(week),
       'message': l10n.weeklyInfoMessage,
       'isRead': false,

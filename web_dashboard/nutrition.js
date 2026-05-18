@@ -52,6 +52,7 @@ window.addFood = function () {
   document.getElementById("foodAmount").value = "";
 
   renderList();
+  renderPreview();
 };
 
 window.addSupplement = function () {
@@ -78,6 +79,7 @@ window.addSupplement = function () {
   document.getElementById("supUnit").value = "";
 
   renderList();
+  renderPreview();
 };
 
 function renderList() {
@@ -109,14 +111,49 @@ function renderList() {
   });
 }
 
+function renderPreview() {
+  if (besinListesi.length === 0 && takviyeListesi.length === 0) {
+    const resultBox = document.getElementById("resultBox");
+    if (resultBox) resultBox.classList.add("hidden-result");
+    return;
+  }
+
+  const foods = besinListesi.map(item => {
+    const gram = (FoodUnits.units[item.format] || 1) * item.miktar;
+
+    return {
+      name: item.ad.toLowerCase(),
+      amount: gram
+    };
+  });
+
+  const sups = takviyeListesi.map(item => {
+    const info = SupplementUnits[item.ad];
+
+    return {
+      name: item.ad,
+      amount: item.miktar,
+      unit: info ? info.unit : ""
+    };
+  });
+
+  const result = NutritionEngine.analyzeFoods(foods, sups);
+
+  if (typeof window.showResult === "function") {
+    window.showResult(result);
+  }
+}
+
 window.removeFood = function (i) {
   besinListesi.splice(i, 1);
   renderList();
+  renderPreview();
 };
 
 window.removeSup = function (i) {
   takviyeListesi.splice(i, 1);
   renderList();
+  renderPreview();
 };
 
 window.saveAnalysis = async function () {
@@ -147,9 +184,7 @@ window.saveAnalysis = async function () {
 
     return {
       name: item.ad,
-      amount: info
-        ? item.miktar * info.value
-        : item.miktar,
+      amount: item.miktar,
       unit: info ? info.unit : ""
     };
   });
@@ -216,7 +251,7 @@ async function getTodayNutritionInputs(uid) {
 
       supplements.push({
         name: item.ad,
-        amount: info ? Number(item.miktar || 0) * info.value : Number(item.miktar || 0),
+        amount: Number(item.miktar || 0),
         unit: info ? info.unit : ""
       });
     });

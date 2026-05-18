@@ -25,7 +25,7 @@
 
             <!-- NOTIFICATION -->
             <div class="notification-btn" onclick="toggleNotifications(event)">
-                🔔
+                <span class="notification-mark" aria-hidden="true"></span>
                 <span class="badge"></span>
 
                 <div id="notifDropdown" class="notif-dropdown hidden">
@@ -37,70 +37,111 @@
         <!-- FORM -->
         <div class="content">
 
-            <div class="form-container">
+            <div class="content risk-content-page">
 
-                <input id="kilo" data-i18n-placeholder="weightKgPlaceholder" placeholder="Kilo (kg)">
-
-                <!-- PRE -->
-                <h3 data-i18n="preeclampsia">Preeklampsi</h3>
-
-                <input id="sistolik" data-i18n-placeholder="systolicPlaceholder" placeholder="Sistolik">
-                <input id="diastolik" data-i18n-placeholder="diastolicPlaceholder" placeholder="Diastolik">
-
-                <div class="checkbox-item">
-                    <input type="checkbox" id="basAgrisi">
-                    <label for="basAgrisi" data-i18n="headache">Baş ağrısı</label>
+                <div class="risk-header">
+                    <h2 data-i18n="riskMeasurement">Risk Ölçüm</h2>
+                    <p data-i18n="riskMeasurementDesc">
+                        Günlük sağlık ölçümlerini girerek risk durumunu takip edebilirsin.
+                    </p>
                 </div>
 
-                <div class="checkbox-item">
-                    <input type="checkbox" id="gorme">
-                    <label for="gorme" data-i18n="visionProblem">Görme bozukluğu</label>
+                <div class="form-container">
+
+                    <div class="form-section full">
+                        <div class="section-title">
+                            <span class="section-icon">R</span>
+                            <h3 data-i18n="generalMeasurement">Genel Ölçüm</h3>
+                        </div>
+
+                        <input id="kilo" data-i18n-placeholder="weightKgPlaceholder" placeholder="Kilo (kg)">
+                    </div>
+
+                    <div class="form-section">
+                        <div class="section-title">
+                            <span class="section-icon danger">!</span>
+                            <h3 data-i18n="preeclampsia">Preeklampsi</h3>
+                        </div>
+
+                        <div class="input-grid">
+                            <input id="sistolik" data-i18n-placeholder="systolicPlaceholder" placeholder="Sistolik">
+                            <input id="diastolik" data-i18n-placeholder="diastolicPlaceholder" placeholder="Diastolik">
+                        </div>
+
+                        <div class="checkbox-grid">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="basAgrisi">
+                                <label for="basAgrisi" data-i18n="headache">Baş ağrısı</label>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="gorme">
+                                <label for="gorme" data-i18n="visionProblem">Görme bozukluğu</label>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="sislik">
+                                <label for="sislik" data-i18n="swelling">Şişlik</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="section-title">
+                            <span class="section-icon warning">◉</span>
+                            <h3 data-i18n="diabetes">Diyabet</h3>
+                        </div>
+
+                        <div class="input-grid">
+                            <input id="aclik" data-i18n-placeholder="fastingSugarPlaceholder" placeholder="Açlık şekeri">
+                            <input id="tokluk" data-i18n-placeholder="postprandialSugarPlaceholder" placeholder="Tokluk şekeri">
+                        </div>
+
+                        <div class="checkbox-grid">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="susama">
+                                <label for="susama" data-i18n="excessiveThirst">Aşırı susama</label>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="idrar">
+                                <label for="idrar" data-i18n="frequentUrination">Sık idrar</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section full">
+                        <div class="section-title">
+                            <span class="section-icon warning">◌</span>
+                            <h3 data-i18n="preterm">Preterm</h3>
+                        </div>
+
+                        <div class="checkbox-grid three">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="kasilma">
+                                <label for="kasilma" data-i18n="abdominalContraction">Karın kasılması</label>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="akinti">
+                                <label for="akinti" data-i18n="discharge">Akıntı</label>
+                            </div>
+
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bel">
+                                <label for="bel" data-i18n="backPain">Bel ağrısı</label>
+                            </div>
+                        </div>
+
+                        <div class="slider-box">
+                            <p><span data-i18n="stressLevel">Stres Seviyesi</span>: <b id="stresValue">1</b></p>
+                            <input type="range" id="stres" min="1" max="5" value="1">
+                        </div>
+                    </div>
+
+                    <button class="save-btn" onclick="calculateRisk()" data-i18n="saveMeasurement">Kaydet</button>
+
                 </div>
-
-                <div class="checkbox-item">
-                    <input type="checkbox" id="sislik">
-                    <label for="sislik" data-i18n="swelling">Şişlik</label>
-                </div>
-
-                <!-- DİYABET -->
-                <h3 data-i18n="diabetes">Diyabet</h3>
-
-                <input id="aclik" data-i18n-placeholder="fastingSugarPlaceholder" placeholder="Açlık şekeri">
-                <input id="tokluk" data-i18n-placeholder="postprandialSugarPlaceholder" placeholder="Tokluk şekeri">
-
-                <div class="checkbox-item">
-                    <input type="checkbox" id="susama">
-                    <label for="susama" data-i18n="excessiveThirst">Aşırı susama</label>
-                </div>
-
-                <div class="checkbox-item">
-                    <input type="checkbox" id="idrar">
-                    <label for="idrar" data-i18n="frequentUrination">Sık idrar</label>
-                </div>
-                <!-- PRETERM -->
-                <h3 data-i18n="preterm">Preterm</h3>
-
-                <div class="checkbox-item">
-                    <input type="checkbox" id="kasilma">
-                    <label for="kasilma" data-i18n="abdominalContraction">Karın kasılması</label>
-                </div>
-
-                <div class="checkbox-item">
-                    <input type="checkbox" id="akinti">
-                    <label for="akinti" data-i18n="discharge">Akıntı</label>
-                </div>
-
-                <div class="checkbox-item">
-                    <input type="checkbox" id="bel">
-                    <label for="bel" data-i18n="backPain">Bel ağrısı</label>
-                </div>
-
-                <div class="slider-box">
-                    <p><span data-i18n="stressLevel">Stres Seviyesi</span>: <b id="stresValue">1</b></p>
-                    <input type="range" id="stres" min="1" max="5" value="1">
-                </div>
-
-                <button onclick="calculateRisk()" data-i18n="saveMeasurement">Kaydet</button>
 
             </div>
 

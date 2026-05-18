@@ -185,11 +185,23 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.close, color: Colors.red),
-                          onPressed: () {
-                            doc.reference.update({
+                          onPressed: () async {
+                            await doc.reference.update({
                               'status': 'rejected',
                               'rejectedAt': FieldValue.serverTimestamp(),
                             });
+
+                            await FirebaseFirestore.instance
+                                .collection("notification")
+                                .add({
+                                  'uid': clientId,
+                                  'type': 'expert_request',
+                                  'title': 'İstek Reddedildi',
+                                  'message':
+                                      'Gönderdiğiniz diyetisyen isteği reddedildi.',
+                                  'isRead': false,
+                                  'createdAt': FieldValue.serverTimestamp(),
+                                });
                           },
                         ),
 
@@ -210,6 +222,18 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
                                 .set({
                                   'assignedDietitian': uid,
                                 }, SetOptions(merge: true));
+
+                            await FirebaseFirestore.instance
+                                .collection("notification")
+                                .add({
+                                  'uid': clientId,
+                                  'type': 'expert_request',
+                                  'title': 'Diyetisyen Onayı',
+                                  'message':
+                                      'Diyetisyeniniz sizi danışan olarak kabul etti.',
+                                  'isRead': false,
+                                  'createdAt': FieldValue.serverTimestamp(),
+                                });
                           },
                         ),
                       ],
@@ -277,7 +301,12 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ClientDetailPage(clientId: patientId),
+                        builder: (_) => SonAnalizlerPage(
+                          selectedUid: patientId,
+                          selectedTarih: createdAt is Timestamp
+                              ? createdAt
+                              : null,
+                        ),
                       ),
                     );
                   },

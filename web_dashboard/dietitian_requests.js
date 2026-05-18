@@ -1,5 +1,6 @@
 import {
   collection,
+  addDoc,
   query,
   where,
   getDocs,
@@ -99,6 +100,13 @@ async function approveRequest(requestId, clientId, expertId) {
       assignedDietitian: expertId
     });
 
+    await createNotification(
+      clientId,
+      t("dietitian"),
+      t("doctorApprovalMessage"),
+      requestId
+    );
+
     alert(t("accepted"));
     location.reload();
   } catch (err) {
@@ -108,16 +116,41 @@ async function approveRequest(requestId, clientId, expertId) {
 
 async function rejectRequest(requestId) {
   try {
+    const requestSnap = await getDoc(doc(db, "expert_requests", requestId));
+    const clientId = requestSnap.exists() ? requestSnap.data().clientId : "";
+
     await updateDoc(doc(db, "expert_requests", requestId), {
       status: "rejected",
       rejectedAt: serverTimestamp()
     });
+
+    if (clientId) {
+      await createNotification(
+        clientId,
+        t("requestRejectedTitle"),
+        t("requestRejectedMessage"),
+        requestId
+      );
+    }
 
     alert(t("rejectedShort"));
     location.reload();
   } catch (err) {
     console.error(err);
   }
+}
+
+async function createNotification(targetUid, title, message, requestId) {
+  await addDoc(collection(db, "notification"), {
+    uid: targetUid,
+    type: "expert_request",
+    requestId,
+    title: title || t("notification"),
+    message: message || "",
+    actionPage: "expert_search.html",
+    isRead: false,
+    createdAt: serverTimestamp()
+  });
 }
 
 function fullName(user) {

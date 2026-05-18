@@ -23,7 +23,7 @@
             <h1 class="page-title" data-i18n="clients">Danışanlar</h1>
 
             <div class="notification-btn" onclick="toggleNotifications(event)">
-                🔔
+                <span class="notification-mark" aria-hidden="true"></span>
                 <span class="badge"></span>
 
                 <div id="notifDropdown" class="notif-dropdown hidden">
@@ -56,6 +56,9 @@
                             <option value="default" data-i18n="default">Varsayılan</option>
                             <option value="riskHigh" data-i18n="highRisk">Yüksek Risk</option>
                             <option value="riskLow" data-i18n="lowRisk">Düşük Risk</option>
+                            <option value="doctorPreeclampsia" data-i18n="preeclampsiaFollowUp">Preeklampsi Takibi</option>
+                            <option value="doctorDiabetes" data-i18n="diabetesFollowUp">Gestasyonel Diyabet Takibi</option>
+                            <option value="doctorPreterm" data-i18n="pretermFollowUp">Preterm Takibi</option>
                             <option value="newest" data-i18n="newest">En Yeni</option>
                             <option value="oldest" data-i18n="oldest">En Eski</option>
                         </select>

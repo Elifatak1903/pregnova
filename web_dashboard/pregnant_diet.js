@@ -10,7 +10,7 @@ import {
 import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-import { t } from "./i18n.js";
+import { t, getLanguage } from "./i18n.js";
 
 const db = window.db;
 const auth = window.auth;
@@ -98,7 +98,9 @@ function formatDate(timestamp) {
 
   const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
 
-  return date.toLocaleDateString("tr-TR", {
+  const locale = getLanguage() === "tr" ? "tr-TR" : "en-US";
+
+  return date.toLocaleDateString(locale, {
     day: "2-digit",
     month: "long",
     year: "numeric"

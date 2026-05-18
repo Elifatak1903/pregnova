@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
@@ -26,6 +27,29 @@ class HastaDetayPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
         title: Text(l10n.patientDetail),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == "risk") {
+                _openRiskAssignmentDialog(context);
+              } else if (value == "remove") {
+                _removePatientFromDoctor(context);
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: "risk",
+                child: Text(_localized(context, "Risk Ata", "Assign Risk")),
+              ),
+              PopupMenuItem(
+                value: "remove",
+                child: Text(
+                  _localized(context, "Listeden Çıkar", "Remove from List"),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -44,8 +68,25 @@ class HastaDetayPage extends StatelessWidget {
                 }
 
                 final data = snapshot.data!.data() as Map<String, dynamic>?;
-                final hafta = data?["hafta"] ?? "-";
+                if (data == null) {
+                  return Container(
+                    margin: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: _cardDecoration(context),
+                    child: Text(
+                      "Hasta bilgisi bulunamadı. clientId: $clientId",
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  );
+                }
+                final hafta = data?["hafta"]?.toString() ?? "-";
+                final fullName = "${data?["name"] ?? ""} ${data?["surname"] ?? ""}".trim();
                 final risk = data?["riskLevel"] ?? "normal";
+                final doctorRiskFlags = _doctorRiskFlags(data);
+                final doctorRiskLabels = _doctorRiskLabels(
+                  l10n,
+                  doctorRiskFlags,
+                );
                 final riskColor = _riskColor(context, risk);
                 final riskText = _riskText(l10n, risk);
 
@@ -55,26 +96,52 @@ class HastaDetayPage extends StatelessWidget {
                   decoration: _cardDecoration(context),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "$name $surname",
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              fullName.isEmpty ? "-" : fullName,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            "${l10n.pregnancyWeekInput}: $hafta",
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface,
+                            const SizedBox(height: 6),
+                            Text(
+                              "${l10n.pregnancyWeekInput}: $hafta",
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
                             ),
-                          ),
-                        ],
+                            if (doctorRiskLabels.isNotEmpty) ...[
+                              const SizedBox(height: 10),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: doctorRiskLabels.map((label) {
+                                  return Chip(
+                                    avatar: const Icon(
+                                      Icons.flag,
+                                      size: 16,
+                                      color: Colors.red,
+                                    ),
+                                    label: Text(label),
+                                    backgroundColor: Colors.red.withValues(alpha: 0.10),
+                                    labelStyle: const TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 10),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -188,6 +255,155 @@ class HastaDetayPage extends StatelessWidget {
     );
   }
 
+  Future<void> _openRiskAssignmentDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final userRef = FirebaseFirestore.instance
+        .collection("users")
+        .doc(clientId);
+    final snapshot = await userRef.get();
+    final data = snapshot.data();
+    final currentFlags = _doctorRiskFlags(data);
+
+    var preeklampsi = currentFlags["preeklampsi"] == true;
+    var diabetes = currentFlags["diabetes"] == true;
+    var preterm = currentFlags["preterm"] == true;
+
+    if (!context.mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(
+                _localized(context, "Takip Riskleri", "Follow-up Risks"),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CheckboxListTile(
+                    value: preeklampsi,
+                    onChanged: (value) {
+                      setDialogState(() => preeklampsi = value ?? false);
+                    },
+                    title: Text(l10n.preeklampsiTracking),
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                  CheckboxListTile(
+                    value: diabetes,
+                    onChanged: (value) {
+                      setDialogState(() => diabetes = value ?? false);
+                    },
+                    title: Text(l10n.gestationalDiabetes),
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                  CheckboxListTile(
+                    value: preterm,
+                    onChanged: (value) {
+                      setDialogState(() => preterm = value ?? false);
+                    },
+                    title: Text(l10n.pretermRisk),
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: Text(l10n.cancel),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    await userRef.update({
+                      "doctorRiskFlags": {
+                        "preeklampsi": preeklampsi,
+                        "diabetes": diabetes,
+                        "preterm": preterm,
+                      },
+                      "doctorRiskUpdatedAt": FieldValue.serverTimestamp(),
+                    });
+
+                    if (!dialogContext.mounted) return;
+                    Navigator.pop(dialogContext);
+
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(l10n.saved)));
+                  },
+                  child: Text(l10n.save),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _removePatientFromDoctor(BuildContext context) async {
+    final doctorId = FirebaseAuth.instance.currentUser?.uid;
+    if (doctorId == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(
+            _localized(context, "Listeden Çıkar", "Remove from List"),
+          ),
+          content: Text(
+            _localized(
+              context,
+              "Bu hasta danışan listenizden çıkarılsın mı?",
+              "Remove this patient from your client list?",
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(AppLocalizations.of(context)!.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: Text(_localized(context, "Çıkar", "Remove")),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    final requestQuery = await FirebaseFirestore.instance
+        .collection("expert_requests")
+        .where("expertId", isEqualTo: doctorId)
+        .where("clientId", isEqualTo: clientId)
+        .where("status", isEqualTo: "approved")
+        .get();
+
+    final batch = FirebaseFirestore.instance.batch();
+    for (final doc in requestQuery.docs) {
+      batch.update(doc.reference, {
+        "status": "removed",
+        "removedAt": FieldValue.serverTimestamp(),
+      });
+    }
+
+    batch.update(FirebaseFirestore.instance.collection("users").doc(clientId), {
+      "assignedDoctor": FieldValue.delete(),
+      "doctorRiskFlags": FieldValue.delete(),
+      "doctorRiskUpdatedAt": FieldValue.delete(),
+    });
+
+    await batch.commit();
+
+    if (!context.mounted) return;
+    Navigator.pop(context);
+  }
+
   Widget _buildTansiyonChart(
     BuildContext context,
     List<QueryDocumentSnapshot> docs,
@@ -210,7 +426,7 @@ class HastaDetayPage extends StatelessWidget {
           child: BarChart(
             BarChartData(
               minY: 80,
-              maxY: 200,
+              maxY: 250,
               barGroups: List.generate(docs.length, (i) {
                 final data = docs[i].data() as Map<String, dynamic>;
                 final sistolik =
@@ -352,6 +568,29 @@ class HastaDetayPage extends StatelessWidget {
     if (risk == "high") return l10n.highRisk;
     if (risk == "medium") return l10n.mediumRisk;
     return l10n.normalRisk;
+  }
+
+  Map<String, dynamic> _doctorRiskFlags(Map<String, dynamic>? data) {
+    final rawFlags = data?["doctorRiskFlags"];
+    if (rawFlags is Map) {
+      return Map<String, dynamic>.from(rawFlags);
+    }
+    return <String, dynamic>{};
+  }
+
+  List<String> _doctorRiskLabels(
+    AppLocalizations l10n,
+    Map<String, dynamic> flags,
+  ) {
+    return [
+      if (flags["preeklampsi"] == true) l10n.preeklampsiTracking,
+      if (flags["diabetes"] == true) l10n.gestationalDiabetes,
+      if (flags["preterm"] == true) l10n.pretermRisk,
+    ];
+  }
+
+  String _localized(BuildContext context, String tr, String en) {
+    return Localizations.localeOf(context).languageCode == "tr" ? tr : en;
   }
 
   BoxDecoration _cardDecoration(BuildContext context) {

@@ -5,20 +5,30 @@ const db = window.db;
 const auth = window.auth;
 const content = document.getElementById("content");
 
-function kart(title, value, icon) {
+function infoItem(title, value, icon) {
   return `
-    <div class="card">
-      <div class="icon">${icon}</div>
-      <div class="info">
-        <div class="title">${title}</div>
-        <div class="value">${value}</div>
+    <div class="info-item">
+      <div class="info-icon">${icon}</div>
+      <div>
+        <div class="info-title">${title}</div>
+        <div class="info-value">${value}</div>
       </div>
     </div>
   `;
 }
 
-function boolText(value) {
-  return value ? t("exists") : t("none");
+function riskItem(title, value, icon) {
+  const active = value === true;
+
+  return `
+    <div class="risk-item ${active ? "active" : ""}">
+      <div class="risk-icon">${icon}</div>
+      <div>
+        <div class="risk-title">${title}</div>
+        <div class="risk-value">${active ? t("exists") : t("none")}</div>
+      </div>
+    </div>
+  `;
 }
 
 auth.onAuthStateChanged(async (user) => {
@@ -37,23 +47,55 @@ auth.onAuthStateChanged(async (user) => {
 
     const d = snap.data();
 
-    content.innerHTML = `
-      ${kart(t("age"), d.yas ?? "-", "👤")}
-      ${kart(t("currentWeight"), d.kilo ? `${d.kilo} kg` : "-", "⚖️")}
-      ${kart(t("height"), d.boy ? `${d.boy} cm` : "-", "📏")}
-      ${kart(t("bmi"), d.bmi ? Number(d.bmi).toFixed(1) : "-", "📊")}
-      ${kart(t("pregnancyWeek"), d.hafta ? t("weekValue", { week: d.hafta }) : "-", "📅")}
-      ${kart(t("allergies"), d.alerjiler || t("none"), "⚠️")}
-      ${kart(t("chronicHypertension"), boolText(d.chronicHypertension), "❤️")}
-      ${kart(t("diabetes"), boolText(d.diabetes), "🩸")}
-      ${kart(t("thyroidDisease"), boolText(d.thyroidDisease), "🧬")}
-      ${kart(t("previousPreterm"), boolText(d.previousPreterm), "⚠️")}
-      ${kart(t("multiplePregnancy"), boolText(d.multiplePregnancy), "👶👶")}
-      ${kart(t("smokingUse"), boolText(d.smoker), "🚬")}
+    const name = `${d.name || ""} ${d.surname || ""}`.trim() || "PregNova";
+    const initials = name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(part => part[0]?.toUpperCase())
+      .join("") || "PN";
 
-      <button class="edit-btn" onclick="editProfile()">
-        ✏️ ${t("editInfo")}
-      </button>
+    content.innerHTML = `
+      <div class="profile-hero">
+        <div class="profile-avatar">${initials}</div>
+
+        <div>
+          <h2>${name}</h2>
+          <p>${d.email || t("pregnantUser")}</p>
+          <span>${t("pregnant")}</span>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <div class="section-head">
+          <h3>${t("personalInfo")}</h3>
+          <button onclick="editProfile()">${t("editInfo")}</button>
+        </div>
+
+        <div class="info-grid">
+          ${infoItem(t("age"), d.yas ?? "-", "Y")}
+          ${infoItem(t("currentWeight"), d.kilo ? `${d.kilo} kg` : "-", "K")}
+          ${infoItem(t("height"), d.boy ? `${d.boy} cm` : "-", "B")}
+          ${infoItem(t("bmi"), d.bmi ? Number(d.bmi).toFixed(1) : "-", "BMI")}
+          ${infoItem(t("pregnancyWeek"), d.hafta ? t("weekValue", { week: d.hafta }) : "-", "H")}
+          ${infoItem(t("allergies"), d.alerjiler || t("none"), "!")}
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <div class="section-head">
+          <h3>${t("riskFactors")}</h3>
+        </div>
+
+        <div class="risk-grid">
+          ${riskItem(t("chronicHypertension"), d.chronicHypertension, "HT")}
+          ${riskItem(t("diabetes"), d.diabetes, "DM")}
+          ${riskItem(t("thyroidDisease"), d.thyroidDisease, "T")}
+          ${riskItem(t("previousPreterm"), d.previousPreterm, "PT")}
+          ${riskItem(t("multiplePregnancy"), d.multiplePregnancy, "MP")}
+          ${riskItem(t("smokingUse"), d.smoker, "S")}
+        </div>
+      </div>
     `;
   } catch (err) {
     console.error(err);

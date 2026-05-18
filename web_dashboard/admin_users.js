@@ -66,8 +66,8 @@ function render() {
             <div class="user-name">${user.name || t("user")}</div>
 
             <div class="user-info">
-                📧 ${user.email || "-"}
-                <span>📅 ${t("joined")}: ${formatDate(user.createdAt)}</span>
+                ${t("email")}: ${user.email || "-"}
+                <span>${t("joined")}: ${formatDate(user.createdAt)}</span>
             </div>
 
             <div class="user-actions">

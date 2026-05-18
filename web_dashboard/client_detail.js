@@ -12,7 +12,7 @@ import { NutritionEngine } from "./nutritionEngine.js";
 import { SupplementUnits } from "./supplementUnits.js";
 import { t } from "./i18n.js";
 
-const db = window.db;
+let db;
 
 /* URL'den id al */
 const urlParams = new URLSearchParams(window.location.search);
@@ -42,21 +42,47 @@ function canRenderCharts() {
 
 /* USER BİLGİ */
 async function loadUser() {
-  try {
-    const snap = await getDoc(doc(db, "users", clientId));
+  console.log("loadUser başladı");
+  console.log("clientId:", clientId);
+  console.log("db:", db);
 
-    if (!snap.exists()) return;
+  const patientName = document.getElementById("patientName");
+  const patientInfo = document.getElementById("patientInfo");
+
+  console.log("patientName element:", patientName);
+  console.log("patientInfo element:", patientInfo);
+
+  try {
+    const ref = doc(db, "users", clientId);
+    console.log("users ref path:", ref.path);
+
+    const snap = await getDoc(ref);
+
+    console.log("snap exists:", snap.exists());
+    console.log("snap id:", snap.id);
+    console.log("snap data:", snap.data());
+
+    if (!snap.exists()) {
+      patientName.innerText = "Danışan bulunamadı";
+      patientInfo.innerText = `clientId: ${clientId}`;
+      return;
+    }
 
     const data = snap.data();
 
-    document.getElementById("patientName").innerText =
-      `${data.name || ""} ${data.surname || ""}`;
+    patientName.innerText =
+      `${data.name || ""} ${data.surname || ""}`.trim() || "-";
 
-    document.getElementById("patientInfo").innerText =
+    patientInfo.innerText =
       `${t("week")}: ${data.hafta || "-"} | ${t("weight")}: ${data.kilo || "-"}`;
+
+    console.log("UI güncellendi:", patientName.innerText, patientInfo.innerText);
 
   } catch (err) {
     console.error("USER ERROR:", err);
+
+    patientName.innerText = "Bilgi yükleme hatası";
+    patientInfo.innerText = err.message;
   }
 }
 
@@ -313,4 +339,13 @@ async function init() {
   await loadAnalysis();
 }
 
-init();
+function waitForFirebase() {
+  if (window.db) {
+    db = window.db;
+    init();
+  } else {
+    setTimeout(waitForFirebase, 100);
+  }
+}
+
+waitForFirebase();

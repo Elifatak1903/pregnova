@@ -24,6 +24,8 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 export { app, auth, db };
 
+const MAX_DROPDOWN_NOTIFICATIONS = 7;
+
 ensureSidebarCssLast();
 
 /* NAV */
@@ -54,7 +56,8 @@ onAuthStateChanged(auth, async (user) => {
 
   const role = userDoc.data().role;
 
-  document.body.className = role;
+  document.body.classList.remove("pregnant", "dietitian", "gynecologist", "admin");
+  document.body.classList.add(role || "pregnant");
   document.body.classList.add("ready");
   renderSidebar(role);
   applyTranslations();
@@ -88,9 +91,10 @@ function loadNotifications(uid) {
     orderBy("createdAt", "desc")
   );
 
-  onSnapshot(q, (snapshot) => {
+  onSnapshot(q, async (snapshot) => {
 
     list.innerHTML = "";
+    const role = await getCurrentUserRole(uid);
 
     let unread = 0;
 
@@ -98,17 +102,33 @@ function loadNotifications(uid) {
       if (!docSnap.data().isRead) unread++;
     });
 
-    snapshot.docs.slice(0, 7).forEach(docSnap => {
+    const dropdownDocs = snapshot.docs.slice(0, MAX_DROPDOWN_NOTIFICATIONS);
+
+    dropdownDocs.forEach(docSnap => {
 
       const data = docSnap.data();
+      const actionPage = getNotificationActionPage(data, role);
 
       const div = document.createElement("div");
       div.className = "notif-item";
+      if (actionPage) div.classList.add("clickable");
 
       div.innerHTML = `
         <b>${data.title || t("notification")}</b><br>
         <small>${data.message || ""}</small>
       `;
+
+      div.addEventListener("click", async (event) => {
+        event.stopPropagation();
+
+        if (data.isRead !== true) {
+          await updateDoc(docSnap.ref, { isRead: true });
+        }
+
+        if (actionPage) {
+          window.location.href = actionPage;
+        }
+      });
 
       list.appendChild(div);
     });
@@ -121,6 +141,54 @@ function loadNotifications(uid) {
     }
 
   });
+}
+
+async function getCurrentUserRole(uid) {
+  const userDoc = await getDoc(doc(db, "users", uid));
+  return userDoc.exists() ? userDoc.data().role : "";
+}
+
+export function getNotificationActionPage(data, role = "") {
+  if (data.actionPage) return data.actionPage;
+
+  const type = data.type || "general";
+  const patientId = data.patientId || data.clientId;
+
+  if (type === "weekly_info") return "pregnant.html";
+
+  if (type === "risk_alert") {
+    if (role === "gynecologist") {
+      return patientId
+        ? `patient_detail.html?uid=${encodeURIComponent(patientId)}`
+        : "son_olcumler.html";
+    }
+
+    if (role === "dietitian") {
+      return patientId
+        ? `client_detail.html?id=${encodeURIComponent(patientId)}`
+        : "son_analizler.html";
+    }
+
+    return "measurement_history.html";
+  }
+
+  if (type === "expert_application") {
+    return role === "admin" ? "admin_requests.html" : "expert_application.html";
+  }
+
+  if (type === "expert_request") {
+    if (role === "gynecologist") return "requests_gynecologist.html";
+    if (role === "dietitian") return "dietitian_requests.html";
+    return "expert_search.html";
+  }
+
+  if (type === "message") {
+    if (role === "gynecologist") return "messages_gynecologist.html";
+    if (role === "dietitian") return "messages_dietitian.html";
+    return "messages_pregnant.html";
+  }
+
+  return "";
 }
 
 function ensureSidebarCssLast() {

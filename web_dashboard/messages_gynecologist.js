@@ -5,13 +5,11 @@ import {
   collection,
   query,
   where,
-  orderBy,
   onSnapshot,
   doc,
   getDoc,
-  getDocs,
   addDoc,
-  serverTimestamp,
+  orderBy,
   updateDoc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
@@ -25,16 +23,17 @@ let unsubscribeMessages = null;
 
 /* AUTH */
 onAuthStateChanged(auth, (user) => {
-  if (!user) return location.href = "login.html";
+  if (!user) {
+    location.href = "login.html";
+    return;
+  }
 
+  currentUserId = user.uid;
   loadChats(user.uid);
 });
 
 /* LOAD CHATS */
 function loadChats(uid) {
-
-  const container = document.getElementById("chatList");
-
   const q = query(
     collection(db, "chats"),
     where("users", "array-contains", uid),
@@ -42,6 +41,8 @@ function loadChats(uid) {
   );
 
   onSnapshot(q, async (snapshot) => {
+    const container = document.getElementById("chatList");
+    if (!container) return;
 
     container.innerHTML = "";
 
@@ -50,92 +51,57 @@ function loadChats(uid) {
       return;
     }
 
-    for (const chat of snapshot.docs) {
+    for (const docSnap of snapshot.docs) {
+      const data = docSnap.data();
+      const users = data.users || [];
 
-      const data = chat.data();
+      const otherUserId = users.find(u => u !== uid);
+      if (!otherUserId) continue;
 
-      const otherUserId = data.users.find(u => u !== uid);
+      const userSnap = await getDoc(doc(db, "users", otherUserId));
+      const u = userSnap.data();
 
-      const userDoc = await getDoc(doc(db, "users", otherUserId));
-      const user = userDoc.data();
-
-      const name = user?.name || t("user");
-      const surname = user?.surname || "";
-
+      const name = `${u?.name || t("user")} ${u?.surname || ""}`.trim();
+      const initials = getInitials(name);
       const lastMessage = data.lastMessage || "";
-
-      let timeText = "";
-      if (data.lastMessageTime && data.lastMessageTime.toDate) {
-        const d = data.lastMessageTime.toDate();
-        timeText =
-          d.getHours().toString().padStart(2, "0") + ":" +
-          d.getMinutes().toString().padStart(2, "0");
-      }
+      const time = formatTime(data.lastMessageTime);
 
       const div = document.createElement("div");
-      div.className = "chat-card";
+      div.className = "chat-item";
 
       div.innerHTML = `
-        <div class="chat-left">
-          <div class="avatar">👤</div>
+        <div class="chat-avatar">${initials}</div>
 
-          <div class="chat-info">
-            <b>${name} ${surname}</b><br>
-            <span>${lastMessage}</span>
-          </div>
+        <div class="chat-info">
+          <div class="chat-name">${name}</div>
+          <div class="chat-role">${t("patientRole")}</div>
+          <div class="chat-last">${lastMessage}</div>
         </div>
 
-        <div class="chat-right">
-          <div>${timeText}</div>
-        </div>
+        <div class="chat-time">${time}</div>
       `;
+
       div.onclick = () => {
-
-        currentChatId = chat.id;
-        currentUserId = otherUserId;
-
-        document.getElementById("chatHeader").innerText =
-          name + " " + surname;
-
-        document.querySelectorAll(".chat-card")
-          .forEach(c => c.classList.remove("active"));
+        document.querySelectorAll(".chat-item").forEach(item => {
+          item.classList.remove("active");
+        });
 
         div.classList.add("active");
-
-        loadMessages();
+        openChat(docSnap.id, name);
       };
 
       container.appendChild(div);
     }
-
   });
 }
-window.sendMessage = async function () {
 
-  const input = document.getElementById("messageInput");
-  const text = input.value;
+function openChat(chatId, name) {
+  document.getElementById("emptyChat").classList.add("hidden");
+  document.getElementById("activeChat").classList.remove("hidden");
 
-  if (!text.trim() || !currentChatId) return;
+  currentChatId = chatId;
 
-  await addDoc(collection(db, "messages"), {
-    text,
-    senderId: auth.currentUser.uid,
-    chatId: currentChatId,
-    createdAt: serverTimestamp(),
-    isRead: false
-  });
-
-  await updateDoc(doc(db, "chats", currentChatId), {
-    lastMessage: text,
-    lastMessageTime: serverTimestamp()
-  });
-
-  input.value = "";
-};
-
-function loadMessages() {
-
-  const messagesDiv = document.getElementById("messages");
+  document.getElementById("chatHeader").innerText = name;
 
   if (unsubscribeMessages) {
     unsubscribeMessages();
@@ -143,42 +109,63 @@ function loadMessages() {
 
   const q = query(
     collection(db, "messages"),
-    where("chatId", "==", currentChatId),
+    where("chatId", "==", chatId),
     orderBy("createdAt", "asc")
   );
 
   unsubscribeMessages = onSnapshot(q, (snapshot) => {
+    const container = document.getElementById("messages");
+    if (!container) return;
 
-    messagesDiv.innerHTML = "";
+    container.innerHTML = "";
 
-    snapshot.forEach(doc => {
-      const data = doc.data();
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
 
       const div = document.createElement("div");
       div.className =
-        "message " +
-        (data.senderId === auth.currentUser.uid ? "me" : "other");
+        data.senderId === currentUserId ? "msg me" : "msg other";
 
-      let time = "";
-
-      if (data.createdAt && data.createdAt.toDate) {
-        const d = data.createdAt.toDate();
-        time =
-          d.getHours().toString().padStart(2, "0") + ":" +
-          d.getMinutes().toString().padStart(2, "0");
-      }
+      const time = formatTime(data.createdAt);
 
       div.innerHTML = `
-        <span>${data.text}</span>
+        <div>${data.text}</div>
         <div class="msg-time">${time}</div>
       `;
 
-      messagesDiv.appendChild(div);
+      container.appendChild(div);
+
+      if (!data.isRead && data.senderId !== currentUserId) {
+        updateDoc(docSnap.ref, { isRead: true });
+      }
     });
 
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    container.scrollTop = container.scrollHeight;
   });
 }
+
+window.sendMessage = async function () {
+  const input = document.getElementById("messageInput");
+  const text = input.value.trim();
+
+  if (!text || !currentChatId) return;
+
+  await addDoc(collection(db, "messages"), {
+    chatId: currentChatId,
+    senderId: currentUserId,
+    text,
+    createdAt: new Date(),
+    isRead: false
+  });
+
+  await updateDoc(doc(db, "chats", currentChatId), {
+    lastMessage: text,
+    lastMessageTime: new Date()
+  });
+
+  input.value = "";
+};
+
 window.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("messageInput");
 
@@ -190,3 +177,34 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+function getInitials(name) {
+  return String(name)
+    .trim()
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0]?.toUpperCase())
+    .join("") || "?";
+}
+
+function formatTime(value) {
+  if (!value) return "";
+
+  let date;
+
+  if (value.toDate) {
+    date = value.toDate();
+  } else if (value.seconds) {
+    date = new Date(value.seconds * 1000);
+  } else {
+    date = new Date(value);
+  }
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleTimeString("tr-TR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}

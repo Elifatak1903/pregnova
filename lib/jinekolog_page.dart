@@ -335,6 +335,7 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
   }
 
   int _selectedIndex = 0;
+  String _patientRiskFilter = "all";
   late final String uid;
 
   @override
@@ -663,141 +664,250 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
   Widget _buildPatientsPage() {
     final l10n = AppLocalizations.of(context)!;
 
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection("expert_requests")
-          .where("expertId", isEqualTo: uid)
-          .where("status", isEqualTo: "approved")
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Center(
-            child: CircularProgressIndicator(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          );
-        }
+    return Column(
+      children: [
+        _buildPatientRiskFilters(l10n),
+        Expanded(
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection("expert_requests")
+                .where("expertId", isEqualTo: uid)
+                .where("status", isEqualTo: "approved")
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return Center(
+                  child: CircularProgressIndicator(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                );
+              }
 
-        final docs = snapshot.data!.docs;
+              final docs = snapshot.data!.docs;
 
-        if (docs.isEmpty) {
-          return Center(
-            child: Text(
-              l10n.noClientsYet,
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-            ),
-          );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: docs.length,
-          itemBuilder: (context, index) {
-            final clientId = docs[index]["clientId"];
-
-            return FutureBuilder<DocumentSnapshot>(
-              future: FirebaseFirestore.instance
-                  .collection("users")
-                  .doc(clientId)
-                  .get(),
-              builder: (context, userSnapshot) {
-                if (!userSnapshot.hasData) {
-                  return const SizedBox();
-                }
-
-                final data = userSnapshot.data!.data() as Map<String, dynamic>?;
-
-                final name = data?["name"] ?? "";
-                final surname = data?["surname"] ?? "";
-                final hafta = data?["hafta"] ?? "-";
-                final risk = data?["riskLevel"] ?? "normal";
-
-                Color riskColor;
-                String riskText;
-
-                if (risk == "high") {
-                  riskColor = Colors.red;
-                  riskText = l10n.highRisk;
-                } else if (risk == "medium") {
-                  riskColor = Colors.orange;
-                  riskText = l10n.mediumRisk;
-                } else {
-                  riskColor = Colors.green;
-                  riskText = l10n.normalRisk;
-                }
-
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 14),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Theme.of(
-                            context,
-                          ).shadowColor.withValues(alpha: 0.2),
-                          blurRadius: 6,
-                        ),
-                      ],
-                    ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(16),
-
-                      leading: CircleAvatar(
-                        radius: 26,
-                        backgroundColor: riskColor,
-                        child: const Icon(Icons.person, color: Colors.white),
-                      ),
-
-                      title: Text(
-                        "$name $surname",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 6),
-                          Text("${l10n.pregnancyWeekInput}: $hafta"),
-                          const SizedBox(height: 4),
-                          Text(
-                            "${l10n.riskStatus}: $riskText",
-                            style: TextStyle(
-                              color: riskColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 18),
-
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => HastaDetayPage(
-                              clientId: clientId,
-                              name: name,
-                              surname: surname,
-                            ),
-                          ),
-                        );
-                      },
+              if (docs.isEmpty) {
+                return Center(
+                  child: Text(
+                    l10n.noClientsYet,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 );
-              },
-            );
-          },
-        );
-      },
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                itemCount: docs.length,
+                itemBuilder: (context, index) {
+                  final clientId = docs[index]["clientId"];
+
+                  return FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance
+                        .collection("users")
+                        .doc(clientId)
+                        .get(),
+                    builder: (context, userSnapshot) {
+                      if (!userSnapshot.hasData) {
+                        return const SizedBox();
+                      }
+
+                      final data =
+                          userSnapshot.data!.data() as Map<String, dynamic>?;
+                      final doctorRiskFlags = _doctorRiskFlags(data);
+
+                      if (!_matchesPatientRiskFilter(doctorRiskFlags)) {
+                        return const SizedBox.shrink();
+                      }
+
+                      final name = data?["name"] ?? "";
+                      final surname = data?["surname"] ?? "";
+                      final hafta = data?["hafta"] ?? "-";
+                      final risk = data?["riskLevel"] ?? "normal";
+                      final doctorRiskLabels = _doctorRiskLabels(
+                        l10n,
+                        doctorRiskFlags,
+                      );
+
+                      Color riskColor;
+                      String riskText;
+
+                      if (risk == "high") {
+                        riskColor = Colors.red;
+                        riskText = l10n.highRisk;
+                      } else if (risk == "medium") {
+                        riskColor = Colors.orange;
+                        riskText = l10n.mediumRisk;
+                      } else {
+                        riskColor = Colors.green;
+                        riskText = l10n.normalRisk;
+                      }
+
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 14),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Theme.of(
+                                  context,
+                                ).shadowColor.withValues(alpha: 0.2),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.all(16),
+
+                            leading: CircleAvatar(
+                              radius: 26,
+                              backgroundColor: riskColor,
+                              child: const Icon(
+                                Icons.person,
+                                color: Colors.white,
+                              ),
+                            ),
+
+                            title: Text(
+                              "$name $surname",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 6),
+                                Text("${l10n.pregnancyWeekInput}: $hafta"),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "${l10n.riskStatus}: $riskText",
+                                  style: TextStyle(
+                                    color: riskColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                if (doctorRiskLabels.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 6,
+                                    runSpacing: 6,
+                                    children: doctorRiskLabels.map((label) {
+                                      return Chip(
+                                        label: Text(label),
+                                        visualDensity: VisualDensity.compact,
+                                        backgroundColor: Colors.red.withValues(
+                                          alpha: 0.10,
+                                        ),
+                                        labelStyle: const TextStyle(
+                                          color: Colors.red,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ],
+                              ],
+                            ),
+
+                            trailing: const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 18,
+                            ),
+
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => HastaDetayPage(
+                                    clientId: clientId,
+                                    name: name,
+                                    surname: surname,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
     );
+  }
+
+  Widget _buildPatientRiskFilters(AppLocalizations l10n) {
+    final filters = [
+      ("all", l10n.all),
+      ("preeklampsi", l10n.preeklampsiTracking),
+      ("diabetes", l10n.gestationalDiabetes),
+      ("preterm", l10n.pretermRisk),
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+      child: Row(
+        children: filters.map((filter) {
+          final selected = _patientRiskFilter == filter.$1;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              selected: selected,
+              label: Text(filter.$2),
+              onSelected: (_) {
+                setState(() {
+                  _patientRiskFilter = filter.$1;
+                });
+              },
+              selectedColor: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.18),
+              labelStyle: TextStyle(
+                color: selected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurface,
+                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  bool _matchesPatientRiskFilter(Map<String, dynamic> flags) {
+    if (_patientRiskFilter == "all") return true;
+    return flags[_patientRiskFilter] == true;
+  }
+
+  Map<String, dynamic> _doctorRiskFlags(Map<String, dynamic>? data) {
+    final rawFlags = data?["doctorRiskFlags"];
+    if (rawFlags is Map) {
+      return Map<String, dynamic>.from(rawFlags);
+    }
+    return <String, dynamic>{};
+  }
+
+  List<String> _doctorRiskLabels(
+    AppLocalizations l10n,
+    Map<String, dynamic> flags,
+  ) {
+    return [
+      if (flags["preeklampsi"] == true) l10n.preeklampsiTracking,
+      if (flags["diabetes"] == true) l10n.gestationalDiabetes,
+      if (flags["preterm"] == true) l10n.pretermRisk,
+    ];
   }
 
   Widget _buildMessagesPage() {
@@ -1296,6 +1406,18 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                                     .doc(clientId)
                                     .update({"assignedDoctor": doctorUid});
 
+                                await FirebaseFirestore.instance
+                                    .collection("notification")
+                                    .add({
+                                      "uid": clientId,
+                                      "type": "expert_request",
+                                      "title": "Doktor Onayı",
+                                      "message":
+                                          "Doktorunuz sizi danışan olarak kabul etti.",
+                                      "isRead": false,
+                                      "createdAt": FieldValue.serverTimestamp(),
+                                    });
+
                                 debugPrint(
                                   "ASSIGNED DOCTOR: $doctorUid to $clientId",
                                 );
@@ -1318,6 +1440,18 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                                       "status": "rejected",
                                       "rejectedAt":
                                           FieldValue.serverTimestamp(),
+                                    });
+
+                                await FirebaseFirestore.instance
+                                    .collection("notification")
+                                    .add({
+                                      "uid": clientId,
+                                      "type": "expert_request",
+                                      "title": "İstek Reddedildi",
+                                      "message":
+                                          "Gönderdiğiniz doktor isteği reddedildi.",
+                                      "isRead": false,
+                                      "createdAt": FieldValue.serverTimestamp(),
                                     });
                               },
                               child: Text(l10n.reject),

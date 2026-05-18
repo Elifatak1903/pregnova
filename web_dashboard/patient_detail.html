@@ -21,7 +21,16 @@
 
         <div class="top-bar">
             <h1 id="patientName" class="page-title"></h1>
+            <div class="patient-actions">
+                <button id="patientMenuButton" class="patient-menu-button" type="button">⋯</button>
+                <div id="patientMenu" class="patient-menu hidden">
+                    <button id="assignRiskButton" type="button" data-i18n="assignRisk">Risk Ata</button>
+                    <button id="removePatientButton" type="button" data-i18n="removeFromList">Listeden Çıkar</button>
+                </div>
+            </div>
         </div>
+
+        <div id="doctorRiskTags" class="doctor-risk-tags"></div>
 
         <div class="detail-layout">
 
@@ -53,6 +62,32 @@
 
     </div>
 
+</div>
+
+<div id="riskModal" class="modal hidden">
+    <div class="modal-card">
+        <h2 data-i18n="followUpRisks">Takip Riskleri</h2>
+
+        <label class="risk-check">
+            <input type="checkbox" id="riskPreeclampsia">
+            <span data-i18n="preeclampsiaFollowUp">Preeklampsi Takibi</span>
+        </label>
+
+        <label class="risk-check">
+            <input type="checkbox" id="riskDiabetes">
+            <span data-i18n="diabetesFollowUp">Gestasyonel Diyabet Takibi</span>
+        </label>
+
+        <label class="risk-check">
+            <input type="checkbox" id="riskPreterm">
+            <span data-i18n="pretermFollowUp">Preterm Takibi</span>
+        </label>
+
+        <div class="modal-actions">
+            <button id="cancelRiskButton" type="button" data-i18n="cancel">İptal</button>
+            <button id="saveRiskButton" type="button" data-i18n="save">Kaydet</button>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

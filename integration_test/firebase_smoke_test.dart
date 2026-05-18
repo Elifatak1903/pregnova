@@ -1,3 +1,5 @@
+// ignore_for_file: depend_on_referenced_packages, uri_does_not_exist, undefined_identifier
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';

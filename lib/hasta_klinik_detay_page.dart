@@ -39,7 +39,11 @@ class _HastaKlinikDetayPageState extends State<HastaKlinikDetayPage> {
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
-        title: Text("${widget.name} ${widget.surname}"),
+        title: Text(
+          _routePatientName().isEmpty
+              ? l10n.patientDetail
+              : _routePatientName(),
+        ),
       ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
@@ -142,10 +146,11 @@ class _HastaKlinikDetayPageState extends State<HastaKlinikDetayPage> {
 
   Widget _buildHealthCard(BuildContext context, Map<String, dynamic> userData) {
     final l10n = AppLocalizations.of(context)!;
+    final patientName = _patientName(userData);
     final yas = userData["yas"] ?? "-";
     final kilo = userData["kilo"] ?? "-";
     final boy = userData["boy"] ?? "-";
-    final hafta = userData["hafta"] ?? "-";
+    final hafta = _pregnancyWeek(userData);
     final bmi = userData["bmi"] ?? "-";
     final alerji = userData["alerjiler"] ?? "";
 
@@ -183,6 +188,13 @@ class _HastaKlinikDetayPageState extends State<HastaKlinikDetayPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
+            patientName,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          const SizedBox(height: 6),
+          Text("${l10n.pregnancyWeekInput}: $hafta"),
+          const Divider(height: 24),
+          Text(
             l10n.personalHealthInfo,
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -194,7 +206,6 @@ class _HastaKlinikDetayPageState extends State<HastaKlinikDetayPage> {
           _infoRow(l10n.age, yas),
           _infoRow(l10n.currentWeightKg, "$kilo kg"),
           _infoRow(l10n.heightCm, "$boy cm"),
-          _infoRow(l10n.pregnancyWeekInput, hafta),
           _infoRow(l10n.bmi, bmi),
           const SizedBox(height: 10),
           Text(
@@ -345,5 +356,55 @@ class _HastaKlinikDetayPageState extends State<HastaKlinikDetayPage> {
     if (risk == "MEDIUM") return l10n.mediumRisk;
     if (risk == "LOW") return l10n.lowRisk;
     return risk ?? "-";
+  }
+
+  String _patientName(Map<String, dynamic> userData) {
+    final firestoreName = _firstNonEmpty([
+      userData["name"],
+      userData["fullName"],
+      userData["displayName"],
+      userData["adSoyad"],
+      userData["ad_soyad"],
+      userData["isim"],
+    ]);
+    final firestoreSurname = _firstNonEmpty([
+      userData["surname"],
+      userData["soyad"],
+      userData["soyisim"],
+    ]);
+
+    final fullName = "$firestoreName $firestoreSurname".trim();
+    if (fullName.isNotEmpty) return fullName;
+
+    final routeName = _routePatientName();
+    if (routeName.isNotEmpty) return routeName;
+
+    return "-";
+  }
+
+  String _routePatientName() {
+    return "${_cleanText(widget.name)} ${_cleanText(widget.surname)}".trim();
+  }
+
+  String _pregnancyWeek(Map<String, dynamic> userData) {
+    return _firstNonEmpty([
+      userData["hafta"],
+      userData["pregWeek"],
+      userData["pregnancyWeek"],
+      userData["gebelikHaftasi"],
+      userData["week"],
+    ], fallback: "-");
+  }
+
+  String _firstNonEmpty(List<dynamic> values, {String fallback = ""}) {
+    for (final value in values) {
+      final text = _cleanText(value);
+      if (text.isNotEmpty) return text;
+    }
+    return fallback;
+  }
+
+  String _cleanText(dynamic value) {
+    return value?.toString().trim() ?? "";
   }
 }

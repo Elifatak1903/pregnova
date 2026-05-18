@@ -1,103 +1,189 @@
 .diet-page {
   max-width: 980px;
-  margin-top: 24px;
+  margin: 26px auto 0;
 }
 
 .diet-hero {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 18px;
-  padding: 22px;
-  border-radius: 16px;
+  gap: 22px;
+
+  padding: 28px;
+  border-radius: 26px;
+
   color: white;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  background:
+    radial-gradient(circle at top right, rgba(255,255,255,0.22), transparent 34%),
+    linear-gradient(135deg, var(--primary), var(--secondary));
+
+  box-shadow: 0 16px 38px color-mix(in srgb, var(--primary) 22%, transparent);
 }
 
 .diet-hero h2 {
   margin: 6px 0 0;
-  font-size: 22px;
+  max-width: 560px;
+
+  font-size: 26px;
+  font-weight: 900;
 }
 
 .eyebrow {
   margin: 0;
   font-size: 13px;
-  opacity: 0.85;
+  opacity: 0.88;
+  font-weight: 800;
+  letter-spacing: 0.5px;
 }
 
-.date-pill {
-  flex: 0 0 auto;
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.18);
-  font-weight: 700;
-  white-space: nowrap;
+.hero-desc {
+  margin: 10px 0 0;
+  max-width: 560px;
+
+  color: rgba(255,255,255,0.88);
+  font-size: 14px;
+  line-height: 1.6;
 }
 
-.state-card {
-  margin-top: 18px;
-  padding: 22px;
-  border-radius: 14px;
-  background: var(--card);
-  color: var(--text-light);
-  box-shadow: 0 8px 22px rgba(0,0,0,0.06);
-}
+.diet-icon {
+  width: 86px;
+  height: 86px;
+  border-radius: 28px;
 
-.diet-summary {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  width: fit-content;
-  margin: 18px auto 0;
-  padding: 14px 18px;
-  border: 0;
-  border-radius: 16px;
-  color: white;
-  background: var(--primary);
-  box-shadow: 0 10px 24px rgba(103,58,183,0.24);
+
+  background: rgba(255,255,255,0.18);
+  font-size: 42px;
+}
+
+.state-card {
+  margin-top: 22px;
+  padding: 24px;
+
+  border-radius: 22px;
+  background: var(--card);
+  color: var(--text-light);
+
+  box-shadow: 0 12px 30px rgba(50,20,90,0.06);
+}
+
+.diet-summary {
+  width: 100%;
+  margin-top: 22px;
+  padding: 20px 22px;
+
+  border: none;
+  border-radius: 24px;
+
+  background: var(--card);
+  color: var(--text);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
   cursor: pointer;
   font: inherit;
+
+  box-shadow: 0 14px 35px rgba(50,20,90,0.06);
+  transition: 0.2s;
 }
 
 .diet-summary:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 18px 42px rgba(50,20,90,0.09);
 }
 
-.diet-summary span::before {
-  content: "📅 ";
+.summary-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
 }
 
+.summary-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: color-mix(in srgb, var(--primary) 12%, white);
+  font-size: 25px;
+}
+
+.diet-summary span {
+  display: block;
+  color: var(--primary);
+  font-weight: 900;
+  font-size: 16px;
+}
+
+.diet-summary p {
+  margin: 4px 0 0;
+  color: var(--text-light);
+  font-size: 13px;
+}
+
+.diet-summary b {
+  padding: 11px 16px;
+  border-radius: 14px;
+
+  color: white;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+
+  font-size: 14px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* MODAL */
 .diet-modal {
   position: fixed;
   inset: 0;
   z-index: 2000;
 }
 
+.diet-modal.hidden {
+  display: none;
+}
+
 .diet-modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(26,26,26,0.32);
+  background: rgba(26,26,26,0.35);
 }
 
 .diet-modal-panel {
   position: absolute;
   left: 50%;
   bottom: 0;
-  width: min(760px, calc(100vw - 28px));
-  max-height: 78vh;
+
+  width: min(820px, calc(100vw - 28px));
+  max-height: 82vh;
   overflow: auto;
+
   transform: translateX(-50%);
-  padding: 18px;
-  border-radius: 20px 20px 0 0;
+
+  padding: 22px;
+  border-radius: 26px 26px 0 0;
+
   background: var(--background);
-  box-shadow: 0 -16px 40px rgba(0,0,0,0.18);
+  box-shadow: 0 -18px 48px rgba(0,0,0,0.18);
 }
 
 .modal-handle {
-  width: 42px;
+  width: 46px;
   height: 4px;
-  margin: 0 auto 14px;
+  margin: 0 auto 16px;
+
   border-radius: 999px;
   background: #c9c3d8;
 }
@@ -107,24 +193,31 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 14px;
+
+  margin-bottom: 18px;
 }
 
 .modal-header h2 {
   margin: 4px 0 0;
+
   color: var(--primary);
-  font-size: 18px;
+  font-size: 20px;
+  font-weight: 900;
 }
 
 .close-btn {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
+
   border: 0;
-  border-radius: 50%;
+  border-radius: 14px;
+
   color: var(--primary);
   background: white;
+
   cursor: pointer;
-  font-size: 22px;
+  font-size: 24px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
 }
 
 .meal-grid {
@@ -136,21 +229,25 @@
 .meal-card {
   min-height: 120px;
   padding: 18px;
-  border-radius: 14px;
+
+  border-radius: 18px;
   background: var(--card);
-  border: 1px solid rgba(103,58,183,0.16);
-  box-shadow: 0 8px 22px rgba(0,0,0,0.05);
+  border: 1px solid color-mix(in srgb, var(--primary) 12%, white);
+
+  box-shadow: 0 10px 24px rgba(50,20,90,0.05);
 }
 
 .meal-card span {
   display: block;
   margin-bottom: 10px;
+
   color: var(--primary);
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .meal-card p {
   margin: 0;
+
   color: var(--text);
   line-height: 1.5;
   white-space: pre-wrap;
@@ -158,11 +255,16 @@
 
 .note-card {
   grid-column: 1 / -1;
-  background: rgba(103,58,183,0.08);
+  background: color-mix(in srgb, var(--primary) 8%, white);
 }
 
 @media (max-width: 760px) {
   .diet-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .diet-summary {
     align-items: flex-start;
     flex-direction: column;
   }

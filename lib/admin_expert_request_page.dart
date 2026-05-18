@@ -124,6 +124,7 @@ class _AdminExpertRequestsPageState extends State<AdminExpertRequestsPage> {
 
       batch.set(FirebaseFirestore.instance.collection('notification').doc(), {
         'uid': uid,
+        'type': 'expert_application',
         'title': l10n.applicationApprovedNotificationTitle,
         'message': l10n.applicationApprovedNotificationMessage,
         'isRead': false,

@@ -25,7 +25,7 @@ window.closeModal = function () {
   document.getElementById("resultModal").classList.add("hidden");
 };
 
-async function createNotification(targetUid, type, message) {
+async function createNotification(targetUid, type, message, meta = {}) {
 
   const notificationType = type === "risk" ? "risk_alert" : type || "general";
   let title = t("notification");
@@ -41,6 +41,7 @@ async function createNotification(targetUid, type, message) {
     type: notificationType,
     title,
     message: message || "",
+    ...meta,
     isRead: false,
     createdAt: serverTimestamp()
   });
@@ -99,7 +100,7 @@ window.calculateRisk = async function () {
     stres
   });
 
-  await addDoc(collection(db, "risk_olcumleri"), {
+  const measurementRef = await addDoc(collection(db, "risk_olcumleri"), {
     uid: user.uid,
     sistolik,
     diastolik,
@@ -111,26 +112,46 @@ window.calculateRisk = async function () {
     tarih: serverTimestamp()
   });
 
+  const patientAction = {
+    patientId: user.uid,
+    measurementId: measurementRef.id,
+    actionPage: "measurement_history.html"
+  };
+
+  const doctorAction = {
+    patientId: user.uid,
+    measurementId: measurementRef.id,
+    actionPage: `patient_detail.html?uid=${encodeURIComponent(user.uid)}`
+  };
+
+  const dietitianAction = {
+    clientId: user.uid,
+    measurementId: measurementRef.id,
+    actionPage: `client_detail.html?id=${encodeURIComponent(user.uid)}`
+  };
+
   if (pre === "HIGH") {
-    await createNotification(user.uid, "risk", t("preeclampsiaHighMessage"));
+    await createNotification(user.uid, "risk", t("preeclampsiaHighMessage"), patientAction);
 
     if (assignedDoctor) {
       await createNotification(
         assignedDoctor,
         "risk",
-        t("patientPreeclampsiaHighMessage")
+        t("patientPreeclampsiaHighMessage"),
+        doctorAction
       );
     }
   }
 
   if (diyabet === "HIGH") {
-    await createNotification(user.uid, "risk", t("diabetesHighMessage"));
+    await createNotification(user.uid, "risk", t("diabetesHighMessage"), patientAction);
 
     if (assignedDoctor) {
       await createNotification(
         assignedDoctor,
         "risk",
-        t("patientDiabetesHighMessage")
+        t("patientDiabetesHighMessage"),
+        doctorAction
       );
     }
 
@@ -138,19 +159,21 @@ window.calculateRisk = async function () {
       await createNotification(
         assignedDietitian,
         "risk",
-        t("clientNutritionRiskMessage")
+        t("clientNutritionRiskMessage"),
+        dietitianAction
       );
     }
   }
 
   if (preterm === "HIGH") {
-    await createNotification(user.uid, "risk", t("pretermHighMessage"));
+    await createNotification(user.uid, "risk", t("pretermHighMessage"), patientAction);
 
     if (assignedDoctor) {
       await createNotification(
         assignedDoctor,
         "risk",
-        t("pretermBirthRiskMessage")
+        t("pretermBirthRiskMessage"),
+        doctorAction
       );
     }
   }

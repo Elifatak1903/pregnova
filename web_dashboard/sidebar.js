@@ -4,108 +4,84 @@ const sidebarGroups = {
   pregnant: [
     {
       labelKey: "home",
-      icon: "🏠",
+      icon: "home",
       page: "pregnant.html",
       children: [
-        { labelKey: "riskMeasurement", icon: "❤️", page: "risk.html" },
-        { labelKey: "nutritionAnalysis", icon: "🍽️", page: "nutrition.html" },
-        {
-          labelKey: "measurementHistory",
-          icon: "📊",
-          page: "measurement_history.html"
-        },
-        {
-          labelKey: "nutritionHistory",
-          icon: "💊",
-          page: "nutrition_history.html"
-        }
+        { labelKey: "riskMeasurement", icon: "risk", page: "risk.html" },
+        { labelKey: "nutritionAnalysis", icon: "nutrition", page: "nutrition.html" },
+        { labelKey: "measurementHistory", icon: "measurements", page: "measurement_history.html" },
+        { labelKey: "nutritionHistory", icon: "nutritionHistory", page: "nutrition_history.html" }
       ]
     },
-    { labelKey: "messages", icon: "💬", page: "messages_pregnant.html" },
-    { labelKey: "searchExpert", icon: "🔍", page: "expert_search.html" },
-    { labelKey: "myDietPlan", icon: "🥗", page: "pregnant_diet.html" },
+    { labelKey: "messages", icon: "messages", page: "messages_pregnant.html" },
+    { labelKey: "searchExpert", icon: "search", page: "expert_search.html" },
+    { labelKey: "myDietPlan", icon: "diet", page: "pregnant_diet.html" },
     {
       labelKey: "account",
-      icon: "👤",
+      icon: "account",
       page: "account_pregnant.html",
       children: [
-        { labelKey: "profileInfo", icon: "📝", page: "profile_view.html" },
-        { labelKey: "profileEdit", icon: "✏️", page: "profile_edit.html" },
-        { labelKey: "changePassword", icon: "🔒", page: "change_password.html" },
-        {
-          labelKey: "expertApplication",
-          icon: "🩺",
-          page: "expert_application.html"
-        }
+        { labelKey: "profileInfo", icon: "profile", page: "profile_view.html" },
+        { labelKey: "profileEdit", icon: "edit", page: "profile_edit.html" },
+        { labelKey: "changePassword", icon: "lock", page: "change_password.html" },
+        { labelKey: "expertApplication", icon: "application", page: "expert_application.html" }
       ]
     }
   ],
   dietitian: [
     {
       labelKey: "home",
-      icon: "🏠",
+      icon: "home",
       page: "dietitian.html",
       children: [
-        { labelKey: "recentAnalyses", icon: "📈", page: "son_analizler.html" },
-        { labelKey: "writeDiet", icon: "🥗", page: "select_client_for_diet.html" }
+        { labelKey: "recentAnalyses", icon: "analyses", page: "son_analizler.html" },
+        { labelKey: "writeDiet", icon: "diet", page: "select_client_for_diet.html" }
       ]
     },
-    { labelKey: "clients", icon: "👩‍⚕️", page: "dietitian_clients.html" },
-    { labelKey: "requests", icon: "📥", page: "dietitian_requests.html" },
-    { labelKey: "messages", icon: "💬", page: "messages_dietitian.html" },
+    { labelKey: "clients", icon: "clients", page: "dietitian_clients.html" },
+    { labelKey: "requests", icon: "requests", page: "dietitian_requests.html" },
+    { labelKey: "messages", icon: "messages", page: "messages_dietitian.html" },
     {
       labelKey: "account",
-      icon: "👤",
+      icon: "account",
       page: "account_dietitian.html",
       children: [
-        { labelKey: "editProfile", icon: "✏️", page: "edit_profile.html" },
-        { labelKey: "changePassword", icon: "🔒", page: "change_password.html" }
+        { labelKey: "editProfile", icon: "edit", page: "edit_profile.html" },
+        { labelKey: "changePassword", icon: "lock", page: "change_password.html" }
       ]
     }
   ],
   gynecologist: [
     {
       labelKey: "home",
-      icon: "🏠",
+      icon: "home",
       page: "gynecologist.html",
       children: [
-        {
-          labelKey: "recentMeasurements",
-          icon: "📈",
-          page: "son_olcumler.html"
-        }
+        { labelKey: "recentMeasurements", icon: "measurements", page: "son_olcumler.html" }
       ]
     },
-    { labelKey: "clients", icon: "👩‍⚕️", page: "patients.html" },
-    { labelKey: "requests", icon: "📥", page: "requests_gynecologist.html" },
-    { labelKey: "messages", icon: "💬", page: "messages_gynecologist.html" },
+    { labelKey: "clients", icon: "clients", page: "patients.html" },
+    { labelKey: "requests", icon: "requests", page: "requests_gynecologist.html" },
+    { labelKey: "messages", icon: "messages", page: "messages_gynecologist.html" },
     {
       labelKey: "account",
-      icon: "👤",
+      icon: "account",
       page: "account_gynecologist.html",
       children: [
-        {
-          labelKey: "editProfile",
-          icon: "✏️",
-          page: "edit_gynecologist_profile.html"
-        },
-        { labelKey: "changePassword", icon: "🔒", page: "change_password.html" }
+        { labelKey: "editProfile", icon: "edit", page: "edit_gynecologist_profile.html" },
+        { labelKey: "changePassword", icon: "lock", page: "change_password.html" }
       ]
     }
   ],
   admin: [
     {
       labelKey: "dashboard",
-      icon: "📊",
+      icon: "dashboard",
       page: "admin.html",
       children: [
-        {
-          labelKey: "expertApplications",
-          icon: "📩",
-          page: "admin_requests.html"
-        },
-        { labelKey: "userManagement", icon: "👥", page: "admin_users.html" },
-        { labelKey: "systemReports", icon: "📄", page: "admin_reports.html" }
+        { labelKey: "expertApplications", icon: "applications", page: "admin_requests.html" },
+        { labelKey: "userManagement", icon: "users", page: "admin_users.html" },
+        { labelKey: "systemReports", icon: "reports", page: "admin_reports.html" }
       ]
     }
   ]
@@ -124,9 +100,8 @@ export function renderSidebar(role) {
       <span>PregNova</span>
     </h2>
     <ul class="sidebar-menu">
-      ${groups.map(group => renderGroup(group, currentPage)).join("")}
+      ${groups.map(group => renderGroup(group, currentPage, role)).join("")}
       <li class="sidebar-item sidebar-logout" onclick="logout()">
-        <span>🚪</span>
         <span>${t("logout")}</span>
       </li>
     </ul>
@@ -157,19 +132,18 @@ export function renderSidebar(role) {
   });
 }
 
-function renderGroup(group, currentPage) {
+function renderGroup(group, currentPage, role) {
   const childPages = (group.children || []).map(child => child.page);
   const isActive = group.page === currentPage || childPages.includes(currentPage);
   const canExpand = childPages.length > 0;
-  const storageKey = group.page;
+  const storageKey = `${role}:${group.page}`;
   const stored = localStorage.getItem(`sidebar:${storageKey}`);
-  const isOpen = canExpand && (stored === "open" || childPages.includes(currentPage));
+  const isOpen = canExpand && stored === "open";
   const label = t(group.labelKey);
 
   if (!canExpand) {
     return `
       <li class="sidebar-item ${isActive ? "active" : ""}" onclick="go('${group.page}')">
-        <span>${group.icon}</span>
         <span>${label}</span>
       </li>
     `;
@@ -180,7 +154,6 @@ function renderGroup(group, currentPage) {
       <div class="sidebar-parent ${group.page === currentPage ? "active" : ""}">
         <span class="sidebar-caret" role="button" aria-label="${t("toggleSubmenu", { label })}">▸</span>
         <span class="sidebar-parent-label" onclick="go('${group.page}')">
-          <span>${group.icon}</span>
           <span>${label}</span>
         </span>
       </div>
@@ -194,7 +167,6 @@ function renderGroup(group, currentPage) {
 function renderChild(child, currentPage) {
   return `
     <li class="sidebar-subitem ${child.page === currentPage ? "active" : ""}" onclick="go('${child.page}')">
-      <span>${child.icon}</span>
       <span>${t(child.labelKey)}</span>
     </li>
   `;

@@ -134,7 +134,12 @@ async function loadRecentActivity(uid) {
       `;
 
       div.onclick = () => {
-        window.location.href = `client_detail.html?id=${patientId}`;
+        const createdAt = data.createdAt?.toDate
+          ? data.createdAt.toDate().getTime()
+          : "";
+
+        window.location.href =
+          `son_analizler.html?uid=${encodeURIComponent(patientId)}&date=${createdAt}`;
       };
 
       container.appendChild(div);

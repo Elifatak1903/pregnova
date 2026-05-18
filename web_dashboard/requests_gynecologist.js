@@ -32,6 +32,7 @@ async function createNotification(targetUid, title, message) {
     type: "expert_request",
     title: title || t("notification"),
     message: message || "",
+    actionPage: "expert_search.html",
     isRead: false,
     createdAt: serverTimestamp()
   });

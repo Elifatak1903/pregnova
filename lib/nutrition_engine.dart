@@ -160,6 +160,174 @@ class NutritionEngine {
 
   };
 
+  static Map<String, String> foodAliases = {
+    "egg": "yumurta",
+    "eggs": "yumurta",
+    "milk": "süt",
+    "yogurt": "yoğurt",
+    "yoghurt": "yoğurt",
+    "cheese": "peynir",
+    "chicken": "tavuk",
+    "beef": "et",
+    "meat": "et",
+    "liver": "karaciğer",
+    "fish": "balık",
+    "lentil": "mercimek",
+    "lentils": "mercimek",
+    "beans": "kuru fasulye",
+    "white beans": "kuru fasulye",
+    "chickpea": "nohut",
+    "chickpeas": "nohut",
+    "bulgur": "bulgur",
+    "rice": "pirinç",
+    "spinach": "ıspanak",
+    "broccoli": "brokoli",
+    "kale": "karalahana",
+    "carrot": "havuç",
+    "tomato": "domates",
+    "cucumber": "salatalık",
+    "potato": "patates",
+    "sweet potato": "tatlı patates",
+    "zucchini": "kabak",
+    "eggplant": "patlıcan",
+    "aubergine": "patlıcan",
+    "pepper": "biber",
+    "orange": "portakal",
+    "tangerine": "mandalina",
+    "lemon": "limon",
+    "banana": "muz",
+    "apple": "elma",
+    "pear": "armut",
+    "strawberry": "çilek",
+    "strawberries": "çilek",
+    "avocado": "avokado",
+    "walnut": "ceviz",
+    "walnuts": "ceviz",
+    "almond": "badem",
+    "almonds": "badem",
+    "hazelnut": "fındık",
+    "hazelnuts": "fındık",
+    "buttermilk": "ayran",
+    "lentil soup": "mercimek çorbası",
+    "stuffed vegetables": "dolma",
+    "stuffed grape leaves": "sarma",
+    "whole wheat bread": "tam tahıl ekmek",
+    "white bread": "beyaz ekmek",
+    "pasta": "makarna",
+    "nuts": "kuruyemiş",
+    "flaxseed": "keten",
+    "cherry": "kiraz",
+    "sour cherry": "vişne",
+    "plum": "erik",
+    "peach": "şeftali",
+    "apricot": "kayısı",
+    "fig": "incir",
+    "pomegranate": "nar",
+    "pineapple": "ananas",
+    "kiwi": "kivi",
+    "mushroom": "mantar",
+    "lettuce": "marul",
+    "arugula": "roka",
+    "rocket": "roka",
+    "parsley": "maydanoz",
+    "dill": "dereotu",
+    "leek": "pırasa",
+    "onion": "soğan",
+    "garlic": "sarımsak",
+    "peas": "bezelye",
+    "corn": "mısır",
+    "salmon": "somon",
+    "tuna": "ton balığı",
+    "anchovy": "hamsi",
+    "sardine": "sardalya",
+    "sardines": "sardalya",
+    "shrimp": "karides",
+    "mozzarella": "mozarella",
+    "oats": "yulaf",
+    "oatmeal": "yulaf ezmesi",
+    "quinoa": "kinoa",
+    "barley": "arpa",
+    "rye": "çavdar",
+    "peanut": "fıstık",
+    "peanuts": "fıstık",
+    "pistachio": "antep fıstığı",
+    "pistachios": "antep fıstığı",
+    "cashew": "kaju",
+    "cashews": "kaju",
+    "pumpkin seeds": "kabak çekirdeği",
+    "sunflower seeds": "ay çekirdeği",
+    "sausage": "sosis",
+    "meatball": "köfte",
+    "meatballs": "köfte",
+    "toast": "tost",
+    "omelette": "omlet",
+    "omelet": "omlet",
+    "pancake": "pankek",
+  };
+
+  static Map<String, String> supplementAliases = {
+    "iron": "demir",
+    "folic acid": "folik asit",
+    "omega-3": "omega 3",
+    "omega 3": "omega 3",
+    "vitamin b12": "b12",
+    "b12 vitamin": "b12",
+    "calcium": "kalsiyum",
+    "vitamin d": "d vitamini",
+    "magnesium": "magnezyum",
+    "zinc": "çinko",
+  };
+
+  static String _normalizeLookup(String value) {
+    return value
+        .toLowerCase()
+        .trim()
+        .replaceAll("-", " ")
+        .replaceAll(RegExp(r"\s+"), " ");
+  }
+
+  static String _asciiLookup(String value) {
+    return _normalizeLookup(value)
+        .replaceAll("ı", "i")
+        .replaceAll("ğ", "g")
+        .replaceAll("ü", "u")
+        .replaceAll("ş", "s")
+        .replaceAll("ö", "o")
+        .replaceAll("ç", "c");
+  }
+
+  static String _foodKey(dynamic rawName) {
+    final name = _normalizeLookup(rawName?.toString() ?? "");
+    if (foodNutrition.containsKey(name)) return name;
+    if (foodAliases.containsKey(name)) return foodAliases[name]!;
+
+    final asciiName = _asciiLookup(name);
+    if (foodAliases.containsKey(asciiName)) return foodAliases[asciiName]!;
+
+    final asciiMatch = foodNutrition.keys.firstWhere(
+      (key) => _asciiLookup(key) == asciiName,
+      orElse: () => name,
+    );
+    return asciiMatch;
+  }
+
+  static String _supplementKey(dynamic rawName) {
+    final name = _normalizeLookup(rawName?.toString() ?? "");
+    if (supplementNutrition.containsKey(name)) return name;
+    if (supplementAliases.containsKey(name)) return supplementAliases[name]!;
+
+    final asciiName = _asciiLookup(name);
+    if (supplementAliases.containsKey(asciiName)) {
+      return supplementAliases[asciiName]!;
+    }
+
+    final asciiMatch = supplementNutrition.keys.firstWhere(
+      (key) => _asciiLookup(key) == asciiName,
+      orElse: () => name,
+    );
+    return asciiMatch;
+  }
+
   static Map<String, dynamic> analyzeFoods(
       List<Map<String, dynamic>> foods,
       List<Map<String, dynamic>> supplements) {
@@ -171,11 +339,7 @@ class NutritionEngine {
 
     for (var food in foods) {
 
-      String name = food["name"]
-          .toString()
-          .toLowerCase()
-          .trim()
-          .replaceAll("ı", "i");
+      String name = _foodKey(food["name"]);
 
       String unit = food["unit"] ?? "gram";
 
@@ -228,19 +392,17 @@ class NutritionEngine {
       final rawName = sup["name"] ?? sup["ad"];
       if (rawName == null) continue;
 
-      String name = rawName
-          .toString()
-          .toLowerCase()
-          .trim();
+      String name = _supplementKey(rawName);
 
       if (supplementNutrition.containsKey(name)) {
 
         var nutrients = supplementNutrition[name]!;
+        final amount = double.tryParse((sup["amount"] ?? sup["miktar"] ?? 1).toString()) ?? 1;
 
         nutrients.forEach((nutrient, value) {
 
           totalNutrients[nutrient] =
-              (totalNutrients[nutrient] ?? 0) + value;
+              (totalNutrients[nutrient] ?? 0) + (value * amount);
 
           consumedNutrients.add(nutrient);
 

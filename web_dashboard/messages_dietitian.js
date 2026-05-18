@@ -62,7 +62,7 @@ function loadChats(uid) {
 
       div.innerHTML = `
         <div class="chat-left">
-          <div class="avatar">👤</div>
+          <div class="avatar">P</div>
 
           <div class="chat-info">
             <b>${name} ${surname}</b><br>
