@@ -22,13 +22,19 @@
     <div class="main">
 
         <!-- TOP BAR -->
-        <div class="top-bar">
+        <div class="top-bar client-detail-topbar">
             <h1 id="patientName" class="page-title">Yükleniyor...</h1>
+            <div class="patient-actions">
+                <button id="clientMenuButton" class="patient-menu-button" type="button">...</button>
+                <div id="clientMenu" class="patient-menu hidden">
+                    <button id="removeClientButton" type="button" data-i18n="removeFromList">Listeden Çıkar</button>
+                </div>
+            </div>
         </div>
 
         <!-- USER INFO -->
         <div class="card">
-            <p id="patientInfo">Bilgiler yükleniyor...</p>
+            <div id="patientInfo">Bilgiler yükleniyor...</div>
         </div>
 
         <!-- LAYOUT -->

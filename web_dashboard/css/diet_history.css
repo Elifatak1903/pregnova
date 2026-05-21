@@ -1,0 +1,126 @@
+.history-toolbar {
+  margin: 8px 0 18px;
+}
+
+.history-toolbar input {
+  width: min(420px, 100%);
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, white);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text);
+  padding: 13px 15px;
+  font-size: 14px;
+  outline: none;
+}
+
+.history-toolbar input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.diet-history-list {
+  display: grid;
+  gap: 14px;
+}
+
+.diet-plan-card {
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--primary) 12%, white);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.06);
+}
+
+.diet-plan-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.diet-plan-header h2 {
+  margin: 0 0 5px;
+  color: var(--primary);
+  font-size: 18px;
+}
+
+.diet-plan-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.diet-plan-header button {
+  border: none;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 10px 14px;
+  white-space: nowrap;
+}
+
+.meal-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.meal-row {
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary) 8%, white);
+  padding: 12px;
+}
+
+.meal-row span,
+.diet-notes span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.meal-row strong {
+  display: block;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.35;
+  white-space: pre-wrap;
+}
+
+.diet-notes {
+  margin-top: 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--secondary) 8%, white);
+  padding: 12px;
+}
+
+.diet-notes p {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.empty-state {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 18px;
+  color: var(--muted);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+@media (max-width: 760px) {
+  .meal-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .diet-plan-header {
+    flex-direction: column;
+  }
+}

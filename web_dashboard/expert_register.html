@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Uzman Olarak Kayıt Ol</title>
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+
+<body class="split-body expert-register-body">
+
+<div class="language-switcher" aria-label="Dil">
+    <button type="button" data-lang="tr" onclick="setPregnovaLanguage('tr')">TR</button>
+    <button type="button" data-lang="en" onclick="setPregnovaLanguage('en')">EN</button>
+</div>
+
+<div class="split-container">
+
+    <div class="left-panel">
+        <img src="assets/icon/app_icon.jpeg" class="big-logo" alt="PregNova">
+        <h1>PregNova</h1>
+        <p>
+            <span data-i18n="expertRegisterInfo">
+                Uzman başvurun oluşturulduktan sonra admin onayı beklenir. Onaylanana kadar panel erişimi kapalı kalır.
+            </span>
+        </p>
+    </div>
+
+    <div class="right-panel">
+        <div class="login-card expert-register-card">
+            <h2 data-i18n="expertRegisterTitle">Uzman Olarak Kayıt Ol</h2>
+
+            <input id="name" class="input" data-i18n-placeholder="name" placeholder="Ad">
+            <input id="surname" class="input" data-i18n-placeholder="surname" placeholder="Soyad">
+            <input id="email" class="input" placeholder="Email">
+            <input id="password" type="password" class="input" data-i18n-placeholder="password" placeholder="Şifre">
+
+            <select id="role" class="auth-select">
+                <option value="dietitian" data-i18n="dietitian">Diyetisyen</option>
+                <option value="gynecologist" data-i18n="gynecologist">Jinekolog</option>
+            </select>
+
+            <input id="licenseNo" class="input" data-i18n-placeholder="licenseRegistryNo" placeholder="Lisans / Sicil No">
+            <input id="experience" class="input" data-i18n-placeholder="experience" placeholder="Deneyim">
+            <input id="phone" class="input" data-i18n-placeholder="phone" placeholder="Telefon">
+            <input id="hospital" class="input" data-i18n-placeholder="institutionWorked" placeholder="Çalıştığı Kurum">
+            <input id="city" class="input" data-i18n-placeholder="city" placeholder="Şehir">
+
+            <label class="file-btn" for="fileInput" data-i18n="selectDocument">Belge seç</label>
+            <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" hidden>
+            <p id="fileName" class="switch-text"></p>
+
+            <button id="submitBtn" class="main-btn" onclick="registerExpert()" data-i18n="submitApplication">Başvuruyu Gönder</button>
+
+            <p id="error"></p>
+
+            <p class="switch-text">
+                <span data-i18n="alreadyHaveAccount">Zaten hesabınız var mı?</span>
+                <span onclick="go('login.html')" data-i18n="loginLink">Giriş yap</span>
+            </p>
+        </div>
+    </div>
+
+</div>
+
+<script type="module" src="app.js"></script>
+<script type="module">
+    import { auth, db } from "./app.js";
+    import { applyTranslations, getLanguage, t } from "./i18n.js";
+    import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+    import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-storage.js";
+
+    const storage = getStorage();
+    const fileInput = document.getElementById("fileInput");
+    const fileName = document.getElementById("fileName");
+
+    fileInput.addEventListener("change", () => {
+      fileName.innerText = fileInput.files[0]?.name || "";
+    });
+
+    function syncLanguageButtons() {
+      document.querySelectorAll("[data-lang]").forEach(button => {
+        button.classList.toggle("active", button.dataset.lang === getLanguage());
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      applyTranslations();
+      syncLanguageButtons();
+    });
+
+    window.addEventListener("pregnova:languageChanged", () => {
+      applyTranslations();
+      syncLanguageButtons();
+    });
+
+    window.registerExpert = async function () {
+      const submitBtn = document.getElementById("submitBtn");
+      const error = document.getElementById("error");
+      const selectedFile = fileInput.files[0];
+
+      const name = document.getElementById("name").value.trim();
+      const surname = document.getElementById("surname").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const role = document.getElementById("role").value;
+      const licenseNumber = document.getElementById("licenseNo").value.trim();
+      const experience = document.getElementById("experience").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const hospital = document.getElementById("hospital").value.trim();
+      const city = document.getElementById("city").value.trim();
+
+      if (!name || !surname || !email || !password || !role || !licenseNumber || !selectedFile) {
+        error.innerText = t("fillAllFields");
+        return;
+      }
+
+      if (password.length < 6) {
+        error.innerText = t("passwordMinLength");
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = t("sending");
+      error.innerText = "";
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
+
+        const path = `expert_documents/${uid}_${Date.now()}_${selectedFile.name}`;
+        const storageRef = ref(storage, path);
+        await uploadBytes(storageRef, selectedFile);
+        const documentUrl = await getDownloadURL(storageRef);
+
+        await setDoc(doc(db, "users", uid), {
+          name,
+          surname,
+          email,
+          role: "pending_expert",
+          requestedRole: role,
+          expertApplicationStatus: "pending",
+          createdAt: serverTimestamp()
+        });
+
+        await setDoc(doc(db, "expert_applications", uid), {
+          uid,
+          name,
+          surname,
+          email,
+          role,
+          licenseNumber,
+          experience,
+          phone,
+          hospital,
+          city,
+          documentUrl,
+          status: "pending",
+          createdAt: serverTimestamp()
+        });
+
+        alert(t("applicationReceived"));
+        window.location.href = "expert_pending.html";
+      } catch (e) {
+        error.innerText = e.message;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = t("submitApplication");
+      }
+    };
+</script>
+</body>
+</html>

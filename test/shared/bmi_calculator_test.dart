@@ -27,6 +27,17 @@ void main() {
       expect(bmi, closeTo(25.01, 0.01));
     });
 
+    test('handles extreme but positive values without crashing', () {
+      expect(
+        BmiCalculator.calculate(weightKg: 1, heightCm: 250),
+        closeTo(0.16, 0.01),
+      );
+      expect(
+        BmiCalculator.calculate(weightKg: 300, heightCm: 100),
+        closeTo(300, 0.01),
+      );
+    });
+
     test('returns expected BMI category boundaries', () {
       expect(BmiCalculator.category(null), 'unknown');
       expect(BmiCalculator.category(0), 'unknown');

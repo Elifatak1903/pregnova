@@ -25,12 +25,17 @@
                 <button id="patientMenuButton" class="patient-menu-button" type="button">⋯</button>
                 <div id="patientMenu" class="patient-menu hidden">
                     <button id="assignRiskButton" type="button" data-i18n="assignRisk">Risk Ata</button>
+                    <button id="feedbackButton" type="button" data-i18n="giveFeedback">Geri Dönüş Ver</button>
                     <button id="removePatientButton" type="button" data-i18n="removeFromList">Listeden Çıkar</button>
                 </div>
             </div>
         </div>
 
         <div id="doctorRiskTags" class="doctor-risk-tags"></div>
+
+        <div class="card">
+            <div id="patientInfo">Bilgiler yükleniyor...</div>
+        </div>
 
         <div class="detail-layout">
 
@@ -47,12 +52,18 @@
                     <canvas id="bpChart"></canvas>
                 </div>
 
+                <div class="chart-box">
+                    <canvas id="weightChart"></canvas>
+                </div>
+
             </div>
 
             <!-- SAĞ -->
             <div class="right">
 
                 <h2 class="section-title" data-i18n="measurements">Ölçümler</h2>
+
+                <select id="measurementDateFilter" class="detail-filter"></select>
 
                 <div id="measurementsList"></div>
 

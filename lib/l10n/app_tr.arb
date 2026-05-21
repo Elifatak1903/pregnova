@@ -58,9 +58,9 @@
     }
   },
   "riskMeasurement": "Risk Ölçüm",
-  "nutritionAnalysis": "Besin Analizi",
+  "nutritionAnalysis": "Beslenme Analizi",
   "lastMeasurementHistory": "Son Ölçüm Geçmişi",
-  "nutritionSupplementHistory": "Besin & Takviye Geçmişi",
+  "nutritionSupplementHistory": "Besin ve Takviye Geçmişi",
   "latestRiskStatus": "Son Risk Durumu",
   "diabetes": "Diyabet",
   "riskTrackingForm": "Risk Takip Formu",
@@ -79,17 +79,20 @@
   "riskDataSaved": "Risk verileri kaydedildi",
   "currentWeightKg": "Güncel Kilo (kg)",
   "preeklampsiTracking": "Preeklampsi Takibi",
+  "preeclampsiaMeasurementHint": "Tansiyon değerleri risk değerlendirmesi için önemlidir.",
   "systolicExample": "Sistolik (Örnek: 120)",
   "diastolicExample": "Diastolik (Örnek: 80)",
   "severeHeadache": "Şiddetli baş ağrısı",
   "visionProblem": "Görme bozukluğu",
   "handFaceSwelling": "El/Yüz şişmesi",
   "gestationalDiabetes": "Gestasyonel Diyabet",
+  "diabetesMeasurementHint": "Diyabet riskinin değerlendirilebilmesi için açlık veya tokluk şekerinden en az birini giriniz.",
   "fastingBloodSugar": "Açlık kan şekeri",
   "postMealBloodSugar": "Tokluk kan şekeri",
   "excessiveThirst": "Aşırı susama",
   "frequentUrination": "Sık idrar",
   "pretermRisk": "Preterm Riski",
+  "pretermMeasurementHint": "Belirti varsa işaretleyiniz; stres seviyesini mevcut durumunuza göre seçiniz.",
   "contraction": "Karın kasılması",
   "increasedDischarge": "Akıntı artışı",
   "backPain": "Bel ağrısı",
@@ -411,6 +414,7 @@
       }
     }
   },
+  "abcd": "naber",
   "adminPanel": "Admin Panel",
   "welcomeAdmin": "Hoş geldin Admin",
   "systemTrackingApprovalManagement": "Sistem takibi ve onay yönetimi",
@@ -493,7 +497,7 @@
     }
   },
   "supplements": "Takviyeler",
-  "nutritionAnalysisDetail": "Besin Analizi Detayı",
+  "nutritionAnalysisDetail": "Beslenme Analizi Detayı",
   "analysisNotFound": "Analiz bulunamadı",
   "consumedFoods": "Tüketilen Besinler",
   "noDietPlanYet": "Henüz diyet planın yok",
@@ -538,7 +542,7 @@
     }
   },
   "welcomeExpert": "Hoş geldin",
-  "missingNutrition": "Eksik Besin",
+  "missingNutrition": "Eksik Besin Öğesi",
   "riskyPatient": "Riskli Hasta",
   "clientUid": "Danışan UID: {uid}",
   "@clientUid": {

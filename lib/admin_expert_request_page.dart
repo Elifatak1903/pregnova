@@ -92,12 +92,36 @@ class _AdminExpertRequestsPageState extends State<AdminExpertRequestsPage> {
   ) async {
     final l10n = AppLocalizations.of(context)!;
 
-    await doc.reference.update({'status': 'rejected'});
+    try {
+      final data = doc.data() as Map<String, dynamic>;
+      final uid = data['uid']?.toString();
 
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(l10n.applicationRejected)));
+      final batch = FirebaseFirestore.instance.batch();
+      batch.update(doc.reference, {
+        'status': 'rejected',
+        'rejectedAt': FieldValue.serverTimestamp(),
+      });
+
+      if (uid != null && uid.isNotEmpty) {
+        batch.set(
+          FirebaseFirestore.instance.collection('users').doc(uid),
+          {'expertApplicationStatus': 'rejected'},
+          SetOptions(merge: true),
+        );
+      }
+
+      await batch.commit();
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.applicationRejected)));
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.approvalError(e))));
+    }
   }
 
   Future<void> approveExpert(
@@ -108,19 +132,36 @@ class _AdminExpertRequestsPageState extends State<AdminExpertRequestsPage> {
 
     try {
       final data = doc.data() as Map<String, dynamic>;
-      final uid = data['uid'];
-      final role = data['role'];
+      final uid = data['uid']?.toString();
+      final role = data['role']?.toString();
       final diplomaUrl = data['documentUrl'] ?? data['diplomaUrl'];
+
+      if (uid == null || uid.isEmpty) {
+        throw Exception('Başvuruda kullanıcı ID bilgisi yok.');
+      }
+
+      if (role != 'gynecologist' && role != 'dietitian') {
+        throw Exception('Başvuruda geçerli uzman rolü yok.');
+      }
 
       final batch = FirebaseFirestore.instance.batch();
 
-      batch.update(FirebaseFirestore.instance.collection('users').doc(uid), {
-        'role': role,
-        'diplomaUrl': diplomaUrl,
-        'isApproved': true,
-      });
+      batch.set(
+        FirebaseFirestore.instance.collection('users').doc(uid),
+        {
+          'role': role,
+          'diplomaUrl': diplomaUrl,
+          'isApproved': true,
+          'expertApplicationStatus': 'approved',
+          'approvedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
 
-      batch.update(doc.reference, {'status': 'approved'});
+      batch.update(doc.reference, {
+        'status': 'approved',
+        'approvedAt': FieldValue.serverTimestamp(),
+      });
 
       batch.set(FirebaseFirestore.instance.collection('notification').doc(), {
         'uid': uid,

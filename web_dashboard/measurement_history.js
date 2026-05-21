@@ -3,7 +3,9 @@ import {
   query,
   where,
   orderBy,
-  getDocs
+  getDocs,
+  deleteDoc,
+  doc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 import {
@@ -18,8 +20,13 @@ const auth = window.auth;
 let allMeasurements = [];
 let groupedMeasurements = [];
 let selectedDay = "all";
+let currentUser = null;
+const selectedMeasurementId = new URLSearchParams(window.location.search).get("measurementId");
+let appliedSelectedMeasurement = false;
 
 async function loadHistory(user) {
+  currentUser = user;
+
   const q = query(
     collection(db, "risk_olcumleri"),
     where("uid", "==", user.uid),
@@ -40,12 +47,16 @@ async function loadHistory(user) {
   allMeasurements = [];
 
   snap.forEach(docSnap => {
-    allMeasurements.push(docSnap.data());
+    allMeasurements.push({
+      ...docSnap.data(),
+      _measurementId: docSnap.id
+    });
   });
 
   window.measurementDetails = allMeasurements;
 
   groupedMeasurements = groupByDay(allMeasurements);
+  applySelectedMeasurementDay();
 
   renderDayFilter();
   renderFilteredHistory();
@@ -68,6 +79,19 @@ function renderDayFilter() {
   });
 
   select.value = selectedDay;
+}
+
+function applySelectedMeasurementDay() {
+  if (!selectedMeasurementId || appliedSelectedMeasurement) return;
+
+  const groupIndex = groupedMeasurements.findIndex(group =>
+    group.items.some(item => item.data._measurementId === selectedMeasurementId)
+  );
+
+  if (groupIndex < 0) return;
+
+  selectedDay = String(groupIndex);
+  appliedSelectedMeasurement = true;
 }
 
 window.filterByDay = function(value) {
@@ -97,6 +121,8 @@ function renderFilteredHistory() {
       </div>
     `;
   });
+
+  highlightSelectedMeasurement();
 }
 
 function groupByDay(measurements) {
@@ -139,13 +165,18 @@ function groupByDay(measurements) {
 
 function renderMeasurementCard(d, index, timeLabel) {
   return `
-    <div class="history-card">
+    <div class="history-card ${d._measurementId === selectedMeasurementId ? "selected-measurement" : ""}" id="measurement-${d._measurementId || index}">
 
       <div class="history-top">
         <div class="date">Ölçüm - ${timeLabel}</div>
-        <button class="detail-btn" onclick="showMeasurementDetail(${index})">
-          Detay
-        </button>
+        <div class="history-actions">
+          <button class="detail-btn" data-index="${index}" onclick="showMeasurementDetail(${index})">
+            Detay
+          </button>
+          <button class="delete-btn" onclick="deleteMeasurement('${d._measurementId}')">
+            ${t("delete")}
+          </button>
+        </div>
       </div>
 
       <div class="risk-row">
@@ -173,6 +204,25 @@ function renderMeasurementCard(d, index, timeLabel) {
 
     </div>
   `;
+}
+
+function highlightSelectedMeasurement() {
+  if (!selectedMeasurementId) return;
+
+  setTimeout(() => {
+    const selectedCard = document.getElementById(`measurement-${selectedMeasurementId}`);
+    if (!selectedCard) return;
+
+    selectedCard.scrollIntoView({ behavior: "smooth", block: "center" });
+    selectedCard.animate([
+      { transform: "scale(1)" },
+      { transform: "scale(1.02)" },
+      { transform: "scale(1)" }
+    ], { duration: 450 });
+
+    const index = Number(selectedCard.querySelector(".detail-btn")?.dataset.index);
+    if (!Number.isNaN(index)) showMeasurementDetail(index);
+  }, 250);
 }
 
 function getDateFromMeasurement(data) {
@@ -284,6 +334,17 @@ window.showMeasurementDetail = function(index) {
   `;
 
   box.classList.remove("hidden");
+};
+
+window.deleteMeasurement = async function(id) {
+  if (!id) return;
+  if (!confirm(t("confirmDelete"))) return;
+
+  await deleteDoc(doc(db, "risk_olcumleri", id));
+
+  if (currentUser) {
+    await loadHistory(currentUser);
+  }
 };
 
 onAuthStateChanged(auth, (user) => {

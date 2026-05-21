@@ -8,6 +8,7 @@ import {
   onSnapshot,
   doc,
   getDoc,
+  getDocs,
   addDoc,
   orderBy,
   updateDoc,
@@ -20,6 +21,8 @@ import {
 
 let currentChatId = null;
 let currentUserId = null;
+let unsubscribeMessages = null;
+let requestedChatId = new URLSearchParams(window.location.search).get("chatId");
 
 onAuthStateChanged(auth, (user) => {
 
@@ -34,7 +37,8 @@ function loadChats(uid) {
 
   const q = query(
     collection(db, "chats"),
-    where("users", "array-contains", uid)
+    where("users", "array-contains", uid),
+    orderBy("lastMessageTime", "desc")
   );
 
   onSnapshot(q, async (snapshot) => {
@@ -44,21 +48,46 @@ function loadChats(uid) {
 
     container.innerHTML = "";
 
-    if (snapshot.empty) {
-      container.innerHTML = t("noMessages");
-      return;
-    }
+    const chatRows = [];
 
     for (const docSnap of snapshot.docs) {
-
       const data = docSnap.data();
       const users = data.users || [];
-
       const otherUserId = users.find(u => u !== uid);
 
       if (!otherUserId) continue;
 
-      const userSnap = await getDoc(doc(db, "users", otherUserId));
+      chatRows.push({
+        chatId: docSnap.id,
+        otherUserId,
+        data
+      });
+    }
+
+    const chatUserIds = new Set(chatRows.map(row => row.otherUserId));
+    const assignedExperts = await loadAssignedExperts(uid);
+
+    for (const expertId of assignedExperts) {
+      if (!expertId || chatUserIds.has(expertId)) continue;
+
+      const chatId = await getOrCreateChat(uid, expertId);
+      chatRows.push({
+        chatId,
+        otherUserId: expertId,
+        data: {
+          lastMessage: "",
+          lastMessageTime: null
+        }
+      });
+    }
+
+    if (chatRows.length === 0) {
+      container.innerHTML = t("noMessages");
+      return;
+    }
+
+    for (const row of chatRows) {
+      const userSnap = await getDoc(doc(db, "users", row.otherUserId));
       const u = userSnap.data();
 
       const role = u?.role;
@@ -81,7 +110,7 @@ function loadChats(uid) {
             ? t("dietitian")
             : t("expert");
 
-      const time = formatTime(data.lastMessageTime);
+      const time = formatTime(row.data.lastMessageTime);
 
       div.innerHTML = `
         <div class="chat-avatar">${initials}</div>
@@ -89,24 +118,63 @@ function loadChats(uid) {
         <div class="chat-info">
           <div class="chat-name">${name}</div>
           <div class="chat-role">${roleText}</div>
-          <div class="chat-last">${data.lastMessage || ""}</div>
+          <div class="chat-last">${row.data.lastMessage || ""}</div>
         </div>
 
         <div class="chat-time">${time}</div>
       `;
 
       div.onclick = () => {
-        document.querySelectorAll(".chat-item").forEach(item => {
-          item.classList.remove("active");
-        });
-
-        div.classList.add("active");
-        openChat(docSnap.id, name);
+        selectChatItem(div, row.chatId, name);
       };
 
       container.appendChild(div);
+
+      if (requestedChatId === row.chatId) {
+        selectChatItem(div, row.chatId, name);
+        requestedChatId = null;
+      }
     }
   });
+}
+
+async function loadAssignedExperts(uid) {
+  const userSnap = await getDoc(doc(db, "users", uid));
+  const user = userSnap.data() || {};
+
+  return [
+    user.assignedDoctor,
+    user.assignedDietitian
+  ].filter(Boolean);
+}
+
+async function getOrCreateChat(currentUserId, otherUserId) {
+  const chatSnap = await getDocs(query(
+    collection(db, "chats"),
+    where("users", "array-contains", currentUserId)
+  ));
+
+  for (const chatDoc of chatSnap.docs) {
+    const users = chatDoc.data().users || [];
+    if (users.includes(otherUserId)) return chatDoc.id;
+  }
+
+  const newChat = await addDoc(collection(db, "chats"), {
+    users: [currentUserId, otherUserId],
+    lastMessage: "",
+    lastMessageTime: serverTimestamp()
+  });
+
+  return newChat.id;
+}
+
+function selectChatItem(element, chatId, name) {
+  document.querySelectorAll(".chat-item").forEach(item => {
+    item.classList.remove("active");
+  });
+
+  element.classList.add("active");
+  openChat(chatId, name);
 }
 
 function openChat(chatId, name) {
@@ -117,13 +185,17 @@ function openChat(chatId, name) {
 
   document.getElementById("chatHeader").innerText = name;
 
+  if (unsubscribeMessages) {
+    unsubscribeMessages();
+  }
+
   const q = query(
     collection(db, "messages"),
     where("chatId", "==", chatId),
     orderBy("createdAt", "asc")
   );
 
-  onSnapshot(q, (snapshot) => {
+  unsubscribeMessages = onSnapshot(q, (snapshot) => {
 
     const container = document.getElementById("messages");
     if (!container) return;

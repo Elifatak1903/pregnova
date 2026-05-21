@@ -8,6 +8,7 @@ import {
   onSnapshot,
   doc,
   getDoc,
+  getDocs,
   addDoc,
   orderBy,
   updateDoc
@@ -20,6 +21,7 @@ import {
 let currentChatId = null;
 let currentUserId = null;
 let unsubscribeMessages = null;
+let requestedChatId = new URLSearchParams(window.location.search).get("chatId");
 
 /* AUTH */
 onAuthStateChanged(auth, (user) => {
@@ -46,28 +48,55 @@ function loadChats(uid) {
 
     container.innerHTML = "";
 
-    if (snapshot.empty) {
-      container.innerHTML = t("noMessages");
-      return;
-    }
+    const chatRows = [];
 
     for (const docSnap of snapshot.docs) {
       const data = docSnap.data();
       const users = data.users || [];
-
       const otherUserId = users.find(u => u !== uid);
       if (!otherUserId) continue;
 
-      const userSnap = await getDoc(doc(db, "users", otherUserId));
+      chatRows.push({
+        chatId: docSnap.id,
+        otherUserId,
+        data
+      });
+    }
+
+    const chatUserIds = new Set(chatRows.map(row => row.otherUserId));
+    const assignedPatients = await loadAssignedPatients(uid);
+
+    for (const patient of assignedPatients) {
+      if (chatUserIds.has(patient.id)) continue;
+
+      const chatId = await getOrCreateChat(uid, patient.id);
+      chatRows.push({
+        chatId,
+        otherUserId: patient.id,
+        data: {
+          lastMessage: "",
+          lastMessageTime: null
+        }
+      });
+    }
+
+    if (chatRows.length === 0) {
+      container.innerHTML = t("noMessages");
+      return;
+    }
+
+    for (const row of chatRows) {
+      const userSnap = await getDoc(doc(db, "users", row.otherUserId));
       const u = userSnap.data();
 
       const name = `${u?.name || t("user")} ${u?.surname || ""}`.trim();
       const initials = getInitials(name);
-      const lastMessage = data.lastMessage || "";
-      const time = formatTime(data.lastMessageTime);
+      const lastMessage = row.data.lastMessage || "";
+      const time = formatTime(row.data.lastMessageTime);
 
       const div = document.createElement("div");
       div.className = "chat-item";
+      div.dataset.chatId = row.chatId;
 
       div.innerHTML = `
         <div class="chat-avatar">${initials}</div>
@@ -82,17 +111,55 @@ function loadChats(uid) {
       `;
 
       div.onclick = () => {
-        document.querySelectorAll(".chat-item").forEach(item => {
-          item.classList.remove("active");
-        });
-
-        div.classList.add("active");
-        openChat(docSnap.id, name);
+        selectChatItem(div, row.chatId, name);
       };
 
       container.appendChild(div);
+
+      if (requestedChatId === row.chatId) {
+        selectChatItem(div, row.chatId, name);
+        requestedChatId = null;
+      }
     }
   });
+}
+
+async function loadAssignedPatients(uid) {
+  const snap = await getDocs(query(
+    collection(db, "users"),
+    where("assignedDoctor", "==", uid)
+  ));
+
+  return snap.docs.map(docSnap => ({ id: docSnap.id, data: docSnap.data() }));
+}
+
+async function getOrCreateChat(currentUserId, otherUserId) {
+  const chatSnap = await getDocs(query(
+    collection(db, "chats"),
+    where("users", "array-contains", currentUserId)
+  ));
+
+  for (const chatDoc of chatSnap.docs) {
+    const users = chatDoc.data().users || [];
+    if (users.includes(otherUserId)) return chatDoc.id;
+  }
+
+  const newChat = await addDoc(collection(db, "chats"), {
+    users: [currentUserId, otherUserId],
+    lastMessage: "",
+    lastMessageTime: new Date()
+  });
+
+  return newChat.id;
+}
+
+function selectChatItem(element, chatId, name) {
+  document.querySelectorAll(".chat-item").forEach(item => {
+    item.classList.remove("active");
+  });
+
+  element.classList.add("active");
+  openChat(chatId, name);
 }
 
 function openChat(chatId, name) {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'hamile_page.dart';
 import 'l10n/app_localizations.dart';
+import 'uzman_basvuru_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -188,7 +189,28 @@ class _RegisterPageState extends State<RegisterPage> {
                       : Text(
                           l10n.register,
                           style: const TextStyle(fontSize: 16),
-                        ),
+                      ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: _loading
+                    ? null
+                    : () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const UzmanBasvuruPage(fromRegister: true),
+                          ),
+                        );
+                      },
+                child: Text(
+                  "Uzman olarak kayıt ol",
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],

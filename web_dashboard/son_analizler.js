@@ -11,6 +11,7 @@ import {
 import { t, getLanguage } from "./i18n.js";
 import { FoodUnits } from "./foodUnits.js";
 import { NutritionEngine } from "./nutritionEngine.js";
+import { displaySupplementName } from "./nutritionDisplay.js";
 
 const db = window.db;
 const auth = window.auth;
@@ -143,7 +144,7 @@ async function renderAnalyses() {
       </div>
 
       ${section(t("foods"), listItems(data.besinler))}
-      ${section(t("supplements"), listItems(data.takviyeler))}
+      ${section(t("supplements"), listItems(data.takviyeler, true))}
 
       <div class="daily-summary">
         <h3>${t("dailyTotalAnalysisResult")}</h3>
@@ -185,15 +186,16 @@ function section(title, rows) {
   `;
 }
 
-function listItems(items) {
+function listItems(items, isSupplement = false) {
   const values = Array.isArray(items) ? items : [];
   if (values.length === 0) return "";
 
   return values.map(raw => {
     const item = raw && typeof raw === "object" ? raw : {};
+    const name = item.ad || item.name || "-";
     return `
       <div class="food-line">
-        <span>${item.ad || item.name || "-"}</span>
+        <span>${isSupplement ? displaySupplementName(name) : name}</span>
         <b>${item.miktar ?? item.amount ?? ""} ${item.format || item.birim || item.unit || ""}</b>
       </div>
     `;

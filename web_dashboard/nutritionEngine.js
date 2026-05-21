@@ -10,21 +10,36 @@ export const NutritionEngine = {
     "Folik asit": 600,
     "C vitamini": 85,
     "B12 vitamini": 2.6,
+    "D vitamini": 15,
+    "Magnezyum": 350,
+    "Çinko": 11,
   },
 
   maxRequirements: {
     "Demir": 45,
     "Folik asit": 1000,
     "Kalsiyum": 2500,
-    "Omega-3": 3
+    "C vitamini": 2000,
+    "D vitamini": 100,
+    "Magnezyum": 350,
+    "Çinko": 40
   },
+
+  noEstablishedUpperLimit: [
+    "Protein",
+    "Omega-3",
+    "B12 vitamini",
+  ],
 
   supplementNutrition: {
     "demir": {"Demir": 27},
     "folik asit": {"Folik asit": 400},
     "omega 3": {"Omega-3": 1.4},
     "b12": {"B12 vitamini": 2.6},
-    "kalsiyum": {"Kalsiyum": 500}
+    "kalsiyum": {"Kalsiyum": 500},
+    "d vitamini": {"D vitamini": 15},
+    "magnezyum": {"Magnezyum": 300},
+    "çinko": {"Çinko": 10}
   },
 
   foodNutrition: {

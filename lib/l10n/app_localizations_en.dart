@@ -194,6 +194,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get preeklampsiTracking => 'Preeclampsia Tracking';
 
   @override
+  String get preeclampsiaMeasurementHint =>
+      'Blood pressure values are important for risk assessment.';
+
+  @override
   String get systolicExample => 'Systolic (Example: 120)';
 
   @override
@@ -212,6 +216,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gestationalDiabetes => 'Gestational Diabetes';
 
   @override
+  String get diabetesMeasurementHint =>
+      'Enter at least one fasting or post-meal blood sugar value to assess diabetes risk.';
+
+  @override
   String get fastingBloodSugar => 'Fasting blood sugar';
 
   @override
@@ -225,6 +233,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pretermRisk => 'Preterm Risk';
+
+  @override
+  String get pretermMeasurementHint =>
+      'Mark any symptoms you have and choose the stress level that matches your current condition.';
 
   @override
   String get contraction => 'Abdominal contraction';
@@ -854,6 +866,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String approvalError(Object message) {
     return 'Approval error: $message';
   }
+
+  @override
+  String get abcd => 'whatsup';
 
   @override
   String get adminPanel => 'Admin Panel';

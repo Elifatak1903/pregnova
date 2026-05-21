@@ -172,6 +172,27 @@ button:hover {
   font-weight: 800;
 }
 
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.result-panel {
+  min-width: 0;
+  padding: 16px;
+  border-radius: 14px;
+  background: #faf7ff;
+  border: 1px solid color-mix(in srgb, var(--primary) 10%, white);
+}
+
+.result-panel h3 {
+  margin: 0 0 14px;
+  color: var(--primary);
+  font-size: 17px;
+  font-weight: 800;
+}
+
 .progress-container {
   margin-bottom: 16px;
 }
@@ -259,6 +280,10 @@ button:hover {
 
 @media (max-width: 900px) {
   .content {
+    grid-template-columns: 1fr;
+  }
+
+  .result-grid {
     grid-template-columns: 1fr;
   }
 

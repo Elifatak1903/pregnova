@@ -3,7 +3,6 @@ import {
   query,
   where,
   orderBy,
-  limit,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
@@ -21,9 +20,12 @@ const summary = document.getElementById("dietSummary");
 const summaryDate = document.getElementById("summaryDate");
 const modal = document.getElementById("dietModal");
 const modalTitle = document.getElementById("modalTitle");
+const previousDietSection = document.getElementById("previousDietSection");
+const previousDietList = document.getElementById("previousDietList");
 
 let currentDiet = null;
 let currentDietDate = "-";
+let allDiets = [];
 
 onAuthStateChanged(auth, (user) => {
   if (!user) {
@@ -38,8 +40,7 @@ function loadDietPlan(uid) {
   const q = query(
     collection(db, "diet_plans"),
     where("clientId", "==", uid),
-    orderBy("createdAt", "desc"),
-    limit(1)
+    orderBy("createdAt", "desc")
   );
 
   onSnapshot(q, (snapshot) => {
@@ -50,12 +51,14 @@ function loadDietPlan(uid) {
       return;
     }
 
-    currentDiet = snapshot.docs[0].data();
+    allDiets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    currentDiet = allDiets[0];
     currentDietDate = formatDate(currentDiet.createdAt);
 
     state.classList.add("hidden");
     summary.classList.remove("hidden");
     summaryDate.textContent = currentDietDate;
+    renderPreviousDiets();
   }, (error) => {
     console.error("Diet plan could not be loaded:", error);
     state.textContent = t("dietPlanLoadError");
@@ -92,6 +95,51 @@ window.closeDietModal = function () {
 summary.addEventListener("click", () => {
   window.openDietModal();
 });
+
+function renderPreviousDiets() {
+  const previous = allDiets.slice(1);
+
+  if (!previousDietSection || !previousDietList) return;
+
+  if (previous.length === 0) {
+    previousDietSection.classList.add("hidden");
+    previousDietList.innerHTML = "";
+    return;
+  }
+
+  previousDietSection.classList.remove("hidden");
+  previousDietList.innerHTML = previous.map((diet, index) => `
+    <button class="diet-summary previous-diet-card" type="button" data-index="${index + 1}">
+      <div class="summary-left">
+        <div class="summary-icon">D</div>
+        <div>
+          <span>${formatDate(diet.createdAt)}</span>
+          <p data-i18n="previousDietPlan">${t("previousDietPlan")}</p>
+        </div>
+      </div>
+      <b>${t("viewDiet")}</b>
+    </button>
+  `).join("");
+
+  previousDietList.querySelectorAll("[data-index]").forEach(button => {
+    button.addEventListener("click", () => {
+      const index = Number(button.dataset.index);
+      openDietByIndex(index);
+    });
+  });
+}
+
+function openDietByIndex(index) {
+  const diet = allDiets[index];
+  if (!diet) return;
+
+  currentDiet = diet;
+  currentDietDate = formatDate(diet.createdAt);
+  window.openDietModal();
+
+  currentDiet = allDiets[0];
+  currentDietDate = formatDate(currentDiet.createdAt);
+}
 
 function formatDate(timestamp) {
   if (!timestamp) return "-";

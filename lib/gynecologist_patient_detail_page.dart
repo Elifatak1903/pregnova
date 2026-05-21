@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import 'chat_page.dart';
 import 'hasta_klinik_detay_page.dart';
 import 'l10n/app_localizations.dart';
 
@@ -21,6 +22,12 @@ class HastaDetayPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final now = DateTime.now();
+    final last7DaysStart = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(const Duration(days: 6));
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -32,6 +39,8 @@ class HastaDetayPage extends StatelessWidget {
             onSelected: (value) {
               if (value == "risk") {
                 _openRiskAssignmentDialog(context);
+              } else if (value == "feedback") {
+                _openFeedbackChat(context);
               } else if (value == "remove") {
                 _removePatientFromDoctor(context);
               }
@@ -40,6 +49,12 @@ class HastaDetayPage extends StatelessWidget {
               PopupMenuItem(
                 value: "risk",
                 child: Text(_localized(context, "Risk Ata", "Assign Risk")),
+              ),
+              PopupMenuItem(
+                value: "feedback",
+                child: Text(
+                  _localized(context, "Geri Dönüş Ver", "Give Feedback"),
+                ),
               ),
               PopupMenuItem(
                 value: "remove",
@@ -79,9 +94,17 @@ class HastaDetayPage extends StatelessWidget {
                     ),
                   );
                 }
-                final hafta = data?["hafta"]?.toString() ?? "-";
-                final fullName = "${data?["name"] ?? ""} ${data?["surname"] ?? ""}".trim();
-                final risk = data?["riskLevel"] ?? "normal";
+                final hafta = data["hafta"]?.toString() ?? "-";
+                final kilo = data["kilo"]?.toString() ?? "-";
+                final boy = data["boy"]?.toString() ?? "-";
+                final bmi = data["bmi"]?.toString() ?? "-";
+                final allergies = _firstNonEmpty([
+                  data["alerjiler"],
+                  data["allergies"],
+                ], fallback: l10n.notExists);
+                final fullName =
+                    "${data["name"] ?? ""} ${data["surname"] ?? ""}".trim();
+                final risk = data["riskLevel"] ?? "normal";
                 final doctorRiskFlags = _doctorRiskFlags(data);
                 final doctorRiskLabels = _doctorRiskLabels(
                   l10n,
@@ -89,6 +112,8 @@ class HastaDetayPage extends StatelessWidget {
                 );
                 final riskColor = _riskColor(context, risk);
                 final riskText = _riskText(l10n, risk);
+                final chronicDiseases = _chronicDiseaseLabels(l10n, data);
+                final pregnancyRiskLabels = _pregnancyRiskLabels(l10n, data);
 
                 return Container(
                   margin: const EdgeInsets.all(16),
@@ -115,6 +140,31 @@ class HastaDetayPage extends StatelessWidget {
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.onSurface,
                               ),
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                _infoChip(context, "${l10n.currentWeightKg}: $kilo kg"),
+                                _infoChip(context, "${l10n.heightCm}: $boy cm"),
+                                _infoChip(context, "${l10n.bmi}: $bmi"),
+                                _infoChip(
+                                  context,
+                                  "${l10n.allergies}: $allergies",
+                                  isWarning: allergies != l10n.notExists,
+                                ),
+                                _infoChip(
+                                  context,
+                                  "${l10n.chronicDisease}: ${chronicDiseases.isEmpty ? l10n.notExists : chronicDiseases.join(", ")}",
+                                  isWarning: chronicDiseases.isNotEmpty,
+                                ),
+                                _infoChip(
+                                  context,
+                                  "${_localized(context, "Gebelik Riskleri", "Pregnancy Risks")}: ${pregnancyRiskLabels.isEmpty ? l10n.notExists : pregnancyRiskLabels.join(", ")}",
+                                  isWarning: pregnancyRiskLabels.isNotEmpty,
+                                ),
+                              ],
                             ),
                             if (doctorRiskLabels.isNotEmpty) ...[
                               const SizedBox(height: 10),
@@ -178,8 +228,11 @@ class HastaDetayPage extends StatelessWidget {
               stream: FirebaseFirestore.instance
                   .collection("risk_olcumleri")
                   .where("uid", isEqualTo: clientId)
+                  .where(
+                    "tarih",
+                    isGreaterThanOrEqualTo: Timestamp.fromDate(last7DaysStart),
+                  )
                   .orderBy("tarih", descending: false)
-                  .limit(7)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
@@ -253,6 +306,48 @@ class HastaDetayPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _openFeedbackChat(BuildContext context) async {
+    final doctorId = FirebaseAuth.instance.currentUser?.uid;
+    if (doctorId == null) return;
+
+    final chatId = await _getOrCreateChat(doctorId, clientId);
+    if (!context.mounted) return;
+
+    final title = "$name $surname".trim().isEmpty
+        ? _localized(context, "Hasta", "Patient")
+        : "$name $surname".trim();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatPage(chatId: chatId, title: title),
+      ),
+    );
+  }
+
+  Future<String> _getOrCreateChat(String doctorId, String patientId) async {
+    final query = await FirebaseFirestore.instance
+        .collection("chats")
+        .where("users", arrayContains: doctorId)
+        .get();
+
+    for (final doc in query.docs) {
+      final data = doc.data();
+      final users = List<String>.from(data["users"] ?? []);
+      if (users.contains(patientId)) {
+        return doc.id;
+      }
+    }
+
+    final newChat = await FirebaseFirestore.instance.collection("chats").add({
+      "users": [doctorId, patientId],
+      "lastMessage": "",
+      "lastMessageTime": FieldValue.serverTimestamp(),
+    });
+
+    return newChat.id;
   }
 
   Future<void> _openRiskAssignmentDialog(BuildContext context) async {
@@ -427,6 +522,7 @@ class HastaDetayPage extends StatelessWidget {
             BarChartData(
               minY: 80,
               maxY: 250,
+              titlesData: _chartTitlesData(context, docs),
               barGroups: List.generate(docs.length, (i) {
                 final data = docs[i].data() as Map<String, dynamic>;
                 final sistolik =
@@ -481,6 +577,7 @@ class HastaDetayPage extends StatelessWidget {
             BarChartData(
               minY: 60,
               maxY: 200,
+              titlesData: _chartTitlesData(context, docs),
               barGroups: List.generate(docs.length, (i) {
                 final data = docs[i].data() as Map<String, dynamic>;
                 final aclik =
@@ -535,6 +632,7 @@ class HastaDetayPage extends StatelessWidget {
             BarChartData(
               minY: 40,
               maxY: 120,
+              titlesData: _chartTitlesData(context, docs),
               barGroups: List.generate(docs.length, (i) {
                 final data = docs[i].data() as Map<String, dynamic>;
                 final kilo =
@@ -556,6 +654,59 @@ class HastaDetayPage extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  FlTitlesData _chartTitlesData(
+    BuildContext context,
+    List<QueryDocumentSnapshot> docs,
+  ) {
+    return FlTitlesData(
+      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+      bottomTitles: AxisTitles(
+        sideTitles: SideTitles(
+          showTitles: true,
+          reservedSize: 34,
+          getTitlesWidget: (value, meta) {
+            return _dateBottomTitle(context, value, meta, docs);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _dateBottomTitle(
+    BuildContext context,
+    double value,
+    TitleMeta meta,
+    List<QueryDocumentSnapshot> docs,
+  ) {
+    final index = value.round();
+    if ((value - index).abs() > 0.01 || index < 0 || index >= docs.length) {
+      return const SizedBox.shrink();
+    }
+
+    final data = docs[index].data() as Map<String, dynamic>;
+    final label = _measurementDateLabel(data["tarih"]);
+
+    return SideTitleWidget(
+      axisSide: meta.axisSide,
+      space: 8,
+      child: Text(
+        label,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface,
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  String _measurementDateLabel(dynamic value) {
+    if (value is! Timestamp) return "-";
+
+    final date = value.toDate();
+    return "${date.day}/${date.month}";
   }
 
   Color _riskColor(BuildContext context, dynamic risk) {
@@ -589,8 +740,63 @@ class HastaDetayPage extends StatelessWidget {
     ];
   }
 
+  List<String> _chronicDiseaseLabels(
+    AppLocalizations l10n,
+    Map<String, dynamic> data,
+  ) {
+    return [
+      if (data["chronicHypertension"] == true) l10n.hypertension,
+      if (data["diabetes"] == true) l10n.diabetes,
+      if (data["thyroidDisease"] == true) l10n.thyroidDisease,
+    ];
+  }
+
+  List<String> _pregnancyRiskLabels(
+    AppLocalizations l10n,
+    Map<String, dynamic> data,
+  ) {
+    return [
+      if (data["previousPreterm"] == true) l10n.previousPretermBirth,
+      if (data["multiplePregnancy"] == true) l10n.multiplePregnancy,
+    ];
+  }
+
+  Widget _infoChip(
+    BuildContext context,
+    String text, {
+    bool isWarning = false,
+  }) {
+    final color = isWarning
+        ? Colors.orange
+        : Theme.of(context).colorScheme.primary;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
   String _localized(BuildContext context, String tr, String en) {
     return Localizations.localeOf(context).languageCode == "tr" ? tr : en;
+  }
+
+  String _firstNonEmpty(List<dynamic> values, {String fallback = ""}) {
+    for (final value in values) {
+      final text = value?.toString().trim() ?? "";
+      if (text.isNotEmpty) return text;
+    }
+    return fallback;
   }
 
   BoxDecoration _cardDecoration(BuildContext context) {

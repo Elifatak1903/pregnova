@@ -36,6 +36,12 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
   }
 
   Future<ChartData> getWeightSpots() async {
+    final userDoc = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(widget.clientId)
+        .get();
+    final profileWeight = _readDouble(userDoc.data()?["kilo"]);
+
     final query = await FirebaseFirestore.instance
         .collection("risk_olcumleri")
         .where("uid", isEqualTo: widget.clientId)
@@ -47,6 +53,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
       now.month,
       now.day,
     ).subtract(const Duration(days: 6));
+    final endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
     List<DateTime> dates = [];
     for (int i = 0; i < 7; i++) {
@@ -54,6 +61,8 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     }
 
     Map<String, double> weightMap = {};
+    double latestMeasurementWeight = 0;
+    DateTime? latestMeasurementDate;
 
     for (var doc in query.docs) {
       final data = doc.data();
@@ -77,18 +86,20 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
         continue;
       }
 
-      if (date.isBefore(startDate)) {
+      if (date.isBefore(startDate) || date.isAfter(endDate)) {
         continue;
       }
 
-      double kilo = (rawKilo is int)
-          ? rawKilo.toDouble()
-          : (rawKilo is double)
-          ? rawKilo
-          : double.tryParse(rawKilo.toString()) ?? 0;
+      double kilo = _readDouble(rawKilo);
       if (kilo <= 0) {
         continue;
       }
+
+      if (latestMeasurementDate == null || date.isAfter(latestMeasurementDate)) {
+        latestMeasurementDate = date;
+        latestMeasurementWeight = kilo;
+      }
+
       String key = "${date.year}-${date.month}-${date.day}";
 
       weightMap[key] = kilo;
@@ -104,14 +115,21 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
 
       if (weightMap.containsKey(key)) {
         kilo = weightMap[key]!;
+      } else if (profileWeight > 0) {
+        kilo = profileWeight;
       } else {
-        kilo = i > 0 ? spots[i - 1].y : 0;
+        kilo = latestMeasurementWeight;
       }
 
       spots.add(FlSpot(i.toDouble(), kilo));
     }
 
     return ChartData(spots, dates);
+  }
+
+  double _readDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? "") ?? 0;
   }
 
   Future<ChartData> getCalorieSpots() async {
@@ -126,6 +144,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
       now.month,
       now.day,
     ).subtract(const Duration(days: 6));
+    final endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
     List<DateTime> dates = [];
     for (int i = 0; i < 7; i++) {
@@ -137,11 +156,12 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
     for (var doc in query.docs) {
       final data = doc.data();
 
-      if (!data.containsKey("createdAt") || !data.containsKey("kalori")) {
+      if (!(data.containsKey("createdAt") || data.containsKey("tarih")) ||
+          !data.containsKey("kalori")) {
         continue;
       }
 
-      final ts = data["createdAt"];
+      final ts = data["createdAt"] ?? data["tarih"];
       final raw = data["kalori"];
 
       if (ts == null || raw == null) {
@@ -156,7 +176,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
         continue;
       }
 
-      if (date.isBefore(startDate)) {
+      if (date.isBefore(startDate) || date.isAfter(endDate)) {
         continue;
       }
 
@@ -238,7 +258,12 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
           final surname = data["surname"] ?? "";
           final hafta = data["hafta"] ?? "-";
           final kilo = data["kilo"] ?? "-";
+          final boy = data["boy"] ?? "-";
+          final bmi = data["bmi"] ?? "-";
           final alerji = data["alerjiler"] ?? "";
+          final chronicDiseases = _chronicDiseaseLabels(l10n, data);
+          final riskLevel = _riskLevelText(l10n, data["riskLevel"]);
+          final followUpRisks = _doctorRiskLabels(l10n, data["doctorRiskFlags"]);
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
@@ -267,6 +292,10 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                         const SizedBox(height: 10),
                         Text("${l10n.currentWeightKg}: $kilo kg"),
                         const SizedBox(height: 10),
+                        Text("${l10n.heightCm}: $boy cm"),
+                        const SizedBox(height: 10),
+                        Text("${l10n.bmi}: $bmi"),
+                        const SizedBox(height: 10),
                         Row(
                           children: [
                             Icon(
@@ -277,6 +306,18 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                             const SizedBox(width: 6),
                             Text("${l10n.allergies}: $alerji"),
                           ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          "${l10n.chronicDisease}: ${chronicDiseases.isEmpty ? l10n.notExists : chronicDiseases.join(", ")}",
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          "${l10n.riskStatus}: $riskLevel",
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          "${_localized(context, "Takip Riskleri", "Follow-up Risks")}: ${followUpRisks.isEmpty ? l10n.notExists : followUpRisks.join(", ")}",
                         ),
                       ],
                     ),
@@ -769,6 +810,50 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
   String _localized(BuildContext context, String tr, String en) {
     return Localizations.localeOf(context).languageCode == "tr" ? tr : en;
   }
+
+  List<String> _chronicDiseaseLabels(
+    AppLocalizations l10n,
+    Map<String, dynamic> data,
+  ) {
+    return [
+      if (data["chronicHypertension"] == true) l10n.hypertension,
+      if (data["diabetes"] == true) l10n.diabetes,
+      if (data["thyroidDisease"] == true) l10n.thyroidDisease,
+    ];
+  }
+
+  List<String> _doctorRiskLabels(AppLocalizations l10n, dynamic rawFlags) {
+    if (rawFlags is! Map) return [];
+
+    final flags = Map<String, dynamic>.from(rawFlags);
+    return [
+      if (flags["preeklampsi"] == true) l10n.preeklampsiTracking,
+      if (flags["diabetes"] == true) l10n.gestationalDiabetes,
+      if (flags["preterm"] == true) l10n.pretermRisk,
+    ];
+  }
+
+  String _riskLevelText(AppLocalizations l10n, dynamic rawRiskLevel) {
+    final normalized = rawRiskLevel?.toString().trim().toLowerCase() ?? "";
+
+    if (normalized == "high" ||
+        normalized == "high_risk" ||
+        normalized == "yüksek") {
+      return l10n.highRisk;
+    }
+
+    if (normalized == "medium" || normalized == "orta") {
+      return l10n.mediumRisk;
+    }
+
+    if (normalized == "low" ||
+        normalized == "normal" ||
+        normalized == "düşük") {
+      return l10n.lowRisk;
+    }
+
+    return l10n.normalRisk;
+  }
 }
 
 class _BesinDayCard extends StatelessWidget {
@@ -780,96 +865,98 @@ class _BesinDayCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final summary = _summarizeBesinDay(group.items);
+    final firstTime =
+        "${group.items.first.date.hour.toString().padLeft(2, '0')}:${group.items.first.date.minute.toString().padLeft(2, '0')}";
+    final lastTime =
+        "${group.items.last.date.hour.toString().padLeft(2, '0')}:${group.items.last.date.minute.toString().padLeft(2, '0')}";
 
-    return Container(
-      width: double.infinity,
+    return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+      elevation: 3,
+      color: Theme.of(context).colorScheme.surface,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).shadowColor.withValues(alpha: 0.15),
-            blurRadius: 6,
-          ),
-        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            group.dayLabel,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          const SizedBox(height: 10),
-          ...group.items.asMap().entries.map((entry) {
-            final index = entry.key;
-            final item = entry.value;
-            final takviyeler = (item.data["takviyeler"] as List?) ?? [];
-            final time =
-                "${item.date.hour.toString().padLeft(2, '0')}:${item.date.minute.toString().padLeft(2, '0')}";
-
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BesinAnalizDetayPage(docId: item.id),
-                    ),
-                  );
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.analysisWithTime(index + 1, time),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Text(l10n.calories(item.calorie.toStringAsFixed(0))),
-                    if (takviyeler.isNotEmpty)
-                      Text(
-                        "${l10n.supplements}: ${takviyeler.map((t) => t is Map ? t["ad"] ?? "" : t.toString()).take(3).join(", ")}",
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => BesinAnalizDetayPage(
+                docIds: group.items.map((item) => item.id).toList(),
+                dayLabel: group.dayLabel,
+              ),
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      group.dayLabel,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
-                  ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                group.items.length == 1
+                    ? l10n.analysisWithTime(1, firstTime)
+                    : "${group.items.length} analiz ($firstTime - $lastTime)",
+                style: TextStyle(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ),
-            );
-          }),
-          const Divider(),
-          Text(
-            l10n.dailyTotalCalories(summary.calorie.toStringAsFixed(0)),
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          if (summary.missing.isNotEmpty)
-            ...summary.missing
-                .take(4)
-                .map(
-                  (m) => Row(
-                    children: [
-                      const Icon(Icons.close, color: Colors.red, size: 16),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          m,
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.w500,
+              const SizedBox(height: 10),
+              const Divider(),
+              Text(
+                l10n.dailyTotalCalories(summary.calorie.toStringAsFixed(0)),
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              if (summary.missing.isNotEmpty)
+                ...summary.missing.take(4).map(
+                      (m) => Row(
+                        children: [
+                          const Icon(Icons.close, color: Colors.red, size: 16),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              m,
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+              if (summary.consumed.isNotEmpty)
+                Text(
+                  "${l10n.consumedNutrients}: ${summary.consumed.take(4).join(", ")}",
+                  style: const TextStyle(color: Colors.green),
                 ),
-          if (summary.consumed.isNotEmpty)
-            Text(
-              "${l10n.consumedNutrients}: ${summary.consumed.take(4).join(", ")}",
-              style: const TextStyle(color: Colors.green),
-            ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }

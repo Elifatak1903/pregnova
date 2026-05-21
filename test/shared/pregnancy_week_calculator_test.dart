@@ -36,6 +36,23 @@ void main() {
       );
     });
 
+    test('uses elapsed full days so time-of-day changes do not overcount weeks', () {
+      expect(
+        PregnancyWeekCalculator.calculate(
+          pregnancyStartDate: DateTime(2026, 1, 1, 23),
+          now: DateTime(2026, 1, 8, 1),
+        ),
+        1,
+      );
+      expect(
+        PregnancyWeekCalculator.calculate(
+          pregnancyStartDate: DateTime(2026, 1, 1, 1),
+          now: DateTime(2026, 1, 8, 23),
+        ),
+        1,
+      );
+    });
+
     test('clamps week to minimum 1 when start date is today or future', () {
       expect(
         PregnancyWeekCalculator.calculate(

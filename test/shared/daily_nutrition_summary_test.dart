@@ -33,6 +33,24 @@ void main() {
       expect(summary.nutrients['Protein'], 5.5);
     });
 
+    test('includes supplement-derived nutrients when they are stored in totals', () {
+      final summary = DailyNutritionSummaryService.summarize([
+        {
+          'kalori': 84,
+          'totalNutrients': {'Kalsiyum': 240},
+        },
+        {
+          'kalori': 0,
+          'totalNutrients': {'Demir': 27, 'Folik Asit': 400},
+        },
+      ]);
+
+      expect(summary.calories, 84);
+      expect(summary.nutrients['Kalsiyum'], 240);
+      expect(summary.nutrients['Demir'], 27);
+      expect(summary.nutrients['Folik Asit'], 400);
+    });
+
     test('trims nutrient names and sums numeric strings', () {
       final summary = DailyNutritionSummaryService.summarize([
         {

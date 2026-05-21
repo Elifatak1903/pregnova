@@ -1,0 +1,101 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function currentUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasRole(role) {
+      return signedIn() && currentUserData().role == role;
+    }
+
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    function ownsIncomingUid() {
+      return signedIn() && request.resource.data.uid == request.auth.uid;
+    }
+
+    function ownsExistingUid() {
+      return signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    function isAssignedDoctor(patientId) {
+      return signedIn() &&
+        hasRole('gynecologist') &&
+        get(/databases/$(database)/documents/users/$(patientId)).data.assignedDoctor == request.auth.uid;
+    }
+
+    function isAssignedDietitian(clientId) {
+      return signedIn() &&
+        hasRole('dietitian') &&
+        get(/databases/$(database)/documents/users/$(clientId)).data.assignedDietitian == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow create: if isOwner(userId) || isAdmin();
+      allow read: if isOwner(userId) || isAdmin() || isAssignedDoctor(userId) || isAssignedDietitian(userId);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /risk_olcumleri/{measurementId} {
+      allow create: if ownsIncomingUid();
+      allow read: if ownsExistingUid() || isAdmin() || isAssignedDoctor(resource.data.uid);
+      allow update, delete: if ownsExistingUid() || isAdmin();
+    }
+
+    match /besin_analizleri/{analysisId} {
+      allow create: if ownsIncomingUid();
+      allow read: if ownsExistingUid() || isAdmin() || isAssignedDietitian(resource.data.uid);
+      allow update, delete: if ownsExistingUid() || isAdmin();
+    }
+
+    match /notification/{notificationId} {
+      allow create: if signedIn();
+      allow read, update, delete: if ownsExistingUid() || isAdmin();
+    }
+
+    match /expert_requests/{requestId} {
+      allow create: if signedIn() && request.resource.data.clientId == request.auth.uid;
+      allow read, update: if isAdmin() ||
+        resource.data.clientId == request.auth.uid ||
+        resource.data.expertId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    match /expert_applications/{applicationId} {
+      allow create: if ownsIncomingUid();
+      allow read: if isAdmin() || ownsExistingUid();
+      allow update: if isAdmin() || ownsExistingUid();
+      allow delete: if isAdmin();
+    }
+
+    match /diet_plans/{planId} {
+      allow create, update: if signedIn() && request.resource.data.dietitianId == request.auth.uid;
+      allow read: if isAdmin() ||
+        resource.data.clientId == request.auth.uid ||
+        resource.data.dietitianId == request.auth.uid;
+      allow delete: if isAdmin() || resource.data.dietitianId == request.auth.uid;
+    }
+
+    match /chats/{chatId} {
+      allow create: if signedIn() && request.auth.uid in request.resource.data.users;
+      allow read, update, delete: if signedIn() && request.auth.uid in resource.data.users;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

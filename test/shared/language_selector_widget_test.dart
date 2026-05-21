@@ -60,6 +60,20 @@ void main() {
       expect(find.text('Home'), findsOneWidget);
       expect(find.byTooltip('Language'), findsOneWidget);
     });
+
+    testWidgets('can switch from English back to Turkish', (tester) async {
+      await localeController.setLocale(const Locale('en'));
+      await tester.pumpWidget(const _LocalizedTestApp());
+
+      await tester.tap(find.byTooltip('Language'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Turkish'));
+      await tester.pumpAndSettle();
+
+      expect(localeController.locale, const Locale('tr'));
+      expect(find.text('Ana Sayfa'), findsOneWidget);
+      expect(find.byTooltip('Dil'), findsOneWidget);
+    });
   });
 }
 

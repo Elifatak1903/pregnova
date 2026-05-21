@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'admin_expert_request_page.dart';
 import 'diyetisyen_page.dart';
 import 'expert_chat_list_page.dart';
+import 'hamile_besin_page.dart';
+import 'hamile_olcum_page.dart';
 import 'hamile_olcum_gecmisi_page.dart';
 import 'jinekolog_page.dart';
 import 'l10n/app_localizations.dart';
@@ -230,6 +232,14 @@ class NotificationPanel extends StatelessWidget {
       return const HamileOlcumGecmisiPage();
     }
 
+    if (type == "daily_measurement_reminder") {
+      return const RiskTakipFormuPage();
+    }
+
+    if (type == "daily_nutrition_reminder") {
+      return const HamileBesinPage();
+    }
+
     if (type == "risk_alert") {
       if (role == "gynecologist") {
         final patientId = _firstText(data, ["patientId", "clientId"]);
@@ -237,7 +247,8 @@ class NotificationPanel extends StatelessWidget {
       }
 
       if (role == "dietitian") {
-        return const SonAnalizlerPage();
+        final patientId = _firstText(data, ["clientId", "patientId"]);
+        return SonAnalizlerPage(selectedUid: patientId);
       }
 
       return const HamileOlcumGecmisiPage();

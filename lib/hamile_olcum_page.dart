@@ -114,10 +114,19 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
         overallRisk = "medium";
       }
 
-      await FirebaseFirestore.instance.collection("users").doc(uid).set({
+      final enteredWeight = double.tryParse(kiloController.text);
+      final userUpdate = <String, dynamic>{
         "riskLevel": overallRisk,
-        "kilo": double.tryParse(kiloController.text),
-      }, SetOptions(merge: true));
+      };
+
+      if (enteredWeight != null && enteredWeight > 0) {
+        userUpdate["kilo"] = enteredWeight;
+      }
+
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(uid)
+          .set(userUpdate, SetOptions(merge: true));
 
       await RiskEngine.sendRiskNotification(
         uid: uid,
@@ -172,7 +181,7 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
       await FirebaseFirestore.instance.collection('risk_olcumleri').add({
         'uid': uid,
         'tarih': Timestamp.now(),
-        'kilo': double.tryParse(kiloController.text),
+        'kilo': enteredWeight,
         'sistolik': int.tryParse(sistolikController.text),
         'diastolik': int.tryParse(diastolikController.text),
         'basAgrisi': basAgrisi,
@@ -262,6 +271,7 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
                 child: Column(
                   children: [
                     _sectionTitle(l10n.preeklampsiTracking),
+                    _sectionHint(l10n.preeclampsiaMeasurementHint),
 
                     _textInput(
                       l10n.systolicExample,
@@ -307,15 +317,18 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
                 child: Column(
                   children: [
                     _sectionTitle(l10n.gestationalDiabetes),
+                    _sectionHint(l10n.diabetesMeasurementHint),
 
                     _textInput(
                       l10n.fastingBloodSugar,
                       aclikSekerController,
+                      required: false,
                     ),
 
                     _textInput(
                       l10n.postMealBloodSugar,
                       toklukSekerController,
+                      required: false,
                     ),
 
                     _switchTile(
@@ -340,6 +353,7 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
                 child: Column(
                   children: [
                     _sectionTitle(l10n.pretermRisk),
+                    _sectionHint(l10n.pretermMeasurementHint),
 
                     _switchTile(
                       l10n.contraction,
@@ -456,12 +470,33 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
     );
   }
 
+  Widget _sectionHint(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 13,
+            height: 1.35,
+            color: Theme.of(context)
+                .colorScheme
+                .onSurface
+                .withValues(alpha: 0.62),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _textInput(
       String label,
       TextEditingController controller, {
         int? min,
         int? max,
         int? example,
+        bool required = true,
       }) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
@@ -488,7 +523,7 @@ class _RiskTakipFormuPageState extends State<RiskTakipFormuPage> {
           final l10n = AppLocalizations.of(context)!;
 
           if (value == null || value.trim().isEmpty) {
-            return l10n.requiredField;
+            return required ? l10n.requiredField : null;
           }
 
           final parsed = int.tryParse(value);

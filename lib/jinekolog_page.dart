@@ -41,6 +41,12 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
   }
 
   Future<int> getHighRiskCount() async {
+    final assignedPatients = await _getAssignedPatientIds();
+
+    if (assignedPatients.isEmpty) {
+      return 0;
+    }
+
     final query = await FirebaseFirestore.instance
         .collection("risk_olcumleri")
         .get();
@@ -49,14 +55,16 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
 
     for (var doc in query.docs) {
       final data = doc.data();
-      final uid = data["uid"];
+      final patientId = data["uid"]?.toString();
       final hasHighRisk =
           data["preeklampsiRisk"] == "HIGH" ||
           data["diyabetRisk"] == "HIGH" ||
           data["pretermRisk"] == "HIGH";
 
-      if (uid != null && hasHighRisk) {
-        uniquePatients.add(uid);
+      if (patientId != null &&
+          assignedPatients.contains(patientId) &&
+          hasHighRisk) {
+        uniquePatients.add(patientId);
       }
     }
 
@@ -64,6 +72,15 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
   }
 
   Future<Map<String, int>> getActiveThisWeek() async {
+    final assignedPatients = await _getAssignedPatientIds();
+
+    if (assignedPatients.isEmpty) {
+      return {
+        "measurements": 0,
+        "patients": 0,
+      };
+    }
+
     final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
 
     final query = await FirebaseFirestore.instance
@@ -75,20 +92,31 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
         .get();
 
     final uniquePatients = <String>{};
+    var measurementCount = 0;
 
     for (var doc in query.docs) {
       final data = doc.data();
-      final uid = data["uid"];
+      final patientId = data["uid"]?.toString();
 
-      if (uid != null) {
-        uniquePatients.add(uid);
+      if (patientId != null && assignedPatients.contains(patientId)) {
+        measurementCount++;
+        uniquePatients.add(patientId);
       }
     }
 
     return {
-      "measurements": query.docs.length,
+      "measurements": measurementCount,
       "patients": uniquePatients.length,
     };
+  }
+
+  Future<Set<String>> _getAssignedPatientIds() async {
+    final assignedPatients = await FirebaseFirestore.instance
+        .collection("users")
+        .where("assignedDoctor", isEqualTo: uid)
+        .get();
+
+    return assignedPatients.docs.map((doc) => doc.id).toSet();
   }
 
   Future<Map<String, int>> getRiskDistribution() async {
@@ -120,14 +148,10 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
   Widget _buildRecentActivity() {
     final l10n = AppLocalizations.of(context)!;
 
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection("risk_olcumleri")
-          .orderBy("tarih", descending: true)
-          .limit(5)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+    return FutureBuilder<Set<String>>(
+      future: _getAssignedPatientIds(),
+      builder: (context, assignedSnapshot) {
+        if (!assignedSnapshot.hasData) {
           return Center(
             child: CircularProgressIndicator(
               color: Theme.of(context).colorScheme.primary,
@@ -135,111 +159,145 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
           );
         }
 
-        final docs = snapshot.data!.docs;
+        final assignedPatients = assignedSnapshot.data!;
 
-        if (docs.isEmpty) {
+        if (assignedPatients.isEmpty) {
           return Text(l10n.noActivityYet);
         }
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: List.generate(docs.length, (index) {
-            final doc = docs[index];
-            final data = doc.data() as Map<String, dynamic>;
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection("risk_olcumleri")
+              .orderBy("tarih", descending: true)
+              .limit(30)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return Center(
+                child: CircularProgressIndicator(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              );
+            }
 
-            final tarih = data["tarih"];
-            final uid = data["uid"];
+            final docs = snapshot.data!.docs
+                .where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final patientId = data["uid"]?.toString();
+                  return patientId != null && assignedPatients.contains(patientId);
+                })
+                .take(5)
+                .toList();
 
-            return FutureBuilder<DocumentSnapshot>(
-              future: FirebaseFirestore.instance
-                  .collection("users")
-                  .doc(uid)
-                  .get(),
-              builder: (context, userSnap) {
-                if (!userSnap.hasData) {
-                  return const SizedBox();
-                }
+            if (docs.isEmpty) {
+              return Text(l10n.noActivityYet);
+            }
 
-                final userData = userSnap.data!.data() as Map<String, dynamic>?;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: List.generate(docs.length, (index) {
+                final doc = docs[index];
+                final data = doc.data() as Map<String, dynamic>;
 
-                final name = userData?["name"] ?? "";
-                final surname = userData?["surname"] ?? "";
+                final tarih = data["tarih"];
+                final uid = data["uid"];
 
-                return Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(14),
+                return FutureBuilder<DocumentSnapshot>(
+                  future: FirebaseFirestore.instance
+                      .collection("users")
+                      .doc(uid)
+                      .get(),
+                  builder: (context, userSnap) {
+                    if (!userSnap.hasData) {
+                      return const SizedBox();
+                    }
 
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => SonOlcumlerPage(
-                            selectedTarih: tarih,
-                            selectedUid: uid,
-                          ),
-                        ),
-                      );
-                    },
+                    final userData =
+                        userSnap.data!.data() as Map<String, dynamic>?;
 
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Theme.of(
-                                context,
-                              ).shadowColor.withValues(alpha: 0.2),
-                              blurRadius: 6,
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.timeline,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            const SizedBox(width: 10),
+                    final name = userData?["name"] ?? "";
+                    final surname = userData?["surname"] ?? "";
 
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l10n.newMeasurementSent("$name $surname"),
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
+                    return Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
 
-                                  const SizedBox(height: 4),
-
-                                  Text(
-                                    timeAgo(tarih, l10n),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface
-                                          .withValues(alpha: 0.6),
-                                    ),
-                                  ),
-                                ],
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => SonOlcumlerPage(
+                                selectedTarih: tarih,
+                                selectedUid: uid,
                               ),
                             ),
-                          ],
+                          );
+                        },
+
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Theme.of(
+                                    context,
+                                  ).shadowColor.withValues(alpha: 0.2),
+                                  blurRadius: 6,
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.timeline,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(width: 10),
+
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        l10n.newMeasurementSent(
+                                          "$name $surname",
+                                        ),
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
+
+                                      const SizedBox(height: 4),
+
+                                      Text(
+                                        timeAgo(tarih, l10n),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withValues(alpha: 0.6),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 );
-              },
+              }),
             );
-          }),
+          },
         );
       },
     );
@@ -342,6 +400,24 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
   void initState() {
     super.initState();
     uid = FirebaseAuth.instance.currentUser!.uid;
+  }
+
+  Future<void> _getOrCreateChat(String expertId, String clientId) async {
+    final existing = await FirebaseFirestore.instance
+        .collection("chats")
+        .where("users", arrayContains: expertId)
+        .get();
+
+    for (final doc in existing.docs) {
+      final users = List<String>.from(doc.data()["users"] ?? []);
+      if (users.contains(clientId)) return;
+    }
+
+    await FirebaseFirestore.instance.collection("chats").add({
+      "users": [expertId, clientId],
+      "lastMessage": "",
+      "lastMessageTime": FieldValue.serverTimestamp(),
+    });
   }
 
   @override
@@ -715,15 +791,18 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                       final data =
                           userSnapshot.data!.data() as Map<String, dynamic>?;
                       final doctorRiskFlags = _doctorRiskFlags(data);
+                      final risk = _normalizeRiskLevel(data?["riskLevel"]);
 
-                      if (!_matchesPatientRiskFilter(doctorRiskFlags)) {
+                      if (!_matchesPatientRiskFilter(
+                        doctorRiskFlags,
+                        riskLevel: risk,
+                      )) {
                         return const SizedBox.shrink();
                       }
 
                       final name = data?["name"] ?? "";
                       final surname = data?["surname"] ?? "";
                       final hafta = data?["hafta"] ?? "-";
-                      final risk = data?["riskLevel"] ?? "normal";
                       final doctorRiskLabels = _doctorRiskLabels(
                         l10n,
                         doctorRiskFlags,
@@ -849,6 +928,9 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
   Widget _buildPatientRiskFilters(AppLocalizations l10n) {
     final filters = [
       ("all", l10n.all),
+      ("high", l10n.highRisk),
+      ("medium", l10n.mediumRisk),
+      ("low", l10n.lowRisk),
       ("preeklampsi", l10n.preeklampsiTracking),
       ("diabetes", l10n.gestationalDiabetes),
       ("preterm", l10n.pretermRisk),
@@ -886,9 +968,25 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
     );
   }
 
-  bool _matchesPatientRiskFilter(Map<String, dynamic> flags) {
+  bool _matchesPatientRiskFilter(
+    Map<String, dynamic> flags, {
+    String? riskLevel,
+  }) {
     if (_patientRiskFilter == "all") return true;
+    if (_patientRiskFilter == "high") return riskLevel == "high";
+    if (_patientRiskFilter == "medium") return riskLevel == "medium";
+    if (_patientRiskFilter == "low") {
+      return riskLevel == "low" || riskLevel == "normal";
+    }
     return flags[_patientRiskFilter] == true;
+  }
+
+  String _normalizeRiskLevel(dynamic value) {
+    final risk = value?.toString().trim().toLowerCase();
+    if (risk == "high" || risk == "medium" || risk == "low") {
+      return risk!;
+    }
+    return "normal";
   }
 
   Map<String, dynamic> _doctorRiskFlags(Map<String, dynamic>? data) {
@@ -1405,6 +1503,8 @@ class _GynecologistHomePageState extends State<GynecologistHomePage> {
                                     .collection("users")
                                     .doc(clientId)
                                     .update({"assignedDoctor": doctorUid});
+
+                                await _getOrCreateChat(doctorUid, clientId);
 
                                 await FirebaseFirestore.instance
                                     .collection("notification")

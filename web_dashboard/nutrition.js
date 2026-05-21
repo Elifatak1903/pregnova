@@ -214,8 +214,30 @@ window.saveAnalysis = async function () {
     tarih: serverTimestamp()
   });
 
-  showResult(dailyResult);
+  showResult(result, dailyResult);
+  clearAnalysisForm();
 };
+
+function clearAnalysisForm() {
+  besinListesi = [];
+  takviyeListesi = [];
+
+  const foodName = document.getElementById("foodName");
+  const foodAmount = document.getElementById("foodAmount");
+  const foodUnit = document.getElementById("foodUnit");
+  const supName = document.getElementById("supName");
+  const supAmount = document.getElementById("supAmount");
+  const supUnit = document.getElementById("supUnit");
+
+  if (foodName) foodName.value = "";
+  if (foodAmount) foodAmount.value = "";
+  if (foodUnit) foodUnit.selectedIndex = 0;
+  if (supName) supName.value = "";
+  if (supAmount) supAmount.value = "";
+  if (supUnit) supUnit.value = "";
+
+  renderList();
+}
 
 async function getTodayNutritionInputs(uid) {
   const start = new Date();

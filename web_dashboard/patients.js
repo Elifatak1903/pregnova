@@ -195,8 +195,12 @@ function applyFilter(list) {
     sorted = sorted.filter(p => p.risk === "high");
   }
 
+  if (filter === "riskMedium") {
+    sorted = sorted.filter(p => p.risk === "medium");
+  }
+
   if (filter === "riskLow") {
-    sorted = sorted.filter(p => p.risk === "normal");
+    sorted = sorted.filter(p => p.risk === "low" || p.risk === "normal");
   }
 
   if (filter === "doctorPreeclampsia") {

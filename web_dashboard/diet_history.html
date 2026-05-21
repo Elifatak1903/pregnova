@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Diyet Geçmişi</title>
+
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/diet_history.css">
+</head>
+
+<body class="dietitian">
+
+<div class="container">
+    <div class="sidebar"></div>
+
+    <div class="main">
+        <div class="top-bar">
+            <h1 class="page-title" data-i18n="dietHistory">Diyet Geçmişi</h1>
+        </div>
+
+        <div class="history-toolbar">
+            <input id="searchInput" data-i18n-placeholder="searchPatientPlaceholder" placeholder="Danışan ara...">
+        </div>
+
+        <div id="dietHistoryList" class="diet-history-list">
+            <span data-i18n="loading">Yükleniyor...</span>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="app.js"></script>
+<script type="module" src="diet_history.js"></script>
+
+</body>
+</html>

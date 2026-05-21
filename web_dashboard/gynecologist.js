@@ -28,7 +28,7 @@ onAuthStateChanged(auth, async (user) => {
   const uid = user.uid;
 
   await loadDashboard(uid);
-  await loadActivity();
+  await loadActivity(uid);
   await loadChart();
 });
 
@@ -50,16 +50,25 @@ async function loadDashboard(uid) {
 
   document.getElementById("pending").innerText = pendingSnap.size;
 
+  const assignedPatientIds = await getAssignedPatientIds(uid);
+
   const riskSnap = await getDocs(query(
-    collection(db,"risk_olcumleri"),
-    where("preeklampsiRisk","==","HIGH")
+    collection(db,"risk_olcumleri")
   ));
 
   const unique = new Set();
 
   riskSnap.forEach(d => {
     const data = d.data();
-    if (data.uid) unique.add(data.uid);
+    const patientId = data.uid;
+    const hasHighRisk =
+      data.preeklampsiRisk === "HIGH" ||
+      data.diyabetRisk === "HIGH" ||
+      data.pretermRisk === "HIGH";
+
+    if (patientId && assignedPatientIds.has(patientId) && hasHighRisk) {
+      unique.add(patientId);
+    }
   });
 
   document.getElementById("highRisk").innerText = unique.size;
@@ -73,8 +82,22 @@ async function loadDashboard(uid) {
     where("tarih", ">=", Timestamp.fromDate(sevenDaysAgo))
   ));
 
+  const weeklyCount = weeklySnap.docs.filter(docSnap => {
+    const patientId = docSnap.data().uid;
+    return patientId && assignedPatientIds.has(patientId);
+  }).length;
+
   document.getElementById("weekly").innerText =
-    t("measurementsCount", { count: weeklySnap.size });
+    t("measurementsCount", { count: weeklyCount });
+}
+
+async function getAssignedPatientIds(uid) {
+  const patientsSnap = await getDocs(query(
+    collection(db, "users"),
+    where("assignedDoctor", "==", uid)
+  ));
+
+  return new Set(patientsSnap.docs.map(docSnap => docSnap.id));
 }
 
 function updateHighRiskBanner(count) {
@@ -87,26 +110,39 @@ function updateHighRiskBanner(count) {
   banner.classList.toggle("hidden", count <= 0);
 }
 
-async function loadActivity() {
+async function loadActivity(doctorId) {
 
   const container = document.getElementById("activity");
+  const assignedPatientIds = await getAssignedPatientIds(doctorId);
+
+  if (assignedPatientIds.size === 0) {
+    container.innerHTML = t("noDataYet");
+    return;
+  }
 
   const snapshot = await getDocs(
     query(
       collection(db, "risk_olcumleri"),
       orderBy("tarih", "desc"),
-      limit(5)
+      limit(30)
     )
   );
 
   container.innerHTML = "";
 
-  if (snapshot.empty) {
+  const assignedMeasurements = snapshot.docs
+    .filter((item) => {
+      const patientId = item.data().uid;
+      return patientId && assignedPatientIds.has(patientId);
+    })
+    .slice(0, 5);
+
+  if (assignedMeasurements.length === 0) {
     container.innerHTML = t("noDataYet");
     return;
   }
 
-  for (const item of snapshot.docs) {
+  for (const item of assignedMeasurements) {
 
     const data = item.data();
     const uid = data.uid;

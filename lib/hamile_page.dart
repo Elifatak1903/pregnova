@@ -14,6 +14,7 @@ import 'hamile_olcum_gecmisi_page.dart';
 import 'hamile_besin_gecmisi_page.dart';
 import 'hamile_diet_page.dart';
 import 'l10n/app_localizations.dart';
+import 'shared/weekly_notification_message.dart';
 
 class HamileAnaSayfa extends StatefulWidget {
   const HamileAnaSayfa({super.key});
@@ -73,6 +74,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
     });
 
     await haftalikBildirimKontrol();
+    await gunlukBildirimKontrol();
   }
 
   int calculatePregnancyWeek(Map<String, dynamic> data) {
@@ -107,6 +109,7 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
 
     final week = userWeek!;
     final l10n = AppLocalizations.of(context)!;
+    final languageCode = Localizations.localeOf(context).languageCode;
 
     final query = await FirebaseFirestore.instance
         .collection('notification')
@@ -116,12 +119,133 @@ class _HamileAnaSayfaState extends State<HamileAnaSayfa> {
 
     if (query.docs.isNotEmpty) return;
 
+    final weeklyMessage = WeeklyNotificationMessage.messageFor(
+      week: week,
+      languageCode: languageCode,
+    );
+
     await FirebaseFirestore.instance.collection('notification').add({
       'uid': uid,
       'week': week,
       'type': 'weekly_info',
       'title': l10n.weeklyInfoTitle(week),
-      'message': l10n.weeklyInfoMessage,
+      'message': weeklyMessage,
+      'isRead': false,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> gunlukBildirimKontrol() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final todayEnd = todayStart.add(const Duration(days: 1));
+    final dayKey =
+        "${todayStart.year}-${todayStart.month.toString().padLeft(2, '0')}-${todayStart.day.toString().padLeft(2, '0')}";
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final isEnglish = languageCode.toLowerCase().startsWith('en');
+
+    final hasMeasurement = await _hasTodayDocument(
+      collection: 'risk_olcumleri',
+      uid: uid,
+      dateField: 'tarih',
+      todayStart: todayStart,
+      todayEnd: todayEnd,
+    );
+
+    if (!hasMeasurement) {
+      await _createDailyReminderIfNeeded(
+        uid: uid,
+        reminderKey: 'daily_measurement_reminder',
+        dayKey: dayKey,
+        title: isEnglish ? 'Daily Measurement Reminder' : 'Günlük Ölçüm Hatırlatması',
+        message: isEnglish
+            ? 'Remember to enter your blood pressure, blood sugar and symptom measurements today.'
+            : 'Bugün tansiyon, kan şekeri ve belirti ölçümlerini girmeyi unutma.',
+        actionPage: 'risk_measurement',
+      );
+    }
+
+    final hasNutrition = await _hasTodayDocument(
+      collection: 'besin_analizleri',
+      uid: uid,
+      dateField: 'createdAt',
+      todayStart: todayStart,
+      todayEnd: todayEnd,
+    );
+
+    if (!hasNutrition) {
+      await _createDailyReminderIfNeeded(
+        uid: uid,
+        reminderKey: 'daily_nutrition_reminder',
+        dayKey: dayKey,
+        title: isEnglish ? 'Daily Nutrition Reminder' : 'Günlük Besin Hatırlatması',
+        message: isEnglish
+            ? 'Remember to record your food and supplement intake today.'
+            : 'Bugünkü besin ve takviye girişlerini kaydetmeyi unutma.',
+        actionPage: 'nutrition_analysis',
+      );
+    }
+  }
+
+  Future<bool> _hasTodayDocument({
+    required String collection,
+    required String uid,
+    required String dateField,
+    required DateTime todayStart,
+    required DateTime todayEnd,
+  }) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection(collection)
+        .where('uid', isEqualTo: uid)
+        .get();
+
+    return snapshot.docs.any((doc) {
+      final data = doc.data();
+      final rawDate = data[dateField] ?? data['createdAt'] ?? data['tarih'];
+
+      DateTime? date;
+      if (rawDate is Timestamp) {
+        date = rawDate.toDate();
+      } else if (rawDate is DateTime) {
+        date = rawDate;
+      } else if (rawDate != null) {
+        date = DateTime.tryParse(rawDate.toString());
+      }
+
+      return date != null &&
+          !date.isBefore(todayStart) &&
+          date.isBefore(todayEnd);
+    });
+  }
+
+  Future<void> _createDailyReminderIfNeeded({
+    required String uid,
+    required String reminderKey,
+    required String dayKey,
+    required String title,
+    required String message,
+    required String actionPage,
+  }) async {
+    final existing = await FirebaseFirestore.instance
+        .collection('notification')
+        .where('uid', isEqualTo: uid)
+        .where('type', isEqualTo: reminderKey)
+        .where('dayKey', isEqualTo: dayKey)
+        .limit(1)
+        .get();
+
+    if (existing.docs.isNotEmpty) return;
+
+    await FirebaseFirestore.instance.collection('notification').add({
+      'uid': uid,
+      'type': reminderKey,
+      'dayKey': dayKey,
+      'title': title,
+      'message': message,
+      'actionPage': actionPage,
       'isRead': false,
       'createdAt': FieldValue.serverTimestamp(),
     });

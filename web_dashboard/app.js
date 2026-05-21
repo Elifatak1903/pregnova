@@ -17,7 +17,8 @@ import {
 const app = initializeApp({
   apiKey: "AIzaSyBHVmFtmXLe6BcN620XCmjv9vMOkcjeFdM",
   authDomain: "pregnova-38391.firebaseapp.com",
-  projectId: "pregnova-38391"
+  projectId: "pregnova-38391",
+  storageBucket: "pregnova-38391.firebasestorage.app"
 });
 
 const auth = getAuth(app);
@@ -31,6 +32,11 @@ ensureSidebarCssLast();
 /* NAV */
 window.go = function(page) {
   window.location.href = page;
+};
+
+window.openNotificationsPage = function(e) {
+  if (e) e.stopPropagation();
+  window.location.href = "notifications.html";
 };
 
 window.logout = function() {
@@ -149,8 +155,6 @@ async function getCurrentUserRole(uid) {
 }
 
 export function getNotificationActionPage(data, role = "") {
-  if (data.actionPage) return data.actionPage;
-
   const type = data.type || "general";
   const patientId = data.patientId || data.clientId;
 
@@ -159,18 +163,23 @@ export function getNotificationActionPage(data, role = "") {
   if (type === "risk_alert") {
     if (role === "gynecologist") {
       return patientId
-        ? `patient_detail.html?uid=${encodeURIComponent(patientId)}`
+        ? withNotificationTargetParams(
+            `patient_detail.html?uid=${encodeURIComponent(patientId)}`,
+            data
+          )
         : "son_olcumler.html";
     }
 
     if (role === "dietitian") {
       return patientId
-        ? `client_detail.html?id=${encodeURIComponent(patientId)}`
+        ? `son_analizler.html?uid=${encodeURIComponent(patientId)}`
         : "son_analizler.html";
     }
 
-    return "measurement_history.html";
+    return withNotificationTargetParams("measurement_history.html", data);
   }
+
+  if (data.actionPage) return withNotificationTargetParams(data.actionPage, data);
 
   if (type === "expert_application") {
     return role === "admin" ? "admin_requests.html" : "expert_application.html";
@@ -189,6 +198,20 @@ export function getNotificationActionPage(data, role = "") {
   }
 
   return "";
+}
+
+function withNotificationTargetParams(page, data) {
+  const params = new URLSearchParams();
+
+  if (data.measurementId) params.set("measurementId", data.measurementId);
+  if (data.measurementSeconds) params.set("tarih", data.measurementSeconds);
+  if (data.measurementDateSeconds) params.set("tarih", data.measurementDateSeconds);
+
+  const query = params.toString();
+  if (!query) return page;
+
+  const separator = page.includes("?") ? "&" : "?";
+  return `${page}${separator}${query}`;
 }
 
 function ensureSidebarCssLast() {

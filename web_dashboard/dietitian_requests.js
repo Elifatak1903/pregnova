@@ -100,6 +100,8 @@ async function approveRequest(requestId, clientId, expertId) {
       assignedDietitian: expertId
     });
 
+    await getOrCreateChat(expertId, clientId);
+
     await createNotification(
       clientId,
       t("dietitian"),
@@ -112,6 +114,26 @@ async function approveRequest(requestId, clientId, expertId) {
   } catch (err) {
     console.error(err);
   }
+}
+
+async function getOrCreateChat(expertId, clientId) {
+  const chatSnap = await getDocs(query(
+    collection(db, "chats"),
+    where("users", "array-contains", expertId)
+  ));
+
+  for (const chatDoc of chatSnap.docs) {
+    const users = chatDoc.data().users || [];
+    if (users.includes(clientId)) return chatDoc.id;
+  }
+
+  const newChat = await addDoc(collection(db, "chats"), {
+    users: [expertId, clientId],
+    lastMessage: "",
+    lastMessageTime: serverTimestamp()
+  });
+
+  return newChat.id;
 }
 
 async function rejectRequest(requestId) {

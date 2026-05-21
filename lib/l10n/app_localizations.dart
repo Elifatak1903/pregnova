@@ -365,7 +365,7 @@ abstract class AppLocalizations {
   /// No description provided for @nutritionAnalysis.
   ///
   /// In tr, this message translates to:
-  /// **'Besin Analizi'**
+  /// **'Beslenme Analizi'**
   String get nutritionAnalysis;
 
   /// No description provided for @lastMeasurementHistory.
@@ -377,7 +377,7 @@ abstract class AppLocalizations {
   /// No description provided for @nutritionSupplementHistory.
   ///
   /// In tr, this message translates to:
-  /// **'Besin & Takviye Geçmişi'**
+  /// **'Besin ve Takviye Geçmişi'**
   String get nutritionSupplementHistory;
 
   /// No description provided for @latestRiskStatus.
@@ -446,6 +446,12 @@ abstract class AppLocalizations {
   /// **'Preeklampsi Takibi'**
   String get preeklampsiTracking;
 
+  /// No description provided for @preeclampsiaMeasurementHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tansiyon değerleri risk değerlendirmesi için önemlidir.'**
+  String get preeclampsiaMeasurementHint;
+
   /// No description provided for @systolicExample.
   ///
   /// In tr, this message translates to:
@@ -482,6 +488,12 @@ abstract class AppLocalizations {
   /// **'Gestasyonel Diyabet'**
   String get gestationalDiabetes;
 
+  /// No description provided for @diabetesMeasurementHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Diyabet riskinin değerlendirilebilmesi için açlık veya tokluk şekerinden en az birini giriniz.'**
+  String get diabetesMeasurementHint;
+
   /// No description provided for @fastingBloodSugar.
   ///
   /// In tr, this message translates to:
@@ -511,6 +523,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Preterm Riski'**
   String get pretermRisk;
+
+  /// No description provided for @pretermMeasurementHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Belirti varsa işaretleyiniz; stres seviyesini mevcut durumunuza göre seçiniz.'**
+  String get pretermMeasurementHint;
 
   /// No description provided for @contraction.
   ///
@@ -1688,6 +1706,12 @@ abstract class AppLocalizations {
   /// **'Onay hatası: {message}'**
   String approvalError(Object message);
 
+  /// No description provided for @abcd.
+  ///
+  /// In tr, this message translates to:
+  /// **'naber'**
+  String get abcd;
+
   /// No description provided for @adminPanel.
   ///
   /// In tr, this message translates to:
@@ -2057,7 +2081,7 @@ abstract class AppLocalizations {
   /// No description provided for @nutritionAnalysisDetail.
   ///
   /// In tr, this message translates to:
-  /// **'Besin Analizi Detayı'**
+  /// **'Beslenme Analizi Detayı'**
   String get nutritionAnalysisDetail;
 
   /// No description provided for @analysisNotFound.
@@ -2159,7 +2183,7 @@ abstract class AppLocalizations {
   /// No description provided for @missingNutrition.
   ///
   /// In tr, this message translates to:
-  /// **'Eksik Besin'**
+  /// **'Eksik Besin Öğesi'**
   String get missingNutrition;
 
   /// No description provided for @riskyPatient.

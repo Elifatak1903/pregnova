@@ -107,6 +107,8 @@ async function loadRequests(uid) {
             assignedDoctor: uid
           });
 
+          await getOrCreateChat(uid, clientId);
+
           await createNotification(
             clientId,
             t("doctorApprovalTitle"),
@@ -150,6 +152,26 @@ async function loadRequests(uid) {
     console.error("LOAD ERROR:", e);
     container.innerHTML = t("genericError");
   }
+}
+
+async function getOrCreateChat(expertId, clientId) {
+  const chatSnap = await getDocs(query(
+    collection(db, "chats"),
+    where("users", "array-contains", expertId)
+  ));
+
+  for (const chatDoc of chatSnap.docs) {
+    const users = chatDoc.data().users || [];
+    if (users.includes(clientId)) return chatDoc.id;
+  }
+
+  const newChat = await addDoc(collection(db, "chats"), {
+    users: [expertId, clientId],
+    lastMessage: "",
+    lastMessageTime: serverTimestamp()
+  });
+
+  return newChat.id;
 }
 
 function fullName(user) {

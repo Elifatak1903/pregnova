@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Başvuru Beklemede</title>
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+
+<body class="welcome-body">
+
+<div class="language-switcher" aria-label="Dil">
+    <button type="button" data-lang="tr" onclick="setPregnovaLanguage('tr')">TR</button>
+    <button type="button" data-lang="en" onclick="setPregnovaLanguage('en')">EN</button>
+</div>
+
+<div class="login-card pending-card">
+    <img src="assets/icon/app_icon.jpeg" class="big-logo" alt="PregNova">
+    <h2 data-i18n="applicationPendingTitle">Başvurunuz Beklemede</h2>
+    <p data-i18n="applicationPendingDetail">
+        Uzman başvurunuz admin tarafından inceleniyor. Onaylandıktan sonra giriş yaptığınızda uzman paneliniz açılacaktır.
+    </p>
+    <button class="main-btn" onclick="logoutToLogin()" data-i18n="loginLink">Giriş yap</button>
+</div>
+
+<script type="module" src="app.js"></script>
+<script type="module">
+    import { auth, db } from "./app.js";
+    import { applyTranslations, getLanguage } from "./i18n.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+    function syncLanguageButtons() {
+      document.querySelectorAll("[data-lang]").forEach(button => {
+        button.classList.toggle("active", button.dataset.lang === getLanguage());
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      applyTranslations();
+      syncLanguageButtons();
+    });
+
+    window.addEventListener("pregnova:languageChanged", () => {
+      applyTranslations();
+      syncLanguageButtons();
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const snap = await getDoc(doc(db, "users", user.uid));
+      const role = snap.data()?.role;
+
+      if (role === "gynecologist" || role === "dietitian" || role === "admin" || role === "pregnant") {
+        window.location.href = "redirect.html";
+      }
+    });
+
+    window.logoutToLogin = async function () {
+      await signOut(auth);
+      window.location.href = "login.html";
+    };
+</script>
+</body>
+</html>

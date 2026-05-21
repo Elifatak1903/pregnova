@@ -37,7 +37,11 @@ void main() {
     test('returns MEDIUM at non-emergency blood pressure thresholds', () {
       expect(
         RiskAnalysisService.calculatePreeklampsi(systolic: 140, diastolic: 80),
-        SharedRiskLevel.low,
+        SharedRiskLevel.medium,
+      );
+      expect(
+        RiskAnalysisService.calculatePreeklampsi(systolic: 120, diastolic: 90),
+        SharedRiskLevel.medium,
       );
       expect(
         RiskAnalysisService.calculatePreeklampsi(
@@ -98,7 +102,14 @@ void main() {
     test('returns MEDIUM for borderline glucose with symptoms', () {
       expect(
         RiskAnalysisService.calculateDiabetes(
-          fastingGlucose: 100,
+          fastingGlucose: 95,
+          postMealGlucose: null,
+        ),
+        SharedRiskLevel.medium,
+      );
+      expect(
+        RiskAnalysisService.calculateDiabetes(
+          fastingGlucose: 94,
           postMealGlucose: 140,
         ),
         SharedRiskLevel.medium,
@@ -109,9 +120,21 @@ void main() {
           postMealGlucose: 120,
           excessiveThirst: true,
           frequentUrination: true,
-          diabetesHistory: true,
         ),
         SharedRiskLevel.medium,
+      );
+    });
+
+    test('escalates borderline glucose to HIGH with diabetic history and symptoms', () {
+      expect(
+        RiskAnalysisService.calculateDiabetes(
+          fastingGlucose: 95,
+          postMealGlucose: 120,
+          excessiveThirst: true,
+          frequentUrination: true,
+          diabetesHistory: true,
+        ),
+        SharedRiskLevel.high,
       );
     });
   });

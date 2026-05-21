@@ -149,13 +149,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get riskMeasurement => 'Risk Ölçüm';
 
   @override
-  String get nutritionAnalysis => 'Besin Analizi';
+  String get nutritionAnalysis => 'Beslenme Analizi';
 
   @override
   String get lastMeasurementHistory => 'Son Ölçüm Geçmişi';
 
   @override
-  String get nutritionSupplementHistory => 'Besin & Takviye Geçmişi';
+  String get nutritionSupplementHistory => 'Besin ve Takviye Geçmişi';
 
   @override
   String get latestRiskStatus => 'Son Risk Durumu';
@@ -193,6 +193,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get preeklampsiTracking => 'Preeklampsi Takibi';
 
   @override
+  String get preeclampsiaMeasurementHint =>
+      'Tansiyon değerleri risk değerlendirmesi için önemlidir.';
+
+  @override
   String get systolicExample => 'Sistolik (Örnek: 120)';
 
   @override
@@ -211,6 +215,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get gestationalDiabetes => 'Gestasyonel Diyabet';
 
   @override
+  String get diabetesMeasurementHint =>
+      'Diyabet riskinin değerlendirilebilmesi için açlık veya tokluk şekerinden en az birini giriniz.';
+
+  @override
   String get fastingBloodSugar => 'Açlık kan şekeri';
 
   @override
@@ -224,6 +232,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get pretermRisk => 'Preterm Riski';
+
+  @override
+  String get pretermMeasurementHint =>
+      'Belirti varsa işaretleyiniz; stres seviyesini mevcut durumunuza göre seçiniz.';
 
   @override
   String get contraction => 'Karın kasılması';
@@ -853,6 +865,9 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String get abcd => 'naber';
+
+  @override
   String get adminPanel => 'Admin Panel';
 
   @override
@@ -1044,7 +1059,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get supplements => 'Takviyeler';
 
   @override
-  String get nutritionAnalysisDetail => 'Besin Analizi Detayı';
+  String get nutritionAnalysisDetail => 'Beslenme Analizi Detayı';
 
   @override
   String get analysisNotFound => 'Analiz bulunamadı';
@@ -1103,7 +1118,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get welcomeExpert => 'Hoş geldin';
 
   @override
-  String get missingNutrition => 'Eksik Besin';
+  String get missingNutrition => 'Eksik Besin Öğesi';
 
   @override
   String get riskyPatient => 'Riskli Hasta';

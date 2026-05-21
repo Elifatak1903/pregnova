@@ -22,16 +22,6 @@
         <!-- TOP BAR -->
         <div class="top-bar">
             <h1 class="page-title" data-i18n="riskMeasurement">Risk Ölçüm</h1>
-
-            <!-- NOTIFICATION -->
-            <div class="notification-btn" onclick="toggleNotifications(event)">
-                <span class="notification-mark" aria-hidden="true"></span>
-                <span class="badge"></span>
-
-                <div id="notifDropdown" class="notif-dropdown hidden">
-                    <div id="notifList"></div>
-                </div>
-            </div>
         </div>
 
         <!-- FORM -->
@@ -62,6 +52,9 @@
                             <span class="section-icon danger">!</span>
                             <h3 data-i18n="preeclampsia">Preeklampsi</h3>
                         </div>
+                        <p class="section-hint" data-i18n="preeclampsiaMeasurementHint">
+                            Tansiyon değerleri risk değerlendirmesi için önemlidir.
+                        </p>
 
                         <div class="input-grid">
                             <input id="sistolik" data-i18n-placeholder="systolicPlaceholder" placeholder="Sistolik">
@@ -91,6 +84,9 @@
                             <span class="section-icon warning">◉</span>
                             <h3 data-i18n="diabetes">Diyabet</h3>
                         </div>
+                        <p class="section-hint" data-i18n="diabetesMeasurementHint">
+                            Diyabet riskinin değerlendirilebilmesi için açlık veya tokluk şekerinden en az birini giriniz.
+                        </p>
 
                         <div class="input-grid">
                             <input id="aclik" data-i18n-placeholder="fastingSugarPlaceholder" placeholder="Açlık şekeri">
@@ -115,6 +111,9 @@
                             <span class="section-icon warning">◌</span>
                             <h3 data-i18n="preterm">Preterm</h3>
                         </div>
+                        <p class="section-hint" data-i18n="pretermMeasurementHint">
+                            Belirti varsa işaretleyiniz; stres seviyesini mevcut durumunuza göre seçiniz.
+                        </p>
 
                         <div class="checkbox-grid three">
                             <div class="checkbox-item">

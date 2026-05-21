@@ -106,9 +106,7 @@ function render() {
         });
 
         div.querySelector(".btn-reject")?.addEventListener("click", async () => {
-            await updateDoc(doc(db, "expert_applications", item.id), {
-                status: "rejected"
-            });
+            await rejectExpert(item);
         });
 
         div.querySelector(".btn-approve")?.addEventListener("click", async () => {
@@ -149,21 +147,37 @@ function closeDetail() {
 
 async function approveExpert(data) {
     const diplomaUrl = data.documentUrl || data.diplomaUrl || "";
+    const uid = String(data.uid || "");
+    const role = String(data.role || "");
+
+    if (!uid) {
+        alert("Başvuruda kullanıcı ID bilgisi yok.");
+        return;
+    }
+
+    if (role !== "gynecologist" && role !== "dietitian") {
+        alert("Başvuruda geçerli uzman rolü yok.");
+        return;
+    }
+
     const batch = writeBatch(db);
 
-    batch.update(doc(db, "users", data.uid), {
-        role: data.role,
+    batch.set(doc(db, "users", uid), {
+        role,
         diplomaUrl,
-        isApproved: true
-    });
+        isApproved: true,
+        expertApplicationStatus: "approved",
+        approvedAt: serverTimestamp()
+    }, { merge: true });
 
     batch.update(doc(db, "expert_applications", data.id), {
         status: "approved",
-        diplomaUrl
+        diplomaUrl,
+        approvedAt: serverTimestamp()
     });
 
     batch.set(doc(collection(db, "notification")), {
-        uid: data.uid,
+        uid,
         type: "expert_application",
         title: t("applicationApprovedTitle"),
         message: t("applicationApprovedMessage"),
@@ -172,7 +186,35 @@ async function approveExpert(data) {
         createdAt: serverTimestamp()
     });
 
-    await batch.commit();
+    try {
+        await batch.commit();
+    } catch (error) {
+        console.error("Approve expert error:", error);
+        alert(t("errorWithMessage", { message: error.message || error }));
+    }
+}
+
+async function rejectExpert(data) {
+    const uid = String(data.uid || "");
+    const batch = writeBatch(db);
+
+    batch.update(doc(db, "expert_applications", data.id), {
+        status: "rejected",
+        rejectedAt: serverTimestamp()
+    });
+
+    if (uid) {
+        batch.set(doc(db, "users", uid), {
+            expertApplicationStatus: "rejected"
+        }, { merge: true });
+    }
+
+    try {
+        await batch.commit();
+    } catch (error) {
+        console.error("Reject expert error:", error);
+        alert(t("errorWithMessage", { message: error.message || error }));
+    }
 }
 
 function getRoleText(role) {

@@ -10,6 +10,9 @@ class NutritionEngine {
     "Folik asit": 600,
     "C vitamini": 85,
     "B12 vitamini": 2.6,
+    "D vitamini": 15,
+    "Magnezyum": 350,
+    "Çinko": 11,
   };
 
   static Map<String, double> maxRequirements = {
@@ -17,12 +20,17 @@ class NutritionEngine {
     "Demir": 45,
     "Folik asit": 1000,
     "Kalsiyum": 2500,
+    "C vitamini": 2000,
     "D vitamini": 100,
-    "B12 vitamini": 10,
-    "Magnezyum": 400,
+    "Magnezyum": 350,
     "Çinko": 40,
-    "Omega-3": 3
 
+  };
+
+  static Set<String> noEstablishedUpperLimit = {
+    "Protein",
+    "Omega-3",
+    "B12 vitamini",
   };
 
   static Map<String, Map<String, double>> supplementNutrition = {

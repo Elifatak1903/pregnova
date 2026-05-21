@@ -1,5 +1,5 @@
 import { auth, db } from "./app.js";
-import { t } from "./i18n.js";
+import { getLanguage, t } from "./i18n.js";
 
 import {
   onAuthStateChanged,
@@ -21,6 +21,10 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const MAX_DROPDOWN_NOTIFICATIONS = 7;
+const FIRST_TRIMESTER_END_WEEK = 13;
+const SECOND_TRIMESTER_END_WEEK = 27;
+const THIRD_TRIMESTER_START_WEEK = 28;
+const MAX_PREGNANCY_WEEK = 42;
 
 /* NAVIGATION */
 window.go = function(page) {
@@ -71,6 +75,7 @@ async function loadUserData(uid) {
 
   if (data.role === "pregnant") {
     await createWeeklyNotification(uid, hafta);
+    await createDailyReminders(uid);
   }
 
   const weekEl = document.getElementById("weekText");
@@ -97,7 +102,7 @@ function calculatePregnancyWeek(data) {
   const diffMs = Date.now() - startDate.getTime();
   const week = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 7));
 
-  return Math.min(Math.max(week, 1), 42);
+  return Math.min(Math.max(week, 1), MAX_PREGNANCY_WEEK);
 }
 
 async function createWeeklyNotification(uid, week) {
@@ -117,11 +122,130 @@ async function createWeeklyNotification(uid, week) {
     week,
     type: "weekly_info",
     title: t("weeklyInfoTitle", { week }),
-    message: t("weeklyInfoMessage", { week }),
+    message: trimesterWeeklyInfoMessage(week),
     actionPage: "pregnant.html",
     isRead: false,
     createdAt: serverTimestamp()
   });
+}
+
+async function createDailyReminders(uid) {
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const dayKey = [
+    todayStart.getFullYear(),
+    String(todayStart.getMonth() + 1).padStart(2, "0"),
+    String(todayStart.getDate()).padStart(2, "0")
+  ].join("-");
+
+  const hasMeasurement = await hasTodayDocument({
+    collectionName: "risk_olcumleri",
+    uid,
+    dateField: "tarih",
+    todayStart,
+    todayEnd
+  });
+
+  if (!hasMeasurement) {
+    await createDailyReminderIfNeeded({
+      uid,
+      reminderType: "daily_measurement_reminder",
+      dayKey,
+      title: t("dailyMeasurementReminderTitle"),
+      message: t("dailyMeasurementReminderMessage"),
+      actionPage: "risk.html"
+    });
+  }
+
+  const hasNutrition = await hasTodayDocument({
+    collectionName: "besin_analizleri",
+    uid,
+    dateField: "createdAt",
+    todayStart,
+    todayEnd
+  });
+
+  if (!hasNutrition) {
+    await createDailyReminderIfNeeded({
+      uid,
+      reminderType: "daily_nutrition_reminder",
+      dayKey,
+      title: t("dailyNutritionReminderTitle"),
+      message: t("dailyNutritionReminderMessage"),
+      actionPage: "nutrition.html"
+    });
+  }
+}
+
+async function hasTodayDocument({ collectionName, uid, dateField, todayStart, todayEnd }) {
+  const snapshot = await getDocs(query(
+    collection(db, collectionName),
+    where("uid", "==", uid)
+  ));
+
+  return snapshot.docs.some(docSnap => {
+    const data = docSnap.data();
+    const rawDate = data[dateField] || data.createdAt || data.tarih;
+    const date = rawDate?.toDate ? rawDate.toDate() : rawDate ? new Date(rawDate) : null;
+
+    return date && date >= todayStart && date < todayEnd;
+  });
+}
+
+async function createDailyReminderIfNeeded({
+  uid,
+  reminderType,
+  dayKey,
+  title,
+  message,
+  actionPage
+}) {
+  const existing = await getDocs(query(
+    collection(db, "notification"),
+    where("uid", "==", uid),
+    where("type", "==", reminderType),
+    where("dayKey", "==", dayKey)
+  ));
+
+  if (!existing.empty) return;
+
+  await addDoc(collection(db, "notification"), {
+    uid,
+    type: reminderType,
+    dayKey,
+    title,
+    message,
+    actionPage,
+    isRead: false,
+    createdAt: serverTimestamp()
+  });
+}
+
+function trimesterWeeklyInfoMessage(week) {
+  const lang = getLanguage();
+
+  if (week <= FIRST_TRIMESTER_END_WEEK) {
+    return lang === "en"
+      ? "First trimester: follow regular antenatal care and use iron-folic acid as advised. Seek care for bleeding, severe headache or abdominal pain."
+      : "1. trimester: düzenli gebelik takibini sürdür ve demir-folik asidi sağlık uzmanının önerdiği şekilde kullan. Kanama, şiddetli baş ağrısı veya karın ağrısında sağlık kuruluşuna başvur.";
+  }
+
+  if (week <= SECOND_TRIMESTER_END_WEEK) {
+    return lang === "en"
+      ? "Second trimester: keep tracking blood pressure, glucose and nutrition. Ask your doctor about calcium if your dietary calcium intake is low."
+      : "2. trimester: tansiyon, kan şekeri ve beslenme takibini sürdür. Kalsiyum alımın düşükse doktoruna danış.";
+  }
+
+  if (week < THIRD_TRIMESTER_START_WEEK) {
+    return lang === "en"
+      ? "Continue regular pregnancy follow-up and contact your doctor if you notice warning signs."
+      : "DÃ¼zenli gebelik takibini sÃ¼rdÃ¼r ve uyarÄ± belirtilerinde doktorunla iletiÅŸime geÃ§.";
+  }
+
+  return lang === "en"
+    ? "Third trimester: continue antenatal follow-up and watch danger signs such as bleeding, severe headache, abdominal pain or reduced baby movement."
+    : "3. trimester: gebelik kontrollerini sürdür; kanama, şiddetli baş ağrısı, karın ağrısı veya bebek hareketlerinde azalma gibi tehlike belirtilerine dikkat et.";
 }
 
 function showProfileModal() {

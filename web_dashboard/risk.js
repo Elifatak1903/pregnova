@@ -9,6 +9,10 @@ import {
   addDoc,
   doc,
   getDoc,
+  getDocs,
+  query,
+  where,
+  setDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import { t } from "./i18n.js";
@@ -36,6 +40,29 @@ async function createNotification(targetUid, type, message, meta = {}) {
   if (notificationType === "risk_alert") title = t("riskWarning");
   if (notificationType === "message") title = t("newMessage");
 
+  if (notificationType === "risk_alert") {
+    const patientId = meta.patientId || meta.clientId || "";
+    const recent = await getDocs(query(
+      collection(db, "notification"),
+      where("uid", "==", targetUid),
+      where("type", "==", "risk_alert")
+    ));
+
+    const hasRecentDuplicate = recent.docs.some(docSnap => {
+      const data = docSnap.data();
+      const sameRisk = data.riskType === (meta.riskType || "");
+      const samePatient = (data.patientId || data.clientId || "") === patientId;
+      if (!sameRisk || !samePatient) return false;
+
+      const lastCreatedAt = data.createdAt;
+      const lastDate = lastCreatedAt?.toDate ? lastCreatedAt.toDate() : null;
+
+      return Boolean(lastDate && Date.now() - lastDate.getTime() < 30 * 60 * 1000);
+    });
+
+    if (hasRecentDuplicate) return;
+  }
+
   await addDoc(collection(db, "notification"), {
     uid: targetUid,
     type: notificationType,
@@ -58,24 +85,69 @@ window.calculateRisk = async function () {
   const assignedDoctor = userData.assignedDoctor;
   const assignedDietitian = userData.assignedDietitian;
 
-  const sistolik = +document.getElementById("sistolik").value || 0;
-  const diastolik = +document.getElementById("diastolik").value || 0;
+  const kilo = readOptionalNumber("kilo");
+  const sistolik = readRequiredNumber("sistolik", t("systolic"));
+  if (sistolik === null) return;
 
-  const aclik = +document.getElementById("aclik").value || 0;
-  const tokluk = +document.getElementById("tokluk").value || 0;
+  const diastolik = readRequiredNumber("diastolik", t("diastolic"));
+  if (diastolik === null) return;
+
+  const aclik = readOptionalNumber("aclik", t("fastingSugar"));
+  const tokluk = readOptionalNumber("tokluk", t("postMeal"));
+
+  if (kilo !== null && !isInRange(kilo, 30, 250)) {
+    alert(t("weightRangeError"));
+    return;
+  }
+
+  if (sistolik === null || !isInRange(sistolik, 80, 250)) {
+    alert(t("systolicRangeError"));
+    return;
+  }
+
+  if (diastolik === null || !isInRange(diastolik, 50, 150)) {
+    alert(t("diastolicRangeError"));
+    return;
+  }
+
+  if (diastolik >= sistolik) {
+    alert(t("diastolicMustBeLower"));
+    return;
+  }
+
+  if (aclik === null && tokluk === null) {
+    alert(t("bloodSugarRequired"));
+    return;
+  }
+
+  if (aclik !== null && !isInRange(aclik, 40, 500)) {
+    alert(t("fastingSugarRangeError"));
+    return;
+  }
+
+  if (tokluk !== null && !isInRange(tokluk, 40, 600)) {
+    alert(t("postMealSugarRangeError"));
+    return;
+  }
 
   const basAgrisi = document.getElementById("basAgrisi").checked;
   const gorme = document.getElementById("gorme").checked;
+  const gormeBozuklugu = gorme;
   const sislik = document.getElementById("sislik").checked;
 
   const susama = document.getElementById("susama").checked;
+  const asiriSusama = susama;
   const idrar = document.getElementById("idrar").checked;
+  const sikIdrar = idrar;
 
   const kasilma = document.getElementById("kasilma").checked;
+  const karinKasilma = kasilma;
   const akinti = document.getElementById("akinti").checked;
   const bel = document.getElementById("bel").checked;
+  const belAgrisi = bel;
 
   const stres = +document.getElementById("stres").value;
+  const stresSeviyesi = stres;
 
   const pre = await calculatePreeklampsi({
     uid: user.uid,
@@ -100,16 +172,37 @@ window.calculateRisk = async function () {
     stres
   });
 
+  const userUpdate = {
+    riskLevel: resolveOverallRisk(pre, diyabet, preterm)
+  };
+
+  if (kilo && kilo > 0) {
+    userUpdate.kilo = kilo;
+  }
+
+  await setDoc(doc(db, "users", user.uid), userUpdate, { merge: true });
+
   const measurementRef = await addDoc(collection(db, "risk_olcumleri"), {
     uid: user.uid,
+    kilo,
     sistolik,
     diastolik,
     aclikSeker: aclik,
     toklukSeker: tokluk,
+    basAgrisi,
+    gormeBozuklugu,
+    sislik,
+    asiriSusama,
+    sikIdrar,
+    karinKasilma,
+    akinti,
+    belAgrisi,
+    stresSeviyesi,
     preeklampsiRisk: pre,
     diyabetRisk: diyabet,
     pretermRisk: preterm,
-    tarih: serverTimestamp()
+    tarih: serverTimestamp(),
+    createdAt: serverTimestamp()
   });
 
   const patientAction = {
@@ -126,32 +219,43 @@ window.calculateRisk = async function () {
 
   const dietitianAction = {
     clientId: user.uid,
-    measurementId: measurementRef.id,
-    actionPage: `client_detail.html?id=${encodeURIComponent(user.uid)}`
+    actionPage: `son_analizler.html?uid=${encodeURIComponent(user.uid)}`
   };
 
   if (pre === "HIGH") {
-    await createNotification(user.uid, "risk", t("preeclampsiaHighMessage"), patientAction);
+    await createNotification(user.uid, "risk", t("preeclampsiaHighMessage"), {
+      ...patientAction,
+      riskType: "preeklampsi"
+    });
 
     if (assignedDoctor) {
       await createNotification(
         assignedDoctor,
         "risk",
         t("patientPreeclampsiaHighMessage"),
-        doctorAction
+        {
+          ...doctorAction,
+          riskType: "preeklampsi"
+        }
       );
     }
   }
 
   if (diyabet === "HIGH") {
-    await createNotification(user.uid, "risk", t("diabetesHighMessage"), patientAction);
+    await createNotification(user.uid, "risk", t("diabetesHighMessage"), {
+      ...patientAction,
+      riskType: "diabetes"
+    });
 
     if (assignedDoctor) {
       await createNotification(
         assignedDoctor,
         "risk",
         t("patientDiabetesHighMessage"),
-        doctorAction
+        {
+          ...doctorAction,
+          riskType: "diabetes"
+        }
       );
     }
 
@@ -160,20 +264,29 @@ window.calculateRisk = async function () {
         assignedDietitian,
         "risk",
         t("clientNutritionRiskMessage"),
-        dietitianAction
+        {
+          ...dietitianAction,
+          riskType: "diabetes"
+        }
       );
     }
   }
 
   if (preterm === "HIGH") {
-    await createNotification(user.uid, "risk", t("pretermHighMessage"), patientAction);
+    await createNotification(user.uid, "risk", t("pretermHighMessage"), {
+      ...patientAction,
+      riskType: "preterm"
+    });
 
     if (assignedDoctor) {
       await createNotification(
         assignedDoctor,
         "risk",
         t("pretermBirthRiskMessage"),
-        doctorAction
+        {
+          ...doctorAction,
+          riskType: "preterm"
+        }
       );
     }
   }
@@ -190,4 +303,33 @@ function riskText(value) {
   if (value === "MEDIUM") return t("medium");
   if (value === "LOW") return t("low");
   return value || "-";
+}
+
+function resolveOverallRisk(...risks) {
+  if (risks.includes("HIGH")) return "high";
+  if (risks.includes("MEDIUM")) return "medium";
+  return "low";
+}
+
+function readRequiredNumber(id, label) {
+  const raw = document.getElementById(id)?.value?.trim();
+  if (!raw) {
+    alert(t("requiredNumberField", { field: label }));
+    return null;
+  }
+
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : Number.NaN;
+}
+
+function readOptionalNumber(id, label = "") {
+  const raw = document.getElementById(id)?.value?.trim();
+  if (!raw) return null;
+
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : Number.NaN;
+}
+
+function isInRange(value, min, max) {
+  return Number.isFinite(value) && value >= min && value <= max;
 }

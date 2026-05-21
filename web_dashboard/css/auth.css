@@ -102,6 +102,11 @@ body {
   height: 100vh;
 }
 
+.expert-register-body .split-container {
+  min-height: 100vh;
+  height: auto;
+}
+
 /* SOL PANEL */
 .left-panel {
   flex: 1;
@@ -149,6 +154,19 @@ body {
   align-items: center;
 }
 
+.expert-register-body .right-panel {
+  align-items: flex-start;
+  min-height: 100vh;
+  overflow-y: auto;
+  padding: 34px 24px;
+  box-sizing: border-box;
+}
+
+.expert-register-body .left-panel {
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
 /* CARD */
 .login-card {
   width: 320px;
@@ -157,6 +175,34 @@ body {
   border-radius: 20px;
 
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.expert-register-card {
+  width: min(430px, 100%);
+  padding: 24px 28px;
+  border-radius: 18px;
+}
+
+.expert-register-card h2 {
+  margin: 0 0 10px;
+}
+
+.expert-register-card .input,
+.expert-register-card .auth-select {
+  margin-top: 9px;
+  padding: 11px 14px;
+}
+
+.expert-register-card .file-btn {
+  margin-top: 12px;
+}
+
+.expert-register-card .main-btn {
+  margin-top: 14px;
+}
+
+.expert-register-card .switch-text {
+  text-align: center;
 }
 
 /* INPUT */
@@ -195,6 +241,90 @@ body {
 
 .main-btn:hover {
   transform: translateY(-2px);
+}
+
+.secondary-btn {
+  margin-top: 12px;
+  width: 100%;
+  padding: 13px;
+  border: 1px solid rgba(124, 77, 255, 0.35);
+  border-radius: 14px;
+  background: white;
+  color: #673AB7;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.secondary-btn:hover {
+  background: #f3f0ff;
+  transform: translateY(-1px);
+}
+
+.auth-select {
+  width: 100%;
+  padding: 12px;
+  margin-top: 12px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  background: white;
+}
+
+.auth-select:focus {
+  outline: none;
+  border-color: #673AB7;
+  box-shadow: 0 0 0 2px rgba(103,58,183,0.2);
+}
+
+.file-btn {
+  display: block;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px dashed rgba(103,58,183,0.45);
+  border-radius: 12px;
+  color: #673AB7;
+  text-align: center;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.pending-card {
+  max-width: 380px;
+  text-align: center;
+}
+
+.pending-card p {
+  color: #555;
+  line-height: 1.55;
+}
+
+@media (max-width: 900px) {
+  .split-container,
+  .expert-register-body .split-container {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .left-panel,
+  .expert-register-body .left-panel {
+    min-height: auto;
+    padding: 36px 24px;
+  }
+
+  .right-panel,
+  .expert-register-body .right-panel {
+    min-height: auto;
+    padding: 28px 18px;
+  }
+
+  .login-card,
+  .expert-register-card {
+    width: min(420px, 100%);
+    box-sizing: border-box;
+  }
 }
 
 /* SWITCH TEXT */

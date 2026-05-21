@@ -30,7 +30,13 @@ class RiskAnalysisService {
     if (swelling) score += 1;
     if (chronicHypertension) score += 2;
 
-    return _scoreToRisk(score);
+    final risk = _scoreToRisk(score);
+    if ((safeSystolic >= 140 || safeDiastolic >= 90) &&
+        risk == SharedRiskLevel.low) {
+      return SharedRiskLevel.medium;
+    }
+
+    return risk;
   }
 
   static String calculateDiabetes({
@@ -48,13 +54,19 @@ class RiskAnalysisService {
     }
 
     var score = 0;
-    if (safeFasting >= 100) score += 2;
+    if (safeFasting >= 95) score += 2;
     if (safePostMeal >= 140) score += 2;
     if (excessiveThirst) score += 1;
     if (frequentUrination) score += 1;
     if (diabetesHistory) score += 2;
 
-    return _scoreToRisk(score);
+    final risk = _scoreToRisk(score);
+    if ((safeFasting >= 95 || safePostMeal >= 140) &&
+        risk == SharedRiskLevel.low) {
+      return SharedRiskLevel.medium;
+    }
+
+    return risk;
   }
 
   static String calculatePreterm({

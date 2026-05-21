@@ -29,138 +29,151 @@ class ExpertChatListPage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(
-              child: Text(
-                l10n.noMessagesYet,
-                style: TextStyle(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
-              ),
-            );
-          }
+          final chats = snapshot.data?.docs ?? [];
 
-          final chats = snapshot.data!.docs;
+          return FutureBuilder<List<_ExpertChatItem>>(
+            future: _mergeChatsWithAssignedClients(uid, chats),
+            builder: (context, mergedSnap) {
+              if (mergedSnap.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          return ListView.builder(
-            itemCount: chats.length,
-            itemBuilder: (context, index) {
-              final data = chats[index].data() as Map<String, dynamic>;
-              final users = List<String>.from(data["users"]);
-              final otherUserId = users.firstWhere((u) => u != uid);
+              final mergedChats = mergedSnap.data ?? [];
 
-              return FutureBuilder<DocumentSnapshot>(
-                future: FirebaseFirestore.instance
-                    .collection("users")
-                    .doc(otherUserId)
-                    .get(),
-                builder: (context, userSnap) {
-                  if (userSnap.connectionState == ConnectionState.waiting) {
-                    return ListTile(
-                      title: Text(
-                        l10n.loading,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                    );
-                  }
+              if (mergedChats.isEmpty) {
+                return Center(
+                  child: Text(
+                    l10n.noMessagesYet,
+                    style: TextStyle(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+                );
+              }
 
-                  if (!userSnap.hasData || userSnap.data!.data() == null) {
-                    return ListTile(title: Text(l10n.userNotFound));
-                  }
+              return ListView.builder(
+                itemCount: mergedChats.length,
+                itemBuilder: (context, index) {
+                  final chat = mergedChats[index];
+                  final data = chat.data;
+                  final otherUserId = chat.otherUserId;
 
-                  final userData =
-                      userSnap.data!.data() as Map<String, dynamic>;
-                  final name = userData["name"] ?? "";
-                  final surname = userData["surname"] ?? "";
-                  final timeText = _formatTime(data["lastMessageTime"]);
-
-                  return StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection("messages")
-                        .where("chatId", isEqualTo: chats[index].id)
-                        .snapshots(),
-                    builder: (context, msgSnap) {
-                      int unreadCount = 0;
-
-                      if (msgSnap.hasData) {
-                        unreadCount = msgSnap.data!.docs.where((doc) {
-                          final d = doc.data() as Map<String, dynamic>;
-                          return d["isRead"] == false && d["senderId"] != uid;
-                        }).length;
+                  return FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance
+                        .collection("users")
+                        .doc(otherUserId)
+                        .get(),
+                    builder: (context, userSnap) {
+                      if (userSnap.connectionState == ConnectionState.waiting) {
+                        return ListTile(
+                          title: Text(
+                            l10n.loading,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                        );
                       }
 
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primary,
-                          child: Icon(
-                            Icons.person,
-                            color: Theme.of(context).colorScheme.onPrimary,
-                          ),
-                        ),
-                        title: Text(
-                          "$name $surname",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                        subtitle: Text(
-                          data["lastMessage"] ?? "",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.7),
-                          ),
-                        ),
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              timeText,
+                      if (!userSnap.hasData || userSnap.data!.data() == null) {
+                        return ListTile(title: Text(l10n.userNotFound));
+                      }
+
+                      final userData =
+                          userSnap.data!.data() as Map<String, dynamic>;
+                      final name = userData["name"] ?? "";
+                      final surname = userData["surname"] ?? "";
+                      final timeText = _formatTime(data["lastMessageTime"]);
+
+                      return StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection("messages")
+                            .where("chatId", isEqualTo: chat.chatId)
+                            .snapshots(),
+                        builder: (context, msgSnap) {
+                          int unreadCount = 0;
+
+                          if (msgSnap.hasData) {
+                            unreadCount = msgSnap.data!.docs.where((doc) {
+                              final d = doc.data() as Map<String, dynamic>;
+                              return d["isRead"] == false &&
+                                  d["senderId"] != uid;
+                            }).length;
+                          }
+
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
+                              child: Icon(
+                                Icons.person,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                            ),
+                            title: Text(
+                              "$name $surname",
                               style: TextStyle(
-                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                            subtitle: Text(
+                              data["lastMessage"] ?? "",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
                                 color: Theme.of(
                                   context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.6),
+                                ).colorScheme.onSurface.withValues(alpha: 0.7),
                               ),
                             ),
-                            const SizedBox(height: 5),
-                            if (unreadCount > 0)
-                              Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Text(
-                                  unreadCount.toString(),
+                            trailing: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  timeText,
                                   style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onPrimary,
-                                    fontSize: 10,
+                                    fontSize: 12,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.6),
                                   ),
                                 ),
-                              ),
-                          ],
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ChatPage(
-                                chatId: chats[index].id,
-                                title: "$name $surname",
-                              ),
+                                const SizedBox(height: 5),
+                                if (unreadCount > 0)
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Text(
+                                      unreadCount.toString(),
+                                      style: TextStyle(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onPrimary,
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ChatPage(
+                                    chatId: chat.chatId,
+                                    title: "$name $surname",
+                                  ),
+                                ),
+                              );
+                            },
                           );
                         },
                       );
@@ -175,9 +188,107 @@ class ExpertChatListPage extends StatelessWidget {
     );
   }
 
+  Future<List<_ExpertChatItem>> _mergeChatsWithAssignedClients(
+    String uid,
+    List<QueryDocumentSnapshot<Object?>> chatDocs,
+  ) async {
+    final items = <_ExpertChatItem>[];
+    final existingOtherUsers = <String>{};
+
+    for (final doc in chatDocs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final users = List<String>.from(data["users"] ?? []);
+      String? otherUserId;
+      for (final userId in users) {
+        if (userId != uid) {
+          otherUserId = userId;
+          break;
+        }
+      }
+
+      if (otherUserId == null) {
+        continue;
+      }
+
+      existingOtherUsers.add(otherUserId);
+      items.add(
+        _ExpertChatItem(
+          chatId: doc.id,
+          otherUserId: otherUserId,
+          data: data,
+        ),
+      );
+    }
+
+    final currentUser = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(uid)
+        .get();
+    final role = (currentUser.data()?["role"] ?? "").toString();
+    final assignedField = role == "dietitian"
+        ? "assignedDietitian"
+        : "assignedDoctor";
+
+    final assignedClients = await FirebaseFirestore.instance
+        .collection("users")
+        .where(assignedField, isEqualTo: uid)
+        .get();
+
+    for (final client in assignedClients.docs) {
+      if (existingOtherUsers.contains(client.id)) continue;
+
+      final chatId = await _getOrCreateChat(uid, client.id);
+      existingOtherUsers.add(client.id);
+      items.add(
+        _ExpertChatItem(
+          chatId: chatId,
+          otherUserId: client.id,
+          data: const {
+            "lastMessage": "",
+            "lastMessageTime": null,
+          },
+        ),
+      );
+    }
+
+    return items;
+  }
+
+  Future<String> _getOrCreateChat(String expertId, String clientId) async {
+    final existing = await FirebaseFirestore.instance
+        .collection("chats")
+        .where("users", arrayContains: expertId)
+        .get();
+
+    for (final doc in existing.docs) {
+      final users = List<String>.from(doc.data()["users"] ?? []);
+      if (users.contains(clientId)) return doc.id;
+    }
+
+    final created = await FirebaseFirestore.instance.collection("chats").add({
+      "users": [expertId, clientId],
+      "lastMessage": "",
+      "lastMessageTime": FieldValue.serverTimestamp(),
+    });
+
+    return created.id;
+  }
+
   String _formatTime(dynamic raw) {
     if (raw is! Timestamp) return "";
     final date = raw.toDate();
     return "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
   }
+}
+
+class _ExpertChatItem {
+  final String chatId;
+  final String otherUserId;
+  final Map<String, dynamic> data;
+
+  const _ExpertChatItem({
+    required this.chatId,
+    required this.otherUserId,
+    required this.data,
+  });
 }

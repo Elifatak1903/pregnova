@@ -7,16 +7,22 @@ import 'package:flutter/material.dart';
 import 'l10n/app_localizations.dart';
 
 class UzmanBasvuruPage extends StatefulWidget {
-  const UzmanBasvuruPage({super.key});
+  final bool fromRegister;
+
+  const UzmanBasvuruPage({super.key, this.fromRegister = false});
 
   @override
   State<UzmanBasvuruPage> createState() => _UzmanBasvuruPageState();
 }
 
 class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
-  PlatformFile? selectedFile;
   final _formKey = GlobalKey<FormState>();
+  final nameController = TextEditingController();
+  final surnameController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
+  PlatformFile? selectedFile;
   String role = 'dietitian';
   String licenseNo = '';
   String experience = '';
@@ -30,13 +36,22 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
   @override
   void initState() {
     super.initState();
-    checkApplicationStatus();
+    if (!widget.fromRegister) {
+      checkApplicationStatus();
+    }
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    surnameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   Future<void> pickFile() async {
-    final result = await FilePicker.platform.pickFiles(
-      withData: true,
-    );
+    final result = await FilePicker.platform.pickFiles(withData: true);
 
     if (result != null) {
       setState(() {
@@ -51,14 +66,12 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
     final file = selectedFile!;
 
     if (file.bytes == null) {
-      throw Exception("Dosya verisi okunamadı. pickFiles içinde withData: true olmalı.");
+      throw Exception("Dosya verisi okunamadı.");
     }
 
     final safeFileName = file.name.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
-
     final path =
         'expert_documents/${FirebaseAuth.instance.currentUser!.uid}/${DateTime.now().millisecondsSinceEpoch}_$safeFileName';
-
     final ref = FirebaseStorage.instance.ref(path);
 
     final uploadTask = await ref.putData(
@@ -70,7 +83,7 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
       ),
     );
 
-    return await uploadTask.ref.getDownloadURL();
+    return uploadTask.ref.getDownloadURL();
   }
 
   Future<void> checkApplicationStatus() async {
@@ -97,60 +110,49 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
     if (isLoading) return;
 
     if (selectedFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.uploadDocumentPrompt),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showSnack(l10n.uploadDocumentPrompt, isError: true);
       return;
     }
 
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Kullanıcı oturumu bulunamadı."),
-          backgroundColor: Colors.red,
-        ),
-      );
+    if (widget.fromRegister && !_validateRegisterFields(l10n)) {
+      return;
+    }
+
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user == null && !widget.fromRegister) {
+      _showSnack("Kullanıcı oturumu bulunamadı.", isError: true);
       return;
     }
 
     setState(() => isLoading = true);
 
     try {
+      if (widget.fromRegister) {
+        user = await _createPendingExpertAccount();
+      }
+
+      if (user == null) {
+        throw Exception("Kullanıcı oturumu bulunamadı.");
+      }
+
       final docRef = FirebaseFirestore.instance
           .collection('expert_applications')
           .doc(user.uid);
-
       final existingDoc = await docRef.get();
-
       final existingData = existingDoc.data();
 
-      if (existingDoc.exists &&
-          existingData != null &&
-          existingData['status'] == 'pending') {
+      if (existingData?['status'] == 'pending') {
         if (!mounted) return;
-
         setState(() => isLoading = false);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.applicationAlreadyPending)),
-        );
+        _showSnack(l10n.applicationAlreadyPending);
         return;
       }
 
-      if (existingDoc.exists &&
-          existingData != null &&
-          existingData['status'] == 'approved') {
+      if (existingData?['status'] == 'approved') {
         if (!mounted) return;
-
         setState(() => isLoading = false);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.alreadyExpert)),
-        );
+        _showSnack(l10n.alreadyExpert);
         return;
       }
 
@@ -162,8 +164,14 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
 
       final data = <String, dynamic>{
         'uid': user.uid,
-        'email': user.email ?? '',
-        'fullName': user.displayName ?? '',
+        'email': widget.fromRegister
+            ? emailController.text.trim()
+            : user.email ?? '',
+        'fullName': widget.fromRegister
+            ? "${nameController.text.trim()} ${surnameController.text.trim()}"
+            : user.displayName ?? '',
+        if (widget.fromRegister) 'name': nameController.text.trim(),
+        if (widget.fromRegister) 'surname': surnameController.text.trim(),
         'role': role,
         'licenseNumber': licenseNo.trim(),
         'experience': experience.trim(),
@@ -181,6 +189,11 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
 
       await docRef.set(data, SetOptions(merge: true));
 
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'expertApplicationStatus': 'pending',
+        'requestedRole': role,
+      }, SetOptions(merge: true));
+
       await FirebaseFirestore.instance.collection('notification').add({
         'uid': user.uid,
         'title': l10n.expertApplicationReceivedTitle,
@@ -197,28 +210,113 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
         applicationStatus = 'pending';
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.applicationReceived),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-        ),
-      );
-
-      Navigator.pop(context);
+      if (widget.fromRegister) {
+        await FirebaseAuth.instance.signOut();
+        if (!mounted) return;
+        await _showRegisterSuccessDialog();
+        if (!mounted) return;
+        Navigator.pop(context);
+      } else {
+        _showSnack(l10n.applicationReceived);
+        Navigator.pop(context);
+      }
     } catch (e) {
-      debugPrint("UZMAN BAŞVURU HATASI: $e");
+      debugPrint("UZMAN BASVURU HATASI: $e");
 
       if (!mounted) return;
 
       setState(() => isLoading = false);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Başvuru gönderilirken hata oluştu: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showSnack(_submitErrorText(e), isError: true);
     }
+  }
+
+  bool _validateRegisterFields(AppLocalizations l10n) {
+    final name = nameController.text.trim();
+    final surname = surnameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (name.isEmpty || surname.isEmpty || email.isEmpty || password.isEmpty) {
+      _showSnack(l10n.fillAllFields, isError: true);
+      return false;
+    }
+
+    if (password.length < 6) {
+      _showSnack(l10n.passwordMinLength, isError: true);
+      return false;
+    }
+
+    return true;
+  }
+
+  Future<User> _createPendingExpertAccount() async {
+    final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+    );
+
+    final user = credential.user!;
+    final fullName =
+        "${nameController.text.trim()} ${surnameController.text.trim()}";
+
+    await user.updateDisplayName(fullName);
+
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      'name': nameController.text.trim(),
+      'surname': surnameController.text.trim(),
+      'email': emailController.text.trim(),
+      'role': 'expert_pending',
+      'requestedRole': role,
+      'expertApplicationStatus': 'pending',
+      'createdAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    return user;
+  }
+
+  Future<void> _showRegisterSuccessDialog() {
+    return showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text("İsteğiniz oluşturuldu"),
+        content: const Text(
+          "Uzman başvurunuz admin onayına gönderildi. Giriş yapabilirsiniz; onaylanana kadar başvuru beklemede ekranı gösterilecek.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text("Tamam"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _submitErrorText(Object error) {
+    if (error is FirebaseAuthException) {
+      if (error.code == 'email-already-in-use') {
+        return "Bu e-posta ile kayıtlı bir hesap var.";
+      }
+      if (error.code == 'invalid-email') {
+        return "Geçerli bir e-posta adresi girin.";
+      }
+      if (error.code == 'weak-password') {
+        return "Şifre daha güçlü olmalı.";
+      }
+    }
+
+    return "Başvuru gönderilirken hata oluştu: $error";
+  }
+
+  void _showSnack(String text, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text),
+        backgroundColor: isError
+            ? Colors.red
+            : Theme.of(context).colorScheme.primary,
+      ),
+    );
   }
 
   Widget buildStatusView() {
@@ -283,6 +381,42 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
+                        if (widget.fromRegister) ...[
+                          TextFormField(
+                            controller: nameController,
+                            decoration: buildInput(context, "İsim"),
+                            validator: (value) =>
+                                value == null || value.trim().isEmpty
+                                    ? l10n.requiredField
+                                    : null,
+                          ),
+                          TextFormField(
+                            controller: surnameController,
+                            decoration: buildInput(context, "Soy isim"),
+                            validator: (value) =>
+                                value == null || value.trim().isEmpty
+                                    ? l10n.requiredField
+                                    : null,
+                          ),
+                          TextFormField(
+                            controller: emailController,
+                            decoration: buildInput(context, l10n.emailField),
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) =>
+                                value == null || value.trim().isEmpty
+                                    ? l10n.requiredField
+                                    : null,
+                          ),
+                          TextFormField(
+                            controller: passwordController,
+                            decoration: buildInput(context, l10n.password),
+                            obscureText: true,
+                            validator: (value) =>
+                                value == null || value.length < 6
+                                    ? l10n.passwordMinLength
+                                    : null,
+                          ),
+                        ],
                         DropdownButtonFormField<String>(
                           value: role,
                           items: [
@@ -334,12 +468,10 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
                           icon: const Icon(Icons.upload_file),
                           label: Text(l10n.uploadDocument),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primary,
-                            foregroundColor: Theme.of(
-                              context,
-                            ).colorScheme.onPrimary,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
+                            foregroundColor:
+                                Theme.of(context).colorScheme.onPrimary,
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -358,12 +490,10 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primary,
-                            foregroundColor: Theme.of(
-                              context,
-                            ).colorScheme.onPrimary,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
+                            foregroundColor:
+                                Theme.of(context).colorScheme.onPrimary,
                             padding: const EdgeInsets.symmetric(
                               vertical: 16,
                               horizontal: 40,
@@ -374,7 +504,9 @@ class _UzmanBasvuruPageState extends State<UzmanBasvuruPage> {
                                   color: Colors.white,
                                 )
                               : Text(
-                                  l10n.submitApplication,
+                                  widget.fromRegister
+                                      ? "Kayıt ve Başvuru Oluştur"
+                                      : l10n.submitApplication,
                                   style: const TextStyle(color: Colors.white),
                                 ),
                         ),

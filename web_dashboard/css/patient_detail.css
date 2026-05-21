@@ -33,6 +33,69 @@
   height: 250px !important;
 }
 
+.card {
+  background: var(--card);
+  padding: 16px;
+  border-radius: 14px;
+  margin-bottom: 16px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+}
+
+.client-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.client-info-item {
+  min-height: 74px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(124,77,255,0.08);
+  border: 1px solid rgba(124,77,255,0.12);
+}
+
+.client-info-item span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.client-info-item strong {
+  display: block;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.client-info-item.warning {
+  background: rgba(255,171,0,0.12);
+  border-color: rgba(255,171,0,0.22);
+}
+
+.client-info-item.danger {
+  background: rgba(239,83,80,0.12);
+  border-color: rgba(239,83,80,0.22);
+}
+
+.client-info-item.danger strong {
+  color: var(--danger);
+}
+
+.detail-filter {
+  width: 100%;
+  border: 1px solid rgba(124,77,255,0.20);
+  border-radius: 12px;
+  background: var(--card);
+  padding: 12px 14px;
+  color: var(--text);
+  font-weight: 700;
+  outline: none;
+}
+
 /* LIST */
 .measurement-card {
   background: var(--card);
@@ -40,6 +103,11 @@
   border-radius: 14px;
   margin-bottom: 12px;
   box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.measurement-card.selected-measurement {
+  border: 2px solid var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, white);
 }
 
 .measurement-grid {
@@ -194,4 +262,24 @@
   padding-top: 10px;
   border-top: 1px solid rgba(0,0,0,0.08);
   font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .right {
+    max-height: unset;
+  }
+
+  .client-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .client-info-grid {
+    grid-template-columns: 1fr;
+  }
 }

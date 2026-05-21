@@ -51,6 +51,10 @@ class RiskEngine {
       risk = RiskLevel.high;
     }
 
+    if ((sistolik >= 140 || diastolik >= 90) && risk == RiskLevel.low) {
+      risk = RiskLevel.medium;
+    }
+
     final query = await FirebaseFirestore.instance
         .collection("risk_olcumleri")
         .where("uid", isEqualTo: uid)
@@ -97,14 +101,25 @@ class RiskEngine {
 
     int score = 0;
 
-    if ((aclik ?? 0) >= 100) score += 2;
+    if ((aclik ?? 0) >= 95) score += 2;
     if ((tokluk ?? 0) >= 140) score += 2;
     if (asiriSusama) score += 1;
     if (sikIdrar) score += 1;
     if (diabetes) score += 2;
 
-    if (score <= 2) return RiskLevel.low;
-    if (score <= 5) return RiskLevel.medium;
+    final risk = score <= 2
+        ? RiskLevel.low
+        : score <= 5
+            ? RiskLevel.medium
+            : RiskLevel.high;
+
+    if (((aclik ?? 0) >= 95 || (tokluk ?? 0) >= 140) &&
+        risk == RiskLevel.low) {
+      return RiskLevel.medium;
+    }
+
+    if (risk == RiskLevel.low) return RiskLevel.low;
+    if (risk == RiskLevel.medium) return RiskLevel.medium;
     return RiskLevel.high;
   }
 

@@ -21,6 +21,16 @@
 
         <div class="top-bar">
             <h1 class="page-title" data-i18n="dietitianPanel">Diyetisyen Paneli</h1>
+            <div class="notification-btn" onclick="toggleNotifications(event)">
+                <span class="notification-mark" aria-hidden="true"></span>
+                <span class="badge"></span>
+                <div id="notifDropdown" class="notif-dropdown hidden">
+                    <div id="notifList" class="notif-list"></div>
+                    <div class="notif-footer" onclick="openNotificationsPage(event)" data-i18n="viewAll">
+                        Tumunu Gor ->
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- STATS -->

@@ -30,7 +30,7 @@ window.saveDiet = async () => {
 
   alert(t("saved"));
 
-  window.location.href = "dietitian.html";
+  window.location.href = "diet_history.html";
 };
 
 function val(id) {

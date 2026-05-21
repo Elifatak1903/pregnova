@@ -22,15 +22,6 @@
         <!-- TOP BAR -->
         <div class="top-bar">
             <h1 class="page-title" data-i18n="nutritionAnalysis">Besin Analizi</h1>
-
-            <div class="notification-btn" onclick="toggleNotifications(event)">
-                <span class="notification-mark" aria-hidden="true"></span>
-                <span class="badge"></span>
-
-                <div id="notifDropdown" class="notif-dropdown hidden">
-                    <div id="notifList"></div>
-                </div>
-            </div>
         </div>
 
         <!-- CONTENT -->
@@ -38,7 +29,7 @@
 
             <!-- BESİN -->
             <div class="card">
-                <h3><span class="plain-icon">FOOD</span> <span data-i18n="addFood">Besin Ekle</span></h3>
+                <h3><span class="plain-icon"></span> <span data-i18n="addFood">Besin Ekle</span></h3>
 
                 <div class="input-group">
                     <input id="foodName" data-i18n-placeholder="foodNamePlaceholder" placeholder="Besin adı (örn: süt)">
@@ -55,7 +46,7 @@
                         <option value="ölçek" data-i18n="scoop">Ölçek</option>
                     </select>
 
-                    <button class="small-btn" onclick="addFood()">
+                    <button class="small-btn" onclick="addFood()" data-i18n="addFood">
                         Besin Ekle
                     </button>
                 </div>
@@ -65,7 +56,7 @@
 
             <!-- TAKVİYE -->
             <div class="card">
-                <h3><span class="plain-icon">SUPP</span> <span data-i18n="addSupplement">Takviye Ekle</span></h3>
+                <h3><span class="plain-icon"></span> <span data-i18n="addSupplement">Takviye Ekle</span></h3>
 
                 <div class="input-group">
 
@@ -75,7 +66,7 @@
 
                     <input id="supUnit" data-i18n-placeholder="unit" placeholder="Birim" readonly>
 
-                    <button class="small-btn" onclick="addSupplement()">
+                    <button class="small-btn" onclick="addSupplement()" data-i18n="addSupplement">
                         Takviye Ekle
                     </button>
 
@@ -88,27 +79,55 @@
 
         <!-- ANALİZ BUTON -->
         <button class="analyze-btn" onclick="saveAnalysis()">
-            <span class="plain-icon">ANL</span> <span data-i18n="analyze">Analiz Yap</span>
+            <span class="plain-icon"></span> <span data-i18n="analyze">Analiz Yap</span>
         </button>
 
         <div class="result-box hidden-result" id="resultBox">
 
-            <div class="progress-container">
-                <p data-i18n="calories">Kalori</p>
-                <div class="progress-bar">
-                    <div id="calorieBar" class="progress-fill"></div>
+            <div class="result-grid">
+                <div class="result-panel">
+                    <h3 data-i18n="currentAnalysisResult">Bu Analizin Sonucu</h3>
+
+                    <div class="progress-container">
+                        <p data-i18n="calories">Kalori</p>
+                        <div class="progress-bar">
+                            <div id="calorieBar" class="progress-fill"></div>
+                        </div>
+                        <span id="calorieText"></span>
+                    </div>
+
+                    <div>
+                        <p data-i18n="missingNutrients">Eksik Besinler</p>
+                        <div id="missingList" class="badge-container"></div>
+                    </div>
+
+                    <div>
+                        <p data-i18n="excessNutrients">Fazla Besinler</p>
+                        <div id="excessList" class="badge-container"></div>
+                    </div>
                 </div>
-                <span id="calorieText"></span>
-            </div>
 
-            <div>
-                <p data-i18n="missingNutrients">Eksik Besinler</p>
-                <div id="missingList" class="badge-container"></div>
-            </div>
+                <div class="result-panel hidden-result" id="dailyResultPanel">
+                    <h3 data-i18n="dailyTotalAnalysisResult">Günlük Toplam Analiz Sonucu</h3>
 
-            <div>
-                <p data-i18n="excessNutrients">Fazla Besinler</p>
-                <div id="excessList" class="badge-container"></div>
+                    <div class="progress-container">
+                        <p data-i18n="dailyTotalCalories">Günlük Toplam Kalori</p>
+                        <div class="progress-bar">
+                            <div id="dailyCalorieBar" class="progress-fill"></div>
+                        </div>
+                        <span id="dailyCalorieText"></span>
+                    </div>
+
+                    <div>
+                        <p data-i18n="missingNutrients">Eksik Besinler</p>
+                        <div id="dailyMissingList" class="badge-container"></div>
+                    </div>
+
+                    <div>
+                        <p data-i18n="excessNutrients">Fazla Besinler</p>
+                        <div id="dailyExcessList" class="badge-container"></div>
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -120,34 +139,52 @@
 <script type="module" src="nutrition.js"></script>
 
 <script>
-    window.showResult = function(result){
+    window.showResult = function(result, dailyResult = null){
       document.getElementById("resultBox")
         .classList.remove("hidden-result");
 
-      const totalCalories = result.totalCalories ?? 0;
-      const calorieText = document.getElementById("calorieText");
-      const calorieBar = document.getElementById("calorieBar");
-      const missingList = document.getElementById("missingList");
-      const excessList = document.getElementById("excessList");
+      renderNutritionResult(result, {
+        calorieText: "calorieText",
+        calorieBar: "calorieBar",
+        missingList: "missingList",
+        excessList: "excessList"
+      });
 
-      if (calorieText) {
-        calorieText.innerText = `${totalCalories} kcal`;
+      const dailyPanel = document.getElementById("dailyResultPanel");
+      if (dailyResult) {
+        dailyPanel?.classList.remove("hidden-result");
+        renderNutritionResult(dailyResult, {
+          calorieText: "dailyCalorieText",
+          calorieBar: "dailyCalorieBar",
+          missingList: "dailyMissingList",
+          excessList: "dailyExcessList"
+        });
+      } else {
+        dailyPanel?.classList.add("hidden-result");
       }
+    };
 
+    function renderNutritionResult(result, ids) {
+      const totalCalories = result?.totalCalories ?? 0;
+      const calorieText = document.getElementById(ids.calorieText);
+      const calorieBar = document.getElementById(ids.calorieBar);
+      const missingList = document.getElementById(ids.missingList);
+      const excessList = document.getElementById(ids.excessList);
+      const noneText = window.pregnovaT ? window.pregnovaT("none") : "Yok";
+
+      if (calorieText) calorieText.innerText = `${totalCalories} kcal`;
       if (calorieBar) {
         calorieBar.style.width = `${Math.min((totalCalories / 2500) * 100, 100)}%`;
       }
-
       if (missingList) {
-        missingList.innerText = result.missingNutrients?.length
+        missingList.innerText = result?.missingNutrients?.length
           ? result.missingNutrients.join(", ")
-          : (window.pregnovaT ? window.pregnovaT("none") : "Yok");
+          : noneText;
       }
-
       if (excessList) {
-        excessList.innerText = result.excessNutrients?.length
+        excessList.innerText = result?.excessNutrients?.length
           ? result.excessNutrients.join(", ")
-          : (window.pregnovaT ? window.pregnovaT("none") : "Yok");
+          : noneText;
       }
     };
 

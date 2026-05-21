@@ -22,16 +22,29 @@
 .card-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 12px;
   font-weight: bold;
   color: var(--primary);
   margin-bottom: 15px;
 }
 
-.card-header button {
-  background: none;
+.delete-btn {
   border: none;
+  border-radius: 10px;
+  padding: 8px 13px;
+
+  background: #fff0f0;
+  color: #e53935;
+
+  font-weight: 800;
   cursor: pointer;
-  font-size: 18px;
+  transition: 0.2s;
+}
+
+.delete-btn:hover {
+  background: #e53935;
+  color: white;
 }
 
 /* SECTION */

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'l10n/app_localizations.dart';
 import 'main.dart';
 import 'register_page.dart';
+import 'uzman_basvuru_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -28,6 +29,18 @@ class _LoginPageState extends State<LoginPage> {
 
   void login() async {
     final l10n = AppLocalizations.of(context)!;
+
+    if (emailController.text.trim().isEmpty ||
+        passwordController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.fillAllFields),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() => _loading = true);
 
     try {
@@ -134,6 +147,23 @@ class _LoginPageState extends State<LoginPage> {
                 child: Text(
                   l10n.noAccountRegister,
                   style: const TextStyle(color: brandColor),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const UzmanBasvuruPage(fromRegister: true),
+                    ),
+                  );
+                },
+                child: const Text(
+                  "Uzman olarak kayıt ol",
+                  style: TextStyle(
+                    color: brandColor,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],

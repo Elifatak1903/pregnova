@@ -35,7 +35,8 @@ const sidebarGroups = {
       page: "dietitian.html",
       children: [
         { labelKey: "recentAnalyses", icon: "analyses", page: "son_analizler.html" },
-        { labelKey: "writeDiet", icon: "diet", page: "select_client_for_diet.html" }
+        { labelKey: "writeDiet", icon: "diet", page: "select_client_for_diet.html" },
+        { labelKey: "dietHistory", icon: "history", page: "diet_history.html" }
       ]
     },
     { labelKey: "clients", icon: "clients", page: "dietitian_clients.html" },

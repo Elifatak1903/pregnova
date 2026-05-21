@@ -29,6 +29,24 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
     uid = FirebaseAuth.instance.currentUser!.uid;
   }
 
+  Future<void> _getOrCreateChat(String expertId, String clientId) async {
+    final existing = await FirebaseFirestore.instance
+        .collection("chats")
+        .where("users", arrayContains: expertId)
+        .get();
+
+    for (final doc in existing.docs) {
+      final users = List<String>.from(doc.data()["users"] ?? []);
+      if (users.contains(clientId)) return;
+    }
+
+    await FirebaseFirestore.instance.collection("chats").add({
+      "users": [expertId, clientId],
+      "lastMessage": "",
+      "lastMessageTime": FieldValue.serverTimestamp(),
+    });
+  }
+
   Future<int> getApprovedCount() async {
     final query = await FirebaseFirestore.instance
         .collection("expert_requests")
@@ -222,6 +240,8 @@ class _DietitianHomePageState extends State<DietitianHomePage> {
                                 .set({
                                   'assignedDietitian': uid,
                                 }, SetOptions(merge: true));
+
+                            await _getOrCreateChat(uid, clientId);
 
                             await FirebaseFirestore.instance
                                 .collection("notification")

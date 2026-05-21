@@ -49,6 +49,10 @@ export async function calculatePreeklampsi({
   else if (score <= 5) risk = RiskLevel.MEDIUM;
   else risk = RiskLevel.HIGH;
 
+  if ((sistolik >= 140 || diastolik >= 90) && risk === RiskLevel.LOW) {
+    risk = RiskLevel.MEDIUM;
+  }
+
   const q = query(
     collection(getDB(), "risk_olcumleri"),
     where("uid", "==", uid),
@@ -88,22 +92,30 @@ export function calculateDiyabet({
   idrar,
   diabetes = false
 }) {
+  const fasting = Number.isFinite(Number(aclik)) ? Number(aclik) : null;
+  const postMeal = Number.isFinite(Number(tokluk)) ? Number(tokluk) : null;
 
-  if ((aclik >= 126) || (tokluk >= 200)) {
+  if ((fasting !== null && fasting >= 126) || (postMeal !== null && postMeal >= 200)) {
     return RiskLevel.HIGH;
   }
 
   let score = 0;
 
-  if (aclik >= 100) score += 2;
-  if (tokluk >= 140) score += 2;
+  if (fasting !== null && fasting >= 95) score += 2;
+  if (postMeal !== null && postMeal >= 140) score += 2;
   if (susama) score += 1;
   if (idrar) score += 1;
   if (diabetes) score += 2;
 
-  if (score <= 2) return RiskLevel.LOW;
-  if (score <= 5) return RiskLevel.MEDIUM;
-  return RiskLevel.HIGH;
+  let risk = RiskLevel.HIGH;
+  if (score <= 2) risk = RiskLevel.LOW;
+  else if (score <= 5) risk = RiskLevel.MEDIUM;
+
+  if (((fasting !== null && fasting >= 95) || (postMeal !== null && postMeal >= 140)) && risk === RiskLevel.LOW) {
+    return RiskLevel.MEDIUM;
+  }
+
+  return risk;
 }
 
 export function calculatePreterm({

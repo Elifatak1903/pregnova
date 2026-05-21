@@ -14,6 +14,7 @@ import {
 import { FoodUnits } from "./foodUnits.js";
 import { NutritionEngine } from "./nutritionEngine.js";
 import { SupplementUnits } from "./supplementUnits.js";
+import { displaySupplementName } from "./nutritionDisplay.js";
 import { t } from "./i18n.js";
 
 const db = window.db;
@@ -88,14 +89,16 @@ function renderAnalysis(item, index) {
     .join("");
 
   const sups = (data.takviyeler || [])
-    .map(s => `<div class="tag">${s.ad} (${s.miktar} ${s.format || s.birim || ""})</div>`)
+    .map(s => `<div class="tag">${displaySupplementName(s.ad || s.name)} (${s.miktar} ${s.format || s.birim || ""})</div>`)
     .join("");
 
   return `
     <div class="section">
       <div class="card-header">
         <span>${t("analysisNumber", { number: index + 1, time })}</span>
-        <button onclick="deleteItem('${item.id}')">x</button>
+        <button class="delete-btn" onclick="deleteItem('${item.id}')">
+          ${t("delete")}
+        </button>
       </div>
       <h4>${t("foods")}</h4>
       <div class="tag-container">${foods || t("none")}</div>
